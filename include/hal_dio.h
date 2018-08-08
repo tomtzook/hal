@@ -11,10 +11,10 @@ typedef enum {
 hal_result_t hal_dio_init_module();
 void hal_dio_free_module();
 
-hal_result_t hal_dio_init(port_id_t port_id, port_dir_t port_dir, hal_handle_t* result);
-hal_result_t hal_dio_free(hal_handle_t hal_handle);
+hal_result_t hal_dio_init(port_id_t port_id, port_dir_t port_dir, hal_handle_t* port_handle);
+hal_result_t hal_dio_free(hal_handle_t port_handle);
 
-hal_result_t hal_dio_set(hal_handle_t hal_handle, dio_value_t dio_value);
-hal_result_t hal_dio_get(hal_handle_t hal_handle, dio_value_t* result);
+hal_result_t hal_dio_set(hal_handle_t port_handle, dio_value_t dio_value);
+hal_result_t hal_dio_get(hal_handle_t port_handle, dio_value_t* dio_value);
 
 #endif //HAL_DIO_H
