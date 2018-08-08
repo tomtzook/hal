@@ -3,4 +3,10 @@ project(hal C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_library(hal)
+set(BASE_INTERFACE
+        include/hal.h
+        include/hal_dio.h
+        include/hal_types.h)
+
+add_library(hal
+        ${BASE_INTERFACE})
