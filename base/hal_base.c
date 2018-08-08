@@ -1,5 +1,6 @@
 #include <hal.h>
 #include <hal_dio.h>
+#include <log.h>
 
 #include "hal_global.h"
 
@@ -15,6 +16,7 @@ hal_initialization_result_t hal_initialize() {
 
     init_result = hal_dio_init_module();
     if (init_result != HAL_SUCCESS) {
+        LOGLN("failed to init dio module: %d", init_result);
         return HAL_DIO_INITIALIZATION_ERROR;
     }
 

@@ -4,10 +4,10 @@
 #include <stdio.h>
 
 #define LOG(X...) \
-    printf(X...)
+    printf(X)
 
 #define LOGLN(X...) \
-    LOG(X...); \
+    LOG(X); \
     printf("\n");
 
 #endif //HAL_LOG_H

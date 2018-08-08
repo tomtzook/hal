@@ -1,6 +1,7 @@
 #include <hal_dio.h>
 #include <dio_interface.h>
 #include <lookup_table.h>
+#include <log.h>
 #include <stdlib.h>
 
 #include "hal_global.h"
@@ -33,10 +34,13 @@ hal_result_t hal_dio_init_module() {
 
     lookup_table_result_t table_init_result = lookup_table_init(&dio_table);
     if (table_init_result != LOOKUP_TABLE_SUCCESS) {
+        LOGLN("failed to initialize lookup table: %d", table_init_result);
         return HAL_INITIALIZATION_ERROR;
     }
 
-    if (!dio_init()) {
+    int hw_init_result = dio_init();
+    if (hw_init_result) {
+        LOGLN("failed to init hardware interface: %d", hw_init_result);
         lookup_table_free(&dio_table);
         return HAL_IO_ERROR;
     }
@@ -166,6 +170,7 @@ hal_handle_t find_port_in_table(port_id_t port_id) {
 
     for (index = 0; index < dio_table.capacity; ++index) {
         lookup_table_result_t result = lookup_table_get(&dio_table, index, (void **) &port);
+
         if (result == LOOKUP_TABLE_SUCCESS && port_id_compare(port->port_id, port_id)) {
             return (hal_handle_t) index;
         }
@@ -179,6 +184,7 @@ dio_port_t* get_port_from_table(hal_handle_t hal_handle) {
     lookup_table_result_t result = lookup_table_get(&dio_table, (lookup_table_index_t) hal_handle, (void**) &port);
 
     if (result != LOOKUP_TABLE_SUCCESS) {
+        LOGLN("failed to get port from table: %d", result);
         return NULL;
     }
 
@@ -191,6 +197,7 @@ hal_handle_t insert_port_to_table(dio_port_t* port) {
     lookup_table_result_t result = lookup_table_insert(&dio_table, port, (lookup_table_index_t*) &hal_handle);
 
     if (result != LOOKUP_TABLE_SUCCESS) {
+        LOGLN("failed to insert port into table: %d", result);
         return HAL_INVALID_HANDLE;
     }
 
@@ -201,6 +208,7 @@ int remove_port_from_table(hal_handle_t hal_handle) {
     lookup_table_result_t result = lookup_table_remove(&dio_table, (lookup_table_index_t) hal_handle);
 
     if (result != LOOKUP_TABLE_SUCCESS) {
+        LOGLN("failed to remove port from table: %d", result);
         return 0;
     }
 
