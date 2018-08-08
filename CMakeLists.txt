@@ -6,6 +6,7 @@ set(CMAKE_C_STANDARD 11)
 include_directories(include)
 include_directories(util)
 include_directories(logging)
+include_directories(interface)
 
 set(BASE_INTERFACE
         include/hal.h
