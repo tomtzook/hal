@@ -3,10 +3,17 @@ project(hal C)
 
 set(CMAKE_C_STANDARD 11)
 
+include_directories(include)
+include_directories(util)
+
 set(BASE_INTERFACE
         include/hal.h
         include/hal_dio.h
         include/hal_types.h)
 
+set(UTIL
+        util/lookup_table.c)
+
 add_library(hal
-        ${BASE_INTERFACE})
+        ${BASE_INTERFACE}
+        ${UTIL})
