@@ -9,9 +9,8 @@ include_directories(logging)
 include_directories(interface)
 
 set(BASE_INTERFACE
-        include/hal.h
-        include/hal_dio.h
-        include/hal_types.h)
+        base/hal_base.c
+        base/hal_base_dio.c)
 
 set(UTIL
         util/lookup_table.c)
