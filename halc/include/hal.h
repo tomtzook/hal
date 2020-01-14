@@ -3,7 +3,7 @@
 
 #include "hal_types.h"
 
-hal_result_t hal_initialize(hal_env_t* env);
-void hal_shutdown(hal_env_t* env);
+hal_result_t hal_initialize(hal_env_t** env);
+void hal_clean(hal_env_t** env);
 
 #endif //HAL_HAL_H

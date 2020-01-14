@@ -5,15 +5,15 @@
 #include "util/lookup_table.h"
 
 #define HAL_IS_INITIALIZED(__ENV) \
-    1 == __ENV->initialized
+    NULL != __ENV && (__ENV)->initialized
 #define HAL_NOT_INITIALIZED(__ENV) \
-    0 == __ENV->initialized
+    NULL == __ENV || !(__ENV)->initialized
 
 
 #define HAL_SET_INITIALIZED(__ENV) \
-    __ENV->initialized = 1
+    (__ENV)->initialized = true
 #define HAL_SET_NOT_INITIALIZED(__ENV) \
-    __ENV->initialized = 0
+    (__ENV)->initialized = false
 
 typedef struct hal_env {
     bool initialized;

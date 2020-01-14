@@ -213,5 +213,5 @@ int remove_port_from_table(hal_env_t* env, hal_handle_t hal_handle) {
 }
 
 int port_id_compare(port_id_t first, port_id_t second) {
-    return first.connection == second.connection;
+    return first == second;
 }

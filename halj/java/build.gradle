@@ -12,9 +12,7 @@ dependencies {
 }
 
 jar {
-    //from fileTree("${project.buildDir}/libs/mclJni/shared")
-
-    archiveBaseName.set('mad360')
+    archiveBaseName.set('hal')
 
     archiveFileName.set("${archiveBaseName.get()}.${archiveExtension.get()}")
     destinationDirectory.set(project.buildDir)

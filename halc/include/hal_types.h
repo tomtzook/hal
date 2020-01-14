@@ -3,24 +3,19 @@
 
 #include <stdint.h>
 
+#define HAL_INVALID_HANDLE -1
+
 typedef struct hal_env hal_env_t;
 
 typedef int16_t hal_handle_t;
+typedef int16_t port_id_t;
 
-#define HAL_INVALID_HANDLE -1
-
-typedef int16_t port_connection_t;
-
-typedef enum {
+typedef enum port_dir {
     OUTPUT,
     INPUT
 } port_dir_t;
 
-typedef struct {
-    port_connection_t connection;
-} port_id_t;
-
-typedef enum {
+typedef enum hal_result {
     HAL_SUCCESS = 0,
     HAL_NOT_INITIALIZED = 1,
     HAL_ARGUMENT_ERROR = 2,
@@ -30,7 +25,9 @@ typedef enum {
     HAL_MEMORY_ALLOCATION_ERROR = 6,
     HAL_INITIALIZATION_ERROR = 7,
     HAL_ALREADY_INITIALIZED = 8,
-    HAL_DIO_INITIALIZATION_ERROR = 9
+    HAL_DIO_INITIALIZATION_ERROR = 9,
+
+    HAL_ENV_MALLOC_ERROR = 10
 } hal_result_t;
 
 #endif //HAL_HAL_TYPES_H
