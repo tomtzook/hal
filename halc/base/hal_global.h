@@ -2,6 +2,8 @@
 #define HAL_HAL_GLOBAL_H
 
 #include <stdbool.h>
+
+#include "interface/dio_interface.h"
 #include "util/lookup_table.h"
 
 #define HAL_IS_INITIALIZED(__ENV) \
@@ -18,6 +20,7 @@
 typedef struct hal_env {
     bool initialized;
     lookup_table_t dio_table;
+    dio_env_t* dio_env;
 } hal_env_t;
 
 #endif //HAL_HAL_GLOBAL_H

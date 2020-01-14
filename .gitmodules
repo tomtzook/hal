@@ -1,0 +1,3 @@
+[submodule "halj/jni/interfaces/bbb/bbbio"]
+	path = halj/jni/interfaces/bbb/bbbio
+	url = https://github.com/tomtzook/BBBIO.git
