@@ -62,14 +62,14 @@ hal_result_t hal_dio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir
     dio_port_t* port;
     hal_handle_t port_handle = find_port_in_table(env, port_id);
 
-    if (port_handle == HAL_INVALID_HANDLE) {
+    if (HAL_INVALID_HANDLE == port_handle) {
         port = malloc(sizeof(dio_port_t));
         if (port == NULL) {
             return HAL_MEMORY_ALLOCATION_ERROR;
         }
 
         port_handle = insert_port_to_table(env, port);
-        if (port_handle == HAL_INVALID_HANDLE) {
+        if (HAL_INVALID_HANDLE == port_handle) {
             free(port);
 
             return HAL_STORE_ERROR;

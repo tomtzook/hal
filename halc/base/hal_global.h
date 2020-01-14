@@ -5,9 +5,9 @@
 #include "util/lookup_table.h"
 
 #define HAL_IS_INITIALIZED(__ENV) \
-    __ENV->initialized == 1
+    1 == __ENV->initialized
 #define HAL_NOT_INITIALIZED(__ENV) \
-    __ENV->initialized == 0
+    0 == __ENV->initialized
 
 
 #define HAL_SET_INITIALIZED(__ENV) \
