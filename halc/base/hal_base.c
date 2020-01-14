@@ -8,7 +8,7 @@
 
 
 hal_result_t hal_initialize(hal_env_t** env) {
-    if (NULL != env) {
+    if (HAL_IS_INITIALIZED(*env)) {
         return HAL_ALREADY_INITIALIZED;
     }
 

@@ -5,6 +5,8 @@
 #include "logging/log.h"
 #include "interface/dio_interface.h"
 
+#define SUCCESS (0)
+
 typedef struct {
     port_id_t port_id;
     port_dir_t port_dir;
@@ -25,10 +27,6 @@ static int port_id_compare(port_id_t first, port_id_t second);
 
 
 hal_result_t hal_dio_init_module(hal_env_t* env) {
-    if (HAL_NOT_INITIALIZED(env)) {
-        return HAL_NOT_INITIALIZED;
-    }
-
     lookup_table_result_t table_init_result = lookup_table_init(&env->dio_table);
     if (table_init_result != LOOKUP_TABLE_SUCCESS) {
         LOGLN("failed to initialize lookup table: %d", table_init_result);
@@ -36,7 +34,7 @@ hal_result_t hal_dio_init_module(hal_env_t* env) {
     }
 
     int hw_init_result = dio_init();
-    if (hw_init_result) {
+    if (SUCCESS != hw_init_result) {
         LOGLN("failed to init hardware interface: %d", hw_init_result);
         lookup_table_free(&env->dio_table);
         return HAL_IO_ERROR;
@@ -75,7 +73,7 @@ hal_result_t hal_dio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir
             return HAL_STORE_ERROR;
         }
 
-        if (!dio_port_init(port_id, port_dir)) {
+        if (SUCCESS != dio_port_init(port_id, port_dir)) {
             remove_port_from_table(env, port_handle);
             free(port);
 
