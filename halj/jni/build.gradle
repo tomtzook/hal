@@ -1,6 +1,7 @@
-apply from: rootProject.file('cmake.gradle')
-
 ext.OUTPUT_BINARY = project.file('build/libhaljni.so')
+ext.CMAKE_PROPERTIES = '-DHAL_INTERFACE=interfaces/dummy'
+
+apply from: rootProject.file('cmake.gradle')
 
 task build {
     dependsOn project(':halc').tasks.build

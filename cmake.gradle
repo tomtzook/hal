@@ -6,6 +6,14 @@ def getToolchainFile() {
     return null
 }
 
+def getAdditionalProperties() {
+    if (project.ext.has('CMAKE_PROPERTIES')) {
+        return (String) project.ext.get('CMAKE_PROPERTIES')
+    }
+    return null
+}
+
+
 task deleteBuildDirectory(type: Delete) {
     delete project.file('build').absolutePath
 }
@@ -22,6 +30,11 @@ task runCmake(type: Exec, dependsOn: createBuildDirectory) {
     def toolchainFile = getToolchainFile()
     if (toolchainFile != null) {
         cmd.add toolchainFile
+    }
+
+    def additionalProperties = getAdditionalProperties()
+    if (additionalProperties != null) {
+        cmd.add additionalProperties
     }
 
     cmd.add '..'
