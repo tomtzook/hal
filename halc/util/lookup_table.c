@@ -25,7 +25,7 @@ static lookup_table_result_t increase_table_capacity(lookup_table_t* table);
 
 lookup_table_result_t
 lookup_table_init(lookup_table_t* table) {
-    if (table->table != NULL) {
+    if (NULL != table->table) {
         return LOOKUP_TABLE_ALREADY_INITIALIZED;
     }
 

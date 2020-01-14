@@ -17,6 +17,9 @@ hal_result_t hal_initialize(hal_env_t** env) {
         return HAL_ENV_MALLOC_ERROR;
     }
 
+    (*env)->dio_env = NULL;
+    (*env)->dio_table.table = NULL;
+
     hal_result_t init_result;
 
     init_result = hal_dio_init_module(*env);

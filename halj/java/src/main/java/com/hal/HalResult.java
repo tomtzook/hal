@@ -25,7 +25,7 @@ public enum HalResult {
 
     public void throwIfError() {
         if (mErrorCode != HAL_SUCCESS.mErrorCode) {
-            throw new HalException(mErrorCode);
+            throw new HalException(name(), mErrorCode);
         }
     }
 

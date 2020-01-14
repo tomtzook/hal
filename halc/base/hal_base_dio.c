@@ -28,7 +28,7 @@ static int port_id_compare(port_id_t first, port_id_t second);
 
 hal_result_t hal_dio_init_module(hal_env_t* env) {
     lookup_table_result_t table_init_result = lookup_table_init(&env->dio_table);
-    if (table_init_result != LOOKUP_TABLE_SUCCESS) {
+    if (LOOKUP_TABLE_SUCCESS != table_init_result) {
         LOGLN("failed to initialize lookup table: %d", table_init_result);
         return HAL_INITIALIZATION_ERROR;
     }
@@ -65,6 +65,10 @@ hal_result_t hal_dio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir
         if (NULL == port) {
             return HAL_MEMORY_ALLOCATION_ERROR;
         }
+
+        port->port_dir = port_dir;
+        port->port_id = port_id;
+        port->last_value = LOW;
 
         port_handle = insert_port_to_table(env, port);
         if (HAL_INVALID_HANDLE == port_handle) {
@@ -121,11 +125,11 @@ hal_result_t hal_dio_set(hal_env_t* env, hal_handle_t hal_handle, dio_value_t di
 
     dio_port_t* port = get_port_from_table(env, hal_handle);
 
-    if (port == NULL) {
+    if (NULL == port) {
         return HAL_PORT_NOT_INITIALIZED;
     }
 
-    if (port->port_dir != OUTPUT) {
+    if (OUTPUT != port->port_dir) {
         return HAL_ARGUMENT_ERROR;
     }
 
