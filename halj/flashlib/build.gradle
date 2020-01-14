@@ -6,20 +6,17 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
+    implementation project(':halj:java')
+    implementation group: 'com.flash3388.flashlib', name: 'flashlib', version: '2.2.0-test-io.1'
 }
 
-evaluationDependsOn(':halj:jni')
-
 jar {
-    from project(':halj:jni').property('OUTPUT_BINARY')
-
-    archiveBaseName.set('hal')
+    archiveBaseName.set('flashlib-hal')
 
     archiveFileName.set("${archiveBaseName.get()}.${archiveExtension.get()}")
     destinationDirectory.set(project.buildDir)
 }
-
-tasks.jar.dependsOn project(':halj:jni').tasks.build

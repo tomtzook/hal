@@ -2,6 +2,8 @@ package com.hal;
 
 public class Hal implements AutoCloseable {
 
+    public static final int INVALID_HANDLE = -1;
+
     private long mEnvPointer;
 
     private Hal(long envPointer) {
