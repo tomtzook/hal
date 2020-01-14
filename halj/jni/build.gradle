@@ -1,0 +1,54 @@
+import org.gradle.internal.jvm.Jvm
+
+plugins {
+    id 'cpp-library'
+}
+
+def libIncludePath = file('libs/include')
+def libReleaseLib = file('libs/Mad360.dll')
+def libReleaseLinkLib = file('libs/Mad360.lib')
+
+repositories {
+    mavenCentral()
+}
+
+components.main.binaries.whenElementFinalized { binary ->
+    project.dependencies {
+        add(binary.includePathConfiguration.name, files(libIncludePath))
+        add(binary.linkLibraries.name, files(libReleaseLinkLib))
+        add(binary.runtimeLibraries.name, files(libReleaseLib))
+    }
+}
+
+library {
+    baseName.set('pixy')
+    linkage.set([Linkage.SHARED])
+    targetMachines.set([
+            machines.linux.x86_64
+    ])
+
+    binaries.configureEach { binary ->
+        def compileTask = binary.compileTask.get()
+
+        compileTask.source.from fileTree(dir: "src/main/c", include: "**/*.c")
+
+        compileTask.includes.from("${Jvm.current().javaHome}/include")
+
+        def osFamily = binary.targetPlatform.targetMachine.operatingSystemFamily
+        if (osFamily.linux) {
+            compileTask.includes.from("${Jvm.current().javaHome}/include/linux")
+        } else if (osFamily.macOs) {
+            compileTask.includes.from("${Jvm.current().javaHome}/include/darwin")
+        } else if (osFamily.windows) {
+            compileTask.includes.from("${Jvm.current().javaHome}/include/win32")
+        }
+        
+        compileTask.compilerArgs.addAll compileTask.toolChain.map { toolchain ->
+            if (!(toolchain instanceof GccCompatibleToolChain)) {
+                throw new GradleException("Unsupported toolchain " + toolchain.displayName)
+            }
+
+            return ["-x", "c", "-std=c11"]
+        }
+    }
+}

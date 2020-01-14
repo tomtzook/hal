@@ -7,7 +7,7 @@
 
 int hal_initialized = 0;
 
-hal_initialization_result_t hal_initialize() {
+hal_result_t hal_initialize() {
     if (HAL_IS_INITIALIZED()) {
         return HAL_ALREADY_INITIALIZED;
     }
@@ -21,7 +21,7 @@ hal_initialization_result_t hal_initialize() {
     }
 
     HAL_SET_INITIALIZED();
-    return HAL_INITIALIZATION_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 void hal_shutdown() {

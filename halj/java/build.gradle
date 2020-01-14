@@ -1,0 +1,21 @@
+plugins {
+    id 'java-library'
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+}
+
+jar {
+    //from fileTree("${project.buildDir}/libs/mclJni/shared")
+
+    archiveBaseName.set('mad360')
+
+    archiveFileName.set("${archiveBaseName.get()}.${archiveExtension.get()}")
+    destinationDirectory.set(project.buildDir)
+}

@@ -4,6 +4,7 @@
 /.idea/
 /.cmake/
 /cmake-build-debug/
+.gradle/
 
 # Prerequisites
 *.d
