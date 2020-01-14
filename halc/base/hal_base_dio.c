@@ -62,7 +62,7 @@ hal_result_t hal_dio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir
 
     if (HAL_INVALID_HANDLE == port_handle) {
         port = malloc(sizeof(dio_port_t));
-        if (port == NULL) {
+        if (NULL == port) {
             return HAL_MEMORY_ALLOCATION_ERROR;
         }
 
@@ -161,12 +161,13 @@ hal_result_t hal_dio_get(hal_env_t* env, hal_handle_t hal_handle, dio_value_t* r
 
 hal_handle_t find_port_in_table(hal_env_t* env, port_id_t port_id) {
     dio_port_t* port;
+    lookup_table_t* dio_table = &(env->dio_table);
     lookup_table_index_t index;
 
     for (index = 0; index < env->dio_table.capacity; ++index) {
-        lookup_table_result_t result = lookup_table_get(&env->dio_table, index, (void **) &port);
+        lookup_table_result_t result = lookup_table_get(dio_table, index, (void **) &port);
 
-        if (result == LOOKUP_TABLE_SUCCESS && port_id_compare(port->port_id, port_id)) {
+        if (LOOKUP_TABLE_SUCCESS == result && port_id_compare(port->port_id, port_id)) {
             return (hal_handle_t) index;
         }
     }
@@ -187,11 +188,12 @@ dio_port_t* get_port_from_table(hal_env_t* env, hal_handle_t hal_handle) {
 }
 
 hal_handle_t insert_port_to_table(hal_env_t* env, dio_port_t* port) {
-    hal_handle_t hal_handle;
+    hal_handle_t hal_handle = HAL_INVALID_HANDLE;
 
-    lookup_table_result_t result = lookup_table_insert(&env->dio_table, port, (lookup_table_index_t*) &hal_handle);
+    lookup_table_result_t result = lookup_table_insert(&(env->dio_table), port,
+            (lookup_table_index_t*) &hal_handle);
 
-    if (result != LOOKUP_TABLE_SUCCESS) {
+    if (LOOKUP_TABLE_SUCCESS != result) {
         LOGLN("failed to insert port into table: %d", result);
         return HAL_INVALID_HANDLE;
     }

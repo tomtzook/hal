@@ -8,6 +8,6 @@
 
 #define LOGLN(X...) \
     LOG(X); \
-    printf("\n");
+    printf("\n")
 
 #endif //HAL_LOG_H

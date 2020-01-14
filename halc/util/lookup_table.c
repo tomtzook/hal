@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+
 #include "lookup_table.h"
 
 
@@ -18,7 +19,7 @@
     }
 
 
-static size_t get_next_free_index(lookup_table_t* table);
+static lookup_table_index_t get_next_free_index(lookup_table_t* table);
 static lookup_table_result_t increase_table_capacity(lookup_table_t* table);
 
 
@@ -32,6 +33,8 @@ lookup_table_init(lookup_table_t* table) {
     if (table_ptr == NULL) {
         return LOOKUP_TABLE_MEMORY_ALLOCATION_ERROR;
     }
+
+    memset(table_ptr, 0, DEFAULT_CAPACITY * sizeof(void*));
 
     table->table = table_ptr;
     table->capacity = DEFAULT_CAPACITY;
@@ -55,7 +58,7 @@ lookup_table_result_t
 lookup_table_insert(lookup_table_t* table, void* obj, lookup_table_index_t* result_index) {
     CHECK_INITIALIZED(table);
 
-    size_t insert_index = get_next_free_index(table);
+    lookup_table_index_t insert_index = get_next_free_index(table);
 
     if (insert_index >= table->capacity) {
         lookup_table_result_t increase_result = increase_table_capacity(table);
@@ -85,18 +88,23 @@ lookup_table_get(lookup_table_t* table, lookup_table_index_t pos, void** result)
     CHECK_INITIALIZED(table);
     CHECK_INDEX(table, pos);
 
-    *result = table->table[pos];
+    void* entry = table->table[pos];
+    if (NULL == entry) {
+        return LOOKUP_TABLE_ENTRY_EMPTY;
+    }
+
+    *result = entry;
     return LOOKUP_TABLE_SUCCESS;
 }
 
 
 
-size_t
+lookup_table_index_t
 get_next_free_index(lookup_table_t* table) {
-    size_t idx;
+    lookup_table_index_t idx;
 
     for (idx = 0; idx < table->capacity; ++idx) {
-        if (table->table[idx] == NULL) {
+        if (NULL == table->table[idx]) {
             break;
         }
     }
@@ -106,7 +114,7 @@ get_next_free_index(lookup_table_t* table) {
 
 lookup_table_result_t
 increase_table_capacity(lookup_table_t* table) {
-    size_t new_capacity = NEW_CAPACITY(table->capacity);
+    lookup_table_index_t new_capacity = NEW_CAPACITY(table->capacity);
 
     void** new_table = malloc(sizeof(void*) * new_capacity);
     if (new_table == NULL) {
@@ -115,6 +123,8 @@ increase_table_capacity(lookup_table_t* table) {
 
     memcpy(new_table, table->table, table->capacity);
     free(table->table);
+
+    memset(new_table, table->capacity * sizeof(void*), new_capacity * sizeof(void*));
 
     table->table = new_table;
     table->capacity = new_capacity;
