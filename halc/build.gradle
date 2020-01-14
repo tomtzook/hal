@@ -1,9 +1,6 @@
 apply from: rootProject.file('cmake.gradle')
 
-ext.OUTPUT_BINARY = project.file('build/libhaljni.so')
-
 task build {
-    dependsOn project(':halc').tasks.build
     dependsOn tasks.buildNatives
 }
 

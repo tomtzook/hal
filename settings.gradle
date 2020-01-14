@@ -1,1 +1,1 @@
-include ':halj:java', ':halj:jni'
+include ':halj:java', ':halj:jni', ':halc'

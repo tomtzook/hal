@@ -1,2 +1,0 @@
-/usr/bin/ar qc libhal.a  CMakeFiles/hal.dir/base/hal_base.c.o CMakeFiles/hal.dir/base/hal_base_dio.c.o CMakeFiles/hal.dir/util/lookup_table.c.o
-/usr/bin/ranlib libhal.a

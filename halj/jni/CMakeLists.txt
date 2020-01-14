@@ -5,7 +5,7 @@ FIND_PACKAGE(JNI REQUIRED)
 include_directories(${JNI_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/../../halc/include)
 
-find_library(Hal libhal.a PATHS ${CMAKE_SOURCE_DIR}/../../halc/cmake-build-debug/)
+find_library(Hal libhal.a PATHS ${CMAKE_SOURCE_DIR}/../../halc/build/)
 
 add_library(haljni
         SHARED

@@ -1,0 +1,39 @@
+
+def getToolchainFile() {
+    if (project.hasProperty('TOOLCHAIN')) {
+        return "-DCMAKE_TOOLCHAIN_FILE=${rootProject.file(project.property('TOOLCHAIN'))}"
+    }
+    return null
+}
+
+task deleteBuildDirectory(type: Delete) {
+    delete project.file('build').absolutePath
+}
+
+task createBuildDirectory(type: Exec, dependsOn: deleteBuildDirectory) {
+    commandLine 'mkdir', project.file('build').absolutePath
+}
+
+task runCmake(type: Exec, dependsOn: createBuildDirectory) {
+    workingDir project.file('build').absolutePath
+
+    def cmd = ['cmake']
+
+    def toolchainFile = getToolchainFile()
+    if (toolchainFile != null) {
+        cmd.add toolchainFile
+    }
+
+    cmd.add '..'
+
+    commandLine cmd
+}
+
+task runMake(type: Exec, dependsOn: runCmake) {
+    workingDir project.file('build').absolutePath
+    commandLine 'make'
+}
+
+task buildNatives {
+    dependsOn tasks.runMake
+}

@@ -1,3 +1,0 @@
-/home/tomtzook/projects/hal/halc/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/tomtzook/projects/hal/halc/cmake-build-debug/CMakeFiles/hal.dir
-/home/tomtzook/projects/hal/halc/cmake-build-debug/CMakeFiles/edit_cache.dir
