@@ -1,8 +1,8 @@
 #ifndef HAL_DIO_INTERFACE_H
 #define HAL_DIO_INTERFACE_H
 
-#include <hal_types.h>
-#include <hal_dio.h>
+#include "hal_types.h"
+#include "hal_dio.h"
 
 int dio_init();
 void dio_free();

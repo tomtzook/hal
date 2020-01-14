@@ -1,10 +1,9 @@
-#include <hal_dio.h>
-#include <dio_interface.h>
-#include <lookup_table.h>
-#include <log.h>
 #include <stdlib.h>
 
+#include "hal_dio.h"
 #include "hal_global.h"
+#include "logging/log.h"
+#include "interface/dio_interface.h"
 
 typedef struct {
     port_id_t port_id;
@@ -14,25 +13,23 @@ typedef struct {
 } dio_port_t;
 
 
-static hal_handle_t find_port_in_table(port_id_t port_id);
-static dio_port_t* get_port_from_table(hal_handle_t hal_handle);
-static hal_handle_t insert_port_to_table(dio_port_t* port);
-static int remove_port_from_table(hal_handle_t hal_handle);
+static hal_handle_t find_port_in_table(hal_env_t* env, port_id_t port_id);
+static dio_port_t* get_port_from_table(hal_env_t* env, hal_handle_t hal_handle);
+static hal_handle_t insert_port_to_table(hal_env_t* env, dio_port_t* port);
+static int remove_port_from_table(hal_env_t* env, hal_handle_t hal_handle);
 static int port_id_compare(port_id_t first, port_id_t second);
 
 /*********************************/
 /*             EXTERNAL          */
 /*********************************/
 
-lookup_table_t dio_table;
 
-
-hal_result_t hal_dio_init_module() {
-    if (HAL_NOT_INITIALIZED()) {
+hal_result_t hal_dio_init_module(hal_env_t* env) {
+    if (HAL_NOT_INITIALIZED(env)) {
         return HAL_NOT_INITIALIZED;
     }
 
-    lookup_table_result_t table_init_result = lookup_table_init(&dio_table);
+    lookup_table_result_t table_init_result = lookup_table_init(&env->dio_table);
     if (table_init_result != LOOKUP_TABLE_SUCCESS) {
         LOGLN("failed to initialize lookup table: %d", table_init_result);
         return HAL_INITIALIZATION_ERROR;
@@ -41,29 +38,29 @@ hal_result_t hal_dio_init_module() {
     int hw_init_result = dio_init();
     if (hw_init_result) {
         LOGLN("failed to init hardware interface: %d", hw_init_result);
-        lookup_table_free(&dio_table);
+        lookup_table_free(&env->dio_table);
         return HAL_IO_ERROR;
     }
 
     return HAL_SUCCESS;
 }
 
-void hal_dio_free_module() {
-    if (HAL_NOT_INITIALIZED()) {
+void hal_dio_free_module(hal_env_t* env) {
+    if (HAL_NOT_INITIALIZED(env)) {
         return;
     }
 
-    lookup_table_free(&dio_table);
+    lookup_table_free(&env->dio_table);
     dio_free();
 }
 
-hal_result_t hal_dio_init(port_id_t port_id, port_dir_t port_dir, hal_handle_t* result) {
-    if (HAL_NOT_INITIALIZED()) {
+hal_result_t hal_dio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir, hal_handle_t* result) {
+    if (HAL_NOT_INITIALIZED(env)) {
         return HAL_NOT_INITIALIZED;
     }
 
     dio_port_t* port;
-    hal_handle_t port_handle = find_port_in_table(port_id);
+    hal_handle_t port_handle = find_port_in_table(env, port_id);
 
     if (port_handle == HAL_INVALID_HANDLE) {
         port = malloc(sizeof(dio_port_t));
@@ -71,7 +68,7 @@ hal_result_t hal_dio_init(port_id_t port_id, port_dir_t port_dir, hal_handle_t* 
             return HAL_MEMORY_ALLOCATION_ERROR;
         }
 
-        port_handle = insert_port_to_table(port);
+        port_handle = insert_port_to_table(env, port);
         if (port_handle == HAL_INVALID_HANDLE) {
             free(port);
 
@@ -79,13 +76,13 @@ hal_result_t hal_dio_init(port_id_t port_id, port_dir_t port_dir, hal_handle_t* 
         }
 
         if (!dio_port_init(port_id, port_dir)) {
-            remove_port_from_table(port_handle);
+            remove_port_from_table(env, port_handle);
             free(port);
 
             return HAL_IO_ERROR;
         }
     } else {
-        port = get_port_from_table(port_handle);
+        port = get_port_from_table(env, port_handle);
 
         if (port_dir != port->port_dir) {
             return HAL_ARGUMENT_ERROR;
@@ -96,18 +93,18 @@ hal_result_t hal_dio_init(port_id_t port_id, port_dir_t port_dir, hal_handle_t* 
     return HAL_SUCCESS;
 }
 
-hal_result_t hal_dio_free(hal_handle_t hal_handle) {
-    if (HAL_NOT_INITIALIZED()) {
+hal_result_t hal_dio_free(hal_env_t* env, hal_handle_t hal_handle) {
+    if (HAL_NOT_INITIALIZED(env)) {
         return HAL_NOT_INITIALIZED;
     }
 
-    dio_port_t* port = get_port_from_table(hal_handle);
+    dio_port_t* port = get_port_from_table(env, hal_handle);
 
     if (port == NULL) {
         return HAL_PORT_NOT_INITIALIZED;
     }
 
-    if (!remove_port_from_table(hal_handle)) {
+    if (!remove_port_from_table(env, hal_handle)) {
         return HAL_STORE_ERROR;
     }
 
@@ -119,12 +116,12 @@ hal_result_t hal_dio_free(hal_handle_t hal_handle) {
     return HAL_SUCCESS;
 }
 
-hal_result_t hal_dio_set(hal_handle_t hal_handle, dio_value_t dio_value) {
-    if (HAL_NOT_INITIALIZED()) {
+hal_result_t hal_dio_set(hal_env_t* env, hal_handle_t hal_handle, dio_value_t dio_value) {
+    if (HAL_NOT_INITIALIZED(env)) {
         return HAL_NOT_INITIALIZED;
     }
 
-    dio_port_t* port = get_port_from_table(hal_handle);
+    dio_port_t* port = get_port_from_table(env, hal_handle);
 
     if (port == NULL) {
         return HAL_PORT_NOT_INITIALIZED;
@@ -140,12 +137,12 @@ hal_result_t hal_dio_set(hal_handle_t hal_handle, dio_value_t dio_value) {
     return HAL_SUCCESS;
 }
 
-hal_result_t hal_dio_get(hal_handle_t hal_handle, dio_value_t* result) {
-    if (HAL_NOT_INITIALIZED()) {
+hal_result_t hal_dio_get(hal_env_t* env, hal_handle_t hal_handle, dio_value_t* result) {
+    if (HAL_NOT_INITIALIZED(env)) {
         return HAL_NOT_INITIALIZED;
     }
 
-    dio_port_t* port = get_port_from_table(hal_handle);
+    dio_port_t* port = get_port_from_table(env, hal_handle);
 
     if (port == NULL) {
         return HAL_PORT_NOT_INITIALIZED;
@@ -164,12 +161,12 @@ hal_result_t hal_dio_get(hal_handle_t hal_handle, dio_value_t* result) {
 /*             STATIC            */
 /*********************************/
 
-hal_handle_t find_port_in_table(port_id_t port_id) {
+hal_handle_t find_port_in_table(hal_env_t* env, port_id_t port_id) {
     dio_port_t* port;
     lookup_table_index_t index;
 
-    for (index = 0; index < dio_table.capacity; ++index) {
-        lookup_table_result_t result = lookup_table_get(&dio_table, index, (void **) &port);
+    for (index = 0; index < env->dio_table.capacity; ++index) {
+        lookup_table_result_t result = lookup_table_get(&env->dio_table, index, (void **) &port);
 
         if (result == LOOKUP_TABLE_SUCCESS && port_id_compare(port->port_id, port_id)) {
             return (hal_handle_t) index;
@@ -179,9 +176,9 @@ hal_handle_t find_port_in_table(port_id_t port_id) {
     return HAL_INVALID_HANDLE;
 }
 
-dio_port_t* get_port_from_table(hal_handle_t hal_handle) {
+dio_port_t* get_port_from_table(hal_env_t* env, hal_handle_t hal_handle) {
     dio_port_t* port;
-    lookup_table_result_t result = lookup_table_get(&dio_table, (lookup_table_index_t) hal_handle, (void**) &port);
+    lookup_table_result_t result = lookup_table_get(&env->dio_table, (lookup_table_index_t) hal_handle, (void**) &port);
 
     if (result != LOOKUP_TABLE_SUCCESS) {
         LOGLN("failed to get port from table: %d", result);
@@ -191,10 +188,10 @@ dio_port_t* get_port_from_table(hal_handle_t hal_handle) {
     return port;
 }
 
-hal_handle_t insert_port_to_table(dio_port_t* port) {
+hal_handle_t insert_port_to_table(hal_env_t* env, dio_port_t* port) {
     hal_handle_t hal_handle;
 
-    lookup_table_result_t result = lookup_table_insert(&dio_table, port, (lookup_table_index_t*) &hal_handle);
+    lookup_table_result_t result = lookup_table_insert(&env->dio_table, port, (lookup_table_index_t*) &hal_handle);
 
     if (result != LOOKUP_TABLE_SUCCESS) {
         LOGLN("failed to insert port into table: %d", result);
@@ -204,8 +201,8 @@ hal_handle_t insert_port_to_table(dio_port_t* port) {
     return hal_handle;
 }
 
-int remove_port_from_table(hal_handle_t hal_handle) {
-    lookup_table_result_t result = lookup_table_remove(&dio_table, (lookup_table_index_t) hal_handle);
+int remove_port_from_table(hal_env_t* env, hal_handle_t hal_handle) {
+    lookup_table_result_t result = lookup_table_remove(&env->dio_table, (lookup_table_index_t) hal_handle);
 
     if (result != LOOKUP_TABLE_SUCCESS) {
         LOGLN("failed to remove port from table: %d", result);

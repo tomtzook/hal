@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+typedef struct hal_env hal_env_t;
+
 typedef int16_t hal_handle_t;
 
 #define HAL_INVALID_HANDLE -1

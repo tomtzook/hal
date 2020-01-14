@@ -3,10 +3,8 @@ project(hal C)
 
 set(CMAKE_C_STANDARD 11)
 
-include_directories(include)
-include_directories(util)
-include_directories(logging)
-include_directories(interface)
+include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 set(BASE_INTERFACE
         base/hal_base.c
@@ -16,5 +14,6 @@ set(UTIL
         util/lookup_table.c)
 
 add_library(hal
+        STATIC
         ${BASE_INTERFACE}
         ${UTIL})
