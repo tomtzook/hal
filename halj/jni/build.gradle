@@ -1,5 +1,13 @@
 ext.OUTPUT_BINARY = project.file('build/libhaljni.so')
-ext.CMAKE_PROPERTIES = '-DHAL_INTERFACE=interfaces/dummy'
+
+String halInterfacePath = project.file('interfaces/dummy').absolutePath
+if (project.hasProperty('HAL_INTERFACE')) {
+    halInterfacePath = project.property('HAL_INTERFACE')
+} else {
+    println 'Using DUMMY interface (interfaces/dummy)'
+}
+
+ext.CMAKE_PROPERTIES = "-DHAL_INTERFACE=${halInterfacePath}"
 
 apply from: rootProject.file('cmake.gradle')
 
