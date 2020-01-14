@@ -4,7 +4,7 @@
 #include <wchar.h>
 #include <stdint.h>
 
-typedef uint16_t lookup_table_index_t;
+typedef int16_t lookup_table_index_t;
 
 typedef struct lookup_table {
     void** table;

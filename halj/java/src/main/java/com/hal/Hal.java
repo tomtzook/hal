@@ -2,7 +2,7 @@ package com.hal;
 
 public class Hal implements AutoCloseable {
 
-    private final long mEnvPointer;
+    private long mEnvPointer;
 
     private Hal(long envPointer) {
         mEnvPointer = envPointer;
@@ -42,5 +42,6 @@ public class Hal implements AutoCloseable {
     @Override
     public void close() {
         HalJni.clean(mEnvPointer);
+        mEnvPointer = 0;
     }
 }
