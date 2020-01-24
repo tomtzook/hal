@@ -1,1 +1,1 @@
-include ':halc', ':halj:core', ':halj:flashlib'
+include ':halc', ':halj:core', ':halj:flashlib', 'test'

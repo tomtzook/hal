@@ -1,0 +1,16 @@
+plugins {
+    id 'application'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':halj:core')
+    implementation group: 'com.github.tomtzook', name: 'castle', version: '1.0.0-alpha.1'
+}
+
+mainClassName = 'hal.test.Main'
