@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation project(':halj:java')
+    implementation project(':halj:core')
     implementation group: 'com.flash3388.flashlib', name: 'flashlib', version: '2.2.0-test-io.1'
 }
 

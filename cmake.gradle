@@ -13,17 +13,22 @@ def getAdditionalProperties() {
     return null
 }
 
+def BUILD_DIR = new File(project.buildDir, 'cmake')
+def CMAKE_FILE = project.property('CMAKE_FILE')
 
 task deleteBuildDirectory(type: Delete) {
-    delete project.file('build').absolutePath
+    delete BUILD_DIR.absolutePath
 }
 
-task createBuildDirectory(type: Exec, dependsOn: deleteBuildDirectory) {
-    commandLine 'mkdir', project.file('build').absolutePath
+task createBuildDirectory {
+    dependsOn deleteBuildDirectory
+    doLast {
+        BUILD_DIR.mkdirs()
+    }
 }
 
 task runCmake(type: Exec, dependsOn: createBuildDirectory) {
-    workingDir project.file('build').absolutePath
+    workingDir BUILD_DIR.absolutePath
 
     def cmd = ['cmake']
 
@@ -37,13 +42,13 @@ task runCmake(type: Exec, dependsOn: createBuildDirectory) {
         cmd.add additionalProperties
     }
 
-    cmd.add '..'
+    cmd.add CMAKE_FILE.parentFile.absolutePath
 
     commandLine cmd
 }
 
 task runMake(type: Exec, dependsOn: runCmake) {
-    workingDir project.file('build').absolutePath
+    workingDir BUILD_DIR.absolutePath
     commandLine 'make'
 }
 

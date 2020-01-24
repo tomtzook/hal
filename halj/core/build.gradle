@@ -1,0 +1,38 @@
+plugins {
+    id 'java-library'
+}
+
+ext.OUTPUT_BINARY = project.file('build/cmake/libhaljni.so')
+
+String halInterfacePath = project.file('src/interfaces/dummy').absolutePath
+if (project.hasProperty('HAL_INTERFACE')) {
+    halInterfacePath = "src/${project.property('HAL_INTERFACE')}"
+} else {
+    println 'Using DUMMY interface (interfaces/dummy)'
+}
+
+ext.CMAKE_PROPERTIES = "-DHAL_INTERFACE=${halInterfacePath}"
+ext.CMAKE_FILE = project.file('src/CMakeLists.txt')
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+}
+
+jar {
+    from project.property('OUTPUT_BINARY')
+
+    archiveBaseName.set('hal')
+
+    archiveFileName.set("${archiveBaseName.get()}.${archiveExtension.get()}")
+    destinationDirectory.set(project.buildDir)
+}
+
+apply from: rootProject.file('cmake.gradle')
+
+tasks.jar.dependsOn project(':halc').tasks.build, tasks.buildNatives
+tasks.clean.dependsOn tasks.deleteBuildDirectory

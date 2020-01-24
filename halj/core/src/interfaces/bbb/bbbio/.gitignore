@@ -1,0 +1,14 @@
+# jetbrains
+.idea/
+cmake-build-debug/
+
+# binaries
+*.a
+*.so
+*.o
+
+# cmake
+CMakeCache.txt
+Makefile
+CMakeFiles/
+cmake_install.cmake

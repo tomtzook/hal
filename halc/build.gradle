@@ -1,3 +1,5 @@
+ext.CMAKE_FILE = project.file('CMakeLists.txt')
+
 apply from: rootProject.file('cmake.gradle')
 
 task build {
