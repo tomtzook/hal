@@ -9,7 +9,8 @@
 #include "bbbio_gpio.h"
 
 #define HEADER(port) (port & 0xff)
-#define PIN(port) ((port << 8) & 0xff)
+#define PIN(port) ((port >> 8) & 0xff)
+//#define PORT(header, pin) (header & 0xff) | ((pin & 0xff) << 8)
 
 typedef struct dio_env {
     bbbio_t* bbbio;
