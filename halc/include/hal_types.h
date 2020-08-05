@@ -26,8 +26,8 @@ typedef enum hal_result {
     HAL_INITIALIZATION_ERROR = 7,
     HAL_ALREADY_INITIALIZED = 8,
     HAL_DIO_INITIALIZATION_ERROR = 9,
-
-    HAL_ENV_MALLOC_ERROR = 10
+    HAL_ENV_MALLOC_ERROR = 10,
+    HAL_UNKNOWN_ERROR = 1000
 } hal_result_t;
 
 #endif //HAL_HAL_TYPES_H

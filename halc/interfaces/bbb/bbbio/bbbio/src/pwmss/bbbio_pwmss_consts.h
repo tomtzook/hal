@@ -1,7 +1,7 @@
 #ifndef BBBIO_PWMSS_CONSTS_H
 #define BBBIO_PWMSS_CONSTS_H
 
-#include <_G_config.h>
+#include <stdio.h>
 
 #include <bbbio_consts.h>
 

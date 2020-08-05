@@ -10,4 +10,5 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../interface)
 
 add_library(hal_impl
         OBJECT
+        interface.c
         dio_interface.c)

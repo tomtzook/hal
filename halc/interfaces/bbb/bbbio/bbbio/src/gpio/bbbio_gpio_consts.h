@@ -1,7 +1,7 @@
 #ifndef BBBIO_GPIOS_H
 #define BBBIO_GPIOS_H
 
-#include <_G_config.h>
+#include <stdio.h>
 
 #include <bbbio_consts.h>
 

@@ -33,13 +33,6 @@ hal_result_t hal_dio_init_module(hal_env_t* env) {
         return HAL_INITIALIZATION_ERROR;
     }
 
-    int hw_init_result = dio_init(&(env->dio_env));
-    if (SUCCESS != hw_init_result) {
-        LOGLN("failed to init hardware interface: %d", hw_init_result);
-        lookup_table_free(&env->dio_table);
-        return HAL_IO_ERROR;
-    }
-
     return HAL_SUCCESS;
 }
 
@@ -49,7 +42,6 @@ void hal_dio_free_module(hal_env_t* env) {
     }
 
     lookup_table_free(&env->dio_table);
-    dio_free(&(env->dio_env));
 }
 
 hal_result_t hal_dio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir, hal_handle_t* result) {
@@ -77,7 +69,7 @@ hal_result_t hal_dio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir
             return HAL_STORE_ERROR;
         }
 
-        if (SUCCESS != dio_port_init(env->dio_env, port_id, port_dir)) {
+        if (SUCCESS != dio_port_init(env->interface_env, port_id, port_dir)) {
             remove_port_from_table(env, port_handle);
             free(port);
 
@@ -112,7 +104,7 @@ hal_result_t hal_dio_free(hal_env_t* env, hal_handle_t hal_handle) {
     port_id_t port_id = port->port_id;
 
     free(port);
-    dio_port_free(env->dio_env, port_id);
+    dio_port_free(env->interface_env, port_id);
 
     return HAL_SUCCESS;
 }
@@ -131,7 +123,7 @@ hal_result_t hal_dio_set(hal_env_t* env, hal_handle_t hal_handle, dio_value_t di
         return HAL_ARGUMENT_ERROR;
     }
 
-    dio_port_write(env->dio_env, port->port_id, dio_value);
+    dio_port_write(env->interface_env, port->port_id, dio_value);
     port->last_value = dio_value;
 
     return HAL_SUCCESS;
@@ -150,7 +142,7 @@ hal_result_t hal_dio_get(hal_env_t* env, hal_handle_t hal_handle, dio_value_t* r
     if (port->port_dir == OUTPUT) {
         *result = port->last_value;
     } else {
-        *result = dio_port_read(env->dio_env, port->port_id);
+        *result = dio_port_read(env->interface_env, port->port_id);
     }
 
     return HAL_SUCCESS;
@@ -170,7 +162,7 @@ hal_result_t hal_dio_pulse(hal_env_t* env, hal_handle_t hal_handle, uint64_t len
         return HAL_ARGUMENT_ERROR;
     }
 
-    dio_port_pulse(env->dio_env, port->port_id, length_us);
+    dio_port_pulse(env->interface_env, port->port_id, length_us);
 
     return HAL_SUCCESS;
 }

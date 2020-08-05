@@ -13,6 +13,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/bbbio/bbbio/include)
 
 add_library(hal_impl
         OBJECT
+        interface.c
         dio_interface.c
         ${BBBIO_SOURCES})
-target_link_libraries()
