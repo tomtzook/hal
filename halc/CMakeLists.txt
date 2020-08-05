@@ -10,10 +10,23 @@ set(BASE_INTERFACE
 set(UTIL
         util/lookup_table.c)
 
-add_library(hal
-        OBJECT
-        ${BASE_INTERFACE}
-        ${UTIL})
+if(NOT DEFINED HAL_INTERFACE)
+    message(STATUS "Interface implementation not given, defining object")
+
+    add_library(hal
+            OBJECT
+            ${BASE_INTERFACE}
+            ${UTIL})
+else()
+    message(STATUS "Interface implementation given, defining static")
+
+    add_subdirectory(${HAL_INTERFACE})
+    add_library(hal
+            STATIC
+            ${BASE_INTERFACE}
+            ${UTIL}
+            $<TARGET_OBJECTS:hal_impl>)
+endif()
 
 target_include_directories(hal PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>

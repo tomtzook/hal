@@ -6,11 +6,18 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
     implementation project(':halj:core')
-    implementation group: 'com.github.tomtzook', name: 'castle', version: '1.0.0-alpha.1'
+
+    implementation group: 'com.github.tomtzook', name: 'castle', version: '1.0.0'
+
+    implementation project(':halj:flashlib')
+    implementation group: 'com.flash3388.flashlib', name: 'flashlib', version: '3.0.0-test-io.1'
 }
 
-mainClassName = 'hal.test.Main'
+application {
+    mainClassName = 'hal.test.Main'
+}

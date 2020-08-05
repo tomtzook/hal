@@ -101,8 +101,7 @@ hal_result_t hal_dio_free(hal_env_t* env, hal_handle_t hal_handle) {
     }
 
     dio_port_t* port = get_port_from_table(env, hal_handle);
-
-    if (port == NULL) {
+    if (NULL == port) {
         return HAL_PORT_NOT_INITIALIZED;
     }
 
@@ -124,7 +123,6 @@ hal_result_t hal_dio_set(hal_env_t* env, hal_handle_t hal_handle, dio_value_t di
     }
 
     dio_port_t* port = get_port_from_table(env, hal_handle);
-
     if (NULL == port) {
         return HAL_PORT_NOT_INITIALIZED;
     }
@@ -145,8 +143,7 @@ hal_result_t hal_dio_get(hal_env_t* env, hal_handle_t hal_handle, dio_value_t* r
     }
 
     dio_port_t* port = get_port_from_table(env, hal_handle);
-
-    if (port == NULL) {
+    if (NULL == port) {
         return HAL_PORT_NOT_INITIALIZED;
     }
 
@@ -155,6 +152,25 @@ hal_result_t hal_dio_get(hal_env_t* env, hal_handle_t hal_handle, dio_value_t* r
     } else {
         *result = dio_port_read(env->dio_env, port->port_id);
     }
+
+    return HAL_SUCCESS;
+}
+
+hal_result_t hal_dio_pulse(hal_env_t* env, hal_handle_t hal_handle, uint64_t length_us) {
+    if (HAL_NOT_INITIALIZED(env)) {
+        return HAL_NOT_INITIALIZED;
+    }
+
+    dio_port_t* port = get_port_from_table(env, hal_handle);
+    if (port == NULL) {
+        return HAL_PORT_NOT_INITIALIZED;
+    }
+
+    if (OUTPUT != port->port_dir) {
+        return HAL_ARGUMENT_ERROR;
+    }
+
+    dio_port_pulse(env->dio_env, port->port_id, length_us);
 
     return HAL_SUCCESS;
 }

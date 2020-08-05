@@ -14,5 +14,6 @@ void dio_port_free(dio_env_t* env, port_id_t port_id);
 
 void dio_port_write(dio_env_t* env, port_id_t port_id, dio_value_t value);
 dio_value_t dio_port_read(dio_env_t* env, port_id_t port_id);
+void dio_port_pulse(dio_env_t* env, port_id_t port_id, uint64_t length_us);
 
 #endif //HAL_DIO_INTERFACE_H

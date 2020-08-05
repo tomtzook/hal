@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "hal_types.h"
 #include "hal_dio.h"
@@ -78,3 +79,10 @@ dio_value_t dio_port_read(dio_env_t* env, port_id_t port_id) {
 
     return value == BBB_GPIO_HIGH ? HIGH : LOW;
 }
+void dio_port_pulse(dio_env_t* env, port_id_t port_id, uint64_t length_us) {
+    dio_port_write(env, port_id, HIGH);
+    usleep(length_us); // bad, should be concurrent
+    dio_port_write(env, port_id, LOW);
+}
+
+

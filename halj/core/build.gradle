@@ -1,4 +1,5 @@
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.platform.Architecture
 
 plugins {
     id 'java-library'
@@ -6,9 +7,9 @@ plugins {
 
 ext.OUTPUT_BINARY = project.file('build/cmake/libhaljni.so')
 
-String halInterfacePath = project.file('src/interfaces/dummy').absolutePath
+String halInterfacePath = rootProject.file('halc/interfaces/dummy').absolutePath
 if (project.hasProperty('HAL_INTERFACE')) {
-    halInterfacePath = project.file("src/${project.property('HAL_INTERFACE')}").absolutePath
+    halInterfacePath = rootProject.file("halc/${project.property('HAL_INTERFACE')}").absolutePath
 } else {
     println 'Using DUMMY interface (interfaces/dummy)'
 }
@@ -31,7 +32,7 @@ dependencies {
 
 jar {
     from (project.property('OUTPUT_BINARY')) {
-        into "${OperatingSystem.current().name.toLowerCase()}${(is64bit() ? "64" : "32")}"
+        into "${OperatingSystem.current().name.toLowerCase()}/${System.getProperty("os.arch")}"
     }
 
     archiveBaseName.set('hal')

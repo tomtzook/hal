@@ -7,11 +7,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../halc/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../halc/)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../halc ${CMAKE_CURRENT_BINARY_DIR}/halc)
-add_subdirectory(${HAL_INTERFACE})
 
 add_library(haljni
         SHARED
         main/jni/hal.c
-        main/jni/dio.c
-        $<TARGET_OBJECTS:hal_impl>
-        $<TARGET_OBJECTS:hal>)
+        main/jni/dio.c)
+target_link_libraries(haljni hal)

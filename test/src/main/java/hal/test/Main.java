@@ -1,15 +1,21 @@
 package hal.test;
 
 import com.castle.code.NativeLibrary;
-import com.castle.code.NativeLibraryFinder;
+import com.castle.code.finder.NativeLibraryFinder;
 import com.castle.code.loader.NativeLibraryLoader;
 import com.castle.code.loader.TempNativeLibraryLoader;
-import com.castle.nio.temp.TempPathGenerator;
 import com.castle.nio.zip.ArchivedNativeLibraryFinder;
+import com.castle.nio.zip.OpenZip;
 import com.castle.nio.zip.Zip;
 import com.castle.util.java.JavaSources;
+import com.flash3388.flashlib.hal.HalIoChannel;
+import com.flash3388.flashlib.hal.HalIoInterface;
+import com.flash3388.flashlib.robot.io.DigitalOutput;
+import com.flash3388.flashlib.robot.io.IoInterface;
 import com.hal.Hal;
 import com.hal.PortDirection;
+
+import java.util.regex.Pattern;
 
 public class Main {
 
@@ -17,19 +23,30 @@ public class Main {
         loadNative();
 
         try (Hal hal = Hal.initialize()) {
-            int handle = hal.dioInit(0, PortDirection.OUTPUT);
-            try {
-                hal.dioSet(handle, true);
-            } finally {
-                hal.dioFree(handle);
-            }
+            rawTest(hal);
+
         }
     }
 
-    private static void loadNative() throws Exception {
-        Zip zip = JavaSources.currentJar(Hal.class);
+    private static void rawTest(Hal hal) {
+        int handle = hal.dioInit(0, PortDirection.OUTPUT);
+        try {
+            hal.dioSet(handle, true);
+        } finally {
+            hal.dioFree(handle);
+        }
+    }
 
-        NativeLibraryLoader loader = new TempNativeLibraryLoader(new TempPathGenerator());
+    private static void flashlibTest(Hal hal) {
+        IoInterface ioInterface = new HalIoInterface(hal);
+        DigitalOutput output = ioInterface.newDigitalOutput(new HalIoChannel(0));
+        output.set(true);
+    }
+
+    private static void loadNative() throws Exception {
+        Zip zip = JavaSources.containingJar(Hal.class);
+
+        NativeLibraryLoader loader = new TempNativeLibraryLoader();
         NativeLibraryFinder finder = new ArchivedNativeLibraryFinder(zip);
 
         NativeLibrary nativeLibrary = finder.find("libhaljni");
