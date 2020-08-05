@@ -13,7 +13,7 @@
 
 hal_result_t dio_port_init(interface_env_t* env, port_id_t port_id, port_dir_t port_dir) {
     bbbio_rc_t result = bbbio_gpio_setdir(env->bbbio, HEADER(port_id), PIN(port_id),
-            port_dir == OUTPUT ? BBB_DIR_OUTPUT : BBB_DIR_INPUT);
+            port_dir == PORT_DIR_OUTPUT ? BBB_DIR_OUTPUT : BBB_DIR_INPUT);
     return BBBIO2HAL_RESULT(result);
 }
 void dio_port_free(interface_env_t* env, port_id_t port_id) {
@@ -22,7 +22,7 @@ void dio_port_free(interface_env_t* env, port_id_t port_id) {
 
 hal_result_t dio_port_write(interface_env_t* env, port_id_t port_id, dio_value_t value) {
     bbbio_rc_t result = bbbio_gpio_set(env->bbbio, HEADER(port_id), PIN(port_id),
-            value == HIGH ? BBB_GPIO_HIGH : BBB_GPIO_LOW);
+            value == DIO_VALUE_HIGH ? BBB_GPIO_HIGH : BBB_GPIO_LOW);
     if (SUCCESS != result) {
         LOGLN("Error dio write %d", result);
         return BBBIO2HAL_RESULT(result);
@@ -38,18 +38,18 @@ hal_result_t dio_port_read(interface_env_t* env, port_id_t port_id, dio_value_t*
         return BBBIO2HAL_RESULT(result);
     }
 
-    *value = bbbio_value == BBB_GPIO_HIGH ? HIGH : LOW;
+    *value = bbbio_value == BBB_GPIO_HIGH ? DIO_VALUE_HIGH : DIO_VALUE_LOW;
     return HAL_SUCCESS;
 }
 hal_result_t dio_port_pulse(interface_env_t* env, port_id_t port_id, uint64_t length_us) {
-    hal_result_t result = dio_port_write(env, port_id, HIGH);
+    hal_result_t result = dio_port_write(env, port_id, DIO_VALUE_HIGH);
     if (HAL_SUCCESS != result) {
         return result;
     }
 
     usleep(length_us); // bad, should be concurrent
 
-    result = dio_port_write(env, port_id, LOW);
+    result = dio_port_write(env, port_id, DIO_VALUE_LOW);
     if (HAL_SUCCESS != result) {
         return result;
     }

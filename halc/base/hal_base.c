@@ -6,6 +6,7 @@
 #include "logging/log.h"
 
 #include "hal_global.h"
+#include "hal_modules.h"
 
 #include "interface/interface.h"
 

@@ -7,13 +7,16 @@
     (port_id_t)__ID
 
 #define PORT_DIR(__DIR)\
-    __DIR ? OUTPUT : INPUT
+    __DIR ? PORT_DIR_OUTPUT : PORT_DIR_INPUT
 
 #define HANDLE(__HANDLE)\
     (hal_handle_t)__HANDLE
 
 #define VALUE(__VALUE)\
-    __VALUE ? HIGH : LOW
+    __VALUE ? DIO_VALUE_HIGH : DIO_VALUE_LOW
+
+#define VALUE_INT(__VALUE)\
+    __VALUE == DIO_VALUE_HIGH ? 1 : 0
 
 JNIEXPORT jint JNICALL Java_com_hal_DioJni_initialize
         (JNIEnv *env, jclass obj, jlong env_ptr, jlong port_id, jboolean port_dir) {
@@ -64,5 +67,5 @@ JNIEXPORT jint JNICALL Java_com_hal_DioJni_get
         return -((jint) result);
     }
 
-    return value == HIGH ? 1 : 0;
+    return VALUE_INT(value);
 }

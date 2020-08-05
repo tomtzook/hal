@@ -11,8 +11,8 @@ typedef int16_t hal_handle_t;
 typedef int16_t port_id_t;
 
 typedef enum port_dir {
-    OUTPUT,
-    INPUT
+    PORT_DIR_OUTPUT,
+    PORT_DIR_INPUT
 } port_dir_t;
 
 typedef enum hal_result {

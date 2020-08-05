@@ -4,12 +4,9 @@
 #include "hal_types.h"
 
 typedef enum {
-    HIGH,
-    LOW
+    DIO_VALUE_HIGH,
+    DIO_VALUE_LOW
 } dio_value_t;
-
-hal_result_t hal_dio_init_module(hal_env_t* env);
-void hal_dio_free_module(hal_env_t* env);
 
 hal_result_t hal_dio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir, hal_handle_t* result_handle);
 hal_result_t hal_dio_free(hal_env_t* env, hal_handle_t port_handle);

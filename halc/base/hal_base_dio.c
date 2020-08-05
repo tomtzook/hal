@@ -5,6 +5,8 @@
 #include "logging/log.h"
 #include "interface/dio_interface.h"
 
+#include "hal_modules.h"
+
 #define SUCCESS (0)
 
 typedef struct {
@@ -61,7 +63,7 @@ hal_result_t hal_dio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir
 
         port->port_dir = port_dir;
         port->port_id = port_id;
-        port->last_value = LOW;
+        port->last_value = DIO_VALUE_LOW;
 
         port_handle = insert_port_to_table(env, port);
         if (HAL_INVALID_HANDLE == port_handle) {
@@ -123,7 +125,7 @@ hal_result_t hal_dio_set(hal_env_t* env, hal_handle_t hal_handle, dio_value_t di
         return HAL_PORT_NOT_INITIALIZED;
     }
 
-    if (OUTPUT != port->port_dir) {
+    if (PORT_DIR_OUTPUT != port->port_dir) {
         return HAL_ARGUMENT_ERROR;
     }
 
@@ -149,7 +151,7 @@ hal_result_t hal_dio_get(hal_env_t* env, hal_handle_t hal_handle, dio_value_t* r
         return HAL_PORT_NOT_INITIALIZED;
     }
 
-    if (port->port_dir == OUTPUT) {
+    if (port->port_dir == PORT_DIR_OUTPUT) {
         *result_value = port->last_value;
     } else {
         result = dio_port_read(env->interface_env, port->port_id, result_value);
@@ -173,7 +175,7 @@ hal_result_t hal_dio_pulse(hal_env_t* env, hal_handle_t hal_handle, uint64_t len
         return HAL_PORT_NOT_INITIALIZED;
     }
 
-    if (OUTPUT != port->port_dir) {
+    if (PORT_DIR_OUTPUT != port->port_dir) {
         return HAL_ARGUMENT_ERROR;
     }
 

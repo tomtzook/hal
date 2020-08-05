@@ -18,7 +18,7 @@ hal_result_t dio_port_write(interface_env_t* env, port_id_t port_id, dio_value_t
 }
 hal_result_t dio_port_read(interface_env_t* env, port_id_t port_id, dio_value_t* value) {
     printf("Read DIO Port %d (env %d) \n", port_id, env->some_value_in_env);
-    *value = LOW;
+    *value = DIO_VALUE_LOW;
     return HAL_SUCCESS;
 }
 hal_result_t dio_port_pulse(interface_env_t* env, port_id_t port_id, uint64_t length_us) {
