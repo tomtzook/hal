@@ -12,10 +12,10 @@ struct interface_env {
 static inline hal_result_t __bbbio_error_to_hal(bbbio_rc_t code) {
     switch (code) {
         case SUCCESS: return HAL_SUCCESS;
-        case EINITIALIZED: return HAL_INITIALIZATION_ERROR;
-        case EMAP: return HAL_SUCCESS;
-        case EARG: return HAL_SUCCESS;
-        case EHW: return HAL_SUCCESS;
+        case EINITIALIZED: return HAL_ALREADY_INITIALIZED;
+        case EMAP: return HAL_INITIALIZATION_ERROR;
+        case EARG: return HAL_ARGUMENT_ERROR;
+        case EHW: return HAL_HARDWARE_ERROR;
     }
 }
 
