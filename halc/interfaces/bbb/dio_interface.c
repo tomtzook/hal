@@ -11,41 +11,48 @@
 
 #include "interface_def.h"
 
-#define HEADER(port) (port & 0xff)
-#define PIN(port) ((port >> 8) & 0xff)
-//#define PORT(header, pin) (header & 0xff) | ((pin & 0xff) << 8)
-
-
-int dio_port_init(interface_env_t* env, port_id_t port_id, port_dir_t port_dir) {
-    return bbbio_gpio_setdir(env->bbbio, HEADER(port_id), PIN(port_id),
+hal_result_t dio_port_init(interface_env_t* env, port_id_t port_id, port_dir_t port_dir) {
+    bbbio_rc_t result = bbbio_gpio_setdir(env->bbbio, HEADER(port_id), PIN(port_id),
             port_dir == OUTPUT ? BBB_DIR_OUTPUT : BBB_DIR_INPUT);
+    return BBBIO2HAL_RESULT(result);
 }
 void dio_port_free(interface_env_t* env, port_id_t port_id) {
 
 }
 
-void dio_port_write(interface_env_t* env, port_id_t port_id, dio_value_t value) {
+hal_result_t dio_port_write(interface_env_t* env, port_id_t port_id, dio_value_t value) {
     bbbio_rc_t result = bbbio_gpio_set(env->bbbio, HEADER(port_id), PIN(port_id),
             value == HIGH ? BBB_GPIO_HIGH : BBB_GPIO_LOW);
     if (SUCCESS != result) {
         LOGLN("Error dio write %d", result);
+        return BBBIO2HAL_RESULT(result);
     }
+
+    return HAL_SUCCESS;
 }
-dio_value_t dio_port_read(interface_env_t* env, port_id_t port_id) {
-    bbbio_gpio_value_t value = BBB_GPIO_LOW;
-    bbbio_rc_t result = bbbio_gpio_get(env->bbbio, HEADER(port_id), PIN(port_id),
-            &value);
+hal_result_t dio_port_read(interface_env_t* env, port_id_t port_id, dio_value_t* value) {
+    bbbio_gpio_value_t bbbio_value;
+    bbbio_rc_t result = bbbio_gpio_get(env->bbbio, HEADER(port_id), PIN(port_id), &bbbio_value);
     if (SUCCESS != result) {
         LOGLN("Error dio write %d", result);
-        return LOW;
+        return BBBIO2HAL_RESULT(result);
     }
 
-    return value == BBB_GPIO_HIGH ? HIGH : LOW;
+    *value = bbbio_value == BBB_GPIO_HIGH ? HIGH : LOW;
+    return HAL_SUCCESS;
 }
-void dio_port_pulse(interface_env_t* env, port_id_t port_id, uint64_t length_us) {
-    dio_port_write(env, port_id, HIGH);
+hal_result_t dio_port_pulse(interface_env_t* env, port_id_t port_id, uint64_t length_us) {
+    hal_result_t result = dio_port_write(env, port_id, HIGH);
+    if (HAL_SUCCESS != result) {
+        return result;
+    }
+
     usleep(length_us); // bad, should be concurrent
-    dio_port_write(env, port_id, LOW);
+
+    result = dio_port_write(env, port_id, LOW);
+    if (HAL_SUCCESS != result) {
+        return result;
+    }
+
+    return HAL_SUCCESS;
 }
-
-

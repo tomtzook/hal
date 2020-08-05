@@ -17,7 +17,7 @@ hal_result_t hal_initialize(hal_env_t** env) {
 
     hal_env_t* hal_env = (hal_env_t*) malloc(sizeof(hal_env_t));
     if (NULL == hal_env) {
-        return HAL_ENV_MALLOC_ERROR;
+        return HAL_MEMORY_ALLOCATION_ERROR;
     }
     memset(hal_env, 0, sizeof(hal_env_t));
 
