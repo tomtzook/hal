@@ -62,3 +62,15 @@ JNIEXPORT jint JNICALL Java_com_hal_DioJni_get
 
     return VALUE_INT(value);
 }
+
+JNIEXPORT jint JNICALL Java_com_hal_DioJni_pulse
+        (JNIEnv *env, jclass obj, jlong env_ptr, jint handle, jlong lengthUs) {
+    hal_env_t* hal_env = (hal_env_t*) env_ptr;
+
+    hal_result_t result = hal_dio_pulse(hal_env, HANDLE(handle), (uint64_t) lengthUs);
+    if (HAL_SUCCESS != result) {
+        return -((jint) result);
+    }
+
+    return 0;
+}

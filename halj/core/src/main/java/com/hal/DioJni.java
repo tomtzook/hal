@@ -9,6 +9,7 @@ public class DioJni {
 
     public static native int set(long env, int portHandle, boolean value);
     public static native int get(long env, int portHandle);
+    public static native int pulse(long env, int portHandle, long lengthUs);
 
     public static boolean intToDioValue(int value) {
         return value > 0;

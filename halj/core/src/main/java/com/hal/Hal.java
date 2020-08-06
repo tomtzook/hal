@@ -37,6 +37,10 @@ public class Hal implements AutoCloseable {
 
         return DioJni.intToDioValue(result);
     }
+    public void dioPulse(int portHandle, long lengthUs) {
+        int result = DioJni.pulse(mEnvPointer, portHandle, lengthUs);
+        HalResult.fromReturnCode(result).throwIfError();
+    }
 
     public int aioInit(long portId, PortDirection direction) {
         int result = AioJni.initialize(mEnvPointer, portId, direction.directionValue());
