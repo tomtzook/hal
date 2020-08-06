@@ -42,6 +42,16 @@ public class Hal implements AutoCloseable {
         HalResult.fromReturnCode(result).throwIfError();
     }
 
+    public long aioMaxValue() {
+        long result = AioJni.getMaxValue(mEnvPointer);
+        HalResult.fromReturnCode(result).throwIfError();
+        return result;
+    }
+    public long aioMinValue() {
+        long result = AioJni.getMinValue(mEnvPointer);
+        HalResult.fromReturnCode(result).throwIfError();
+        return result;
+    }
     public int aioInit(long portId, PortDirection direction) {
         int result = AioJni.initialize(mEnvPointer, portId, direction.directionValue());
         HalResult.fromReturnCode(result).throwIfError();

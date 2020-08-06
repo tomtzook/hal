@@ -6,6 +6,9 @@
 
 typedef uint64_t aio_value_t;
 
+hal_result_t hal_aio_maxvalue(hal_env_t* env, aio_value_t* value);
+hal_result_t hal_aio_minvalue(hal_env_t* env, aio_value_t* value);
+
 hal_result_t hal_aio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir, hal_handle_t* result_handle);
 hal_result_t hal_aio_free(hal_env_t* env, hal_handle_t port_handle);
 

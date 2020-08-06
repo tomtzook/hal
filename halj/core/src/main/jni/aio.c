@@ -11,6 +11,34 @@
 #define VALUE_JAVA(__VALUE)\
     (jlong) (__VALUE)
 
+JNIEXPORT jlong JNICALL Java_com_hal_AioJni_getMaxValue
+        (JNIEnv *env, jclass obj, jlong env_ptr) {
+    hal_env_t* hal_env = (hal_env_t*) env_ptr;
+
+    aio_value_t value;
+
+    hal_result_t result = hal_aio_maxvalue(hal_env, &value);
+    if (HAL_SUCCESS != result) {
+        return -((jlong) result);
+    }
+
+    return VALUE_JAVA(value);
+}
+
+JNIEXPORT jlong JNICALL Java_com_hal_AioJni_getMinValue
+        (JNIEnv *env, jclass obj, jlong env_ptr) {
+    hal_env_t* hal_env = (hal_env_t*) env_ptr;
+
+    aio_value_t value;
+
+    hal_result_t result = hal_aio_minvalue(hal_env, &value);
+    if (HAL_SUCCESS != result) {
+        return -((jlong) result);
+    }
+
+    return VALUE_JAVA(value);
+}
+
 JNIEXPORT jint JNICALL Java_com_hal_AioJni_initialize
         (JNIEnv *env, jclass obj, jlong env_ptr, jlong port_id, jboolean port_dir) {
     hal_env_t* hal_env = (hal_env_t*) env_ptr;

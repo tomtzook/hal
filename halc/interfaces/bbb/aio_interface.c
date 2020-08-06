@@ -3,6 +3,12 @@
 #include "interface_def.h"
 #include "aio_interface.h"
 
+hal_result_t aio_maxvalue(interface_env_t* env, aio_value_t* value) {
+    return HAL_UNSUPPORTED_OPERATION;
+}
+hal_result_t aio_minvalue(interface_env_t* env, aio_value_t* value) {
+    return HAL_UNSUPPORTED_OPERATION;
+}
 
 hal_result_t aio_port_init(interface_env_t* env, port_id_t port_id, port_dir_t port_dir) {
     return HAL_UNSUPPORTED_OPERATION;

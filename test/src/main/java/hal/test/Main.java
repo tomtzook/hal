@@ -35,7 +35,7 @@ public class Main {
 
         handle = hal.aioInit(0, PortDirection.OUTPUT);
         try {
-            hal.aioSet(handle, 200);
+            hal.aioSet(handle, hal.aioMaxValue());
         } finally {
             hal.aioFree(handle);
         }

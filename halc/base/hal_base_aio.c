@@ -33,6 +33,14 @@ void hal_aio_free_module(hal_env_t* env) {
     lookup_table_free(&env->aio_table);
 }
 
+hal_result_t hal_aio_maxvalue(hal_env_t* env, aio_value_t* value) {
+    return aio_maxvalue(env->interface_env, value);
+}
+
+hal_result_t hal_aio_minvalue(hal_env_t* env, aio_value_t* value) {
+    return aio_minvalue(env->interface_env, value);
+}
+
 hal_result_t hal_aio_init(hal_env_t* env, port_id_t port_id, port_dir_t port_dir, hal_handle_t* result_handle) {
     if (HAL_NOT_INITIALIZED(env)) {
         return HAL_NOT_INITIALIZED;
