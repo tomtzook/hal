@@ -37,7 +37,13 @@ public enum HalResult {
 
         return fromErrorCode(-result);
     }
+    public static HalResult fromReturnCode(long result) {
+        if (result >= 0) {
+            return HAL_SUCCESS;
+        }
 
+        return fromErrorCode((int) -result);
+    }
     public static HalResult fromEnvReturnCode(long result) {
         if (result > 0) {
             return HAL_SUCCESS;

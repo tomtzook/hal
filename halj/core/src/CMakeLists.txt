@@ -11,5 +11,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../halc ${CMAKE_CURRENT_BINAR
 add_library(haljni
         SHARED
         main/jni/hal.c
-        main/jni/dio.c)
+        main/jni/dio.c
+        main/jni/aio.c)
 target_link_libraries(haljni hal)

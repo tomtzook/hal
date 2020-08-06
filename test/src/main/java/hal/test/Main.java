@@ -5,7 +5,6 @@ import com.castle.code.finder.NativeLibraryFinder;
 import com.castle.code.loader.NativeLibraryLoader;
 import com.castle.code.loader.TempNativeLibraryLoader;
 import com.castle.nio.zip.ArchivedNativeLibraryFinder;
-import com.castle.nio.zip.OpenZip;
 import com.castle.nio.zip.Zip;
 import com.castle.util.java.JavaSources;
 import com.flash3388.flashlib.hal.HalIoChannel;
@@ -14,8 +13,6 @@ import com.flash3388.flashlib.robot.io.DigitalOutput;
 import com.flash3388.flashlib.robot.io.IoInterface;
 import com.hal.Hal;
 import com.hal.PortDirection;
-
-import java.util.regex.Pattern;
 
 public class Main {
 
@@ -34,6 +31,13 @@ public class Main {
             hal.dioSet(handle, true);
         } finally {
             hal.dioFree(handle);
+        }
+
+        handle = hal.aioInit(0, PortDirection.OUTPUT);
+        try {
+            hal.aioSet(handle, 200);
+        } finally {
+            hal.aioFree(handle);
         }
     }
 

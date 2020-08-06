@@ -1,23 +1,23 @@
 #include <stdlib.h>
 #include <jni.h>
 
-#include <hal_dio.h>
+#include <hal_aio.h>
 
 #include "hal_defs.h"
 
 #define VALUE(__VALUE)\
-    __VALUE ? DIO_VALUE_HIGH : DIO_VALUE_LOW
+    (aio_value_t) (__VALUE)
 
-#define VALUE_INT(__VALUE)\
-    __VALUE == DIO_VALUE_HIGH ? 1 : 0
+#define VALUE_JAVA(__VALUE)\
+    (jlong) (__VALUE)
 
-JNIEXPORT jint JNICALL Java_com_hal_DioJni_initialize
+JNIEXPORT jint JNICALL Java_com_hal_AioJni_initialize
         (JNIEnv *env, jclass obj, jlong env_ptr, jlong port_id, jboolean port_dir) {
     hal_env_t* hal_env = (hal_env_t*) env_ptr;
 
     hal_handle_t handle;
 
-    hal_result_t result = hal_dio_init(hal_env, PORT_ID(port_id), PORT_DIR(port_dir), &handle);
+    hal_result_t result = hal_aio_init(hal_env, PORT_ID(port_id), PORT_DIR(port_dir), &handle);
     if (HAL_SUCCESS != result) {
         return -((jint) result);
     }
@@ -25,11 +25,11 @@ JNIEXPORT jint JNICALL Java_com_hal_DioJni_initialize
     return (jint)handle;
 }
 
-JNIEXPORT jint JNICALL Java_com_hal_DioJni_free
+JNIEXPORT jint JNICALL Java_com_hal_AioJni_free
         (JNIEnv *env, jclass obj, jlong env_ptr, jint handle) {
     hal_env_t* hal_env = (hal_env_t*) env_ptr;
 
-    hal_result_t result = hal_dio_free(hal_env, HANDLE(handle));
+    hal_result_t result = hal_aio_free(hal_env, HANDLE(handle));
     if (HAL_SUCCESS != result) {
         return -((jint) result);
     }
@@ -37,11 +37,11 @@ JNIEXPORT jint JNICALL Java_com_hal_DioJni_free
     return 0;
 }
 
-JNIEXPORT jint JNICALL Java_com_hal_DioJni_set
-        (JNIEnv *env, jclass obj, jlong env_ptr, jint handle, jboolean value) {
+JNIEXPORT jint JNICALL Java_com_hal_AioJni_set
+        (JNIEnv *env, jclass obj, jlong env_ptr, jint handle, jlong value) {
     hal_env_t* hal_env = (hal_env_t*) env_ptr;
 
-    hal_result_t result = hal_dio_set(hal_env, HANDLE(handle), VALUE(value));
+    hal_result_t result = hal_aio_set(hal_env, HANDLE(handle), VALUE(value));
     if (HAL_SUCCESS != result) {
         return -((jint) result);
     }
@@ -49,16 +49,16 @@ JNIEXPORT jint JNICALL Java_com_hal_DioJni_set
     return 0;
 }
 
-JNIEXPORT jint JNICALL Java_com_hal_DioJni_get
+JNIEXPORT jlong JNICALL Java_com_hal_AioJni_get
         (JNIEnv *env, jclass obj, jlong env_ptr, jint handle) {
     hal_env_t* hal_env = (hal_env_t*) env_ptr;
 
-    dio_value_t value;
+    aio_value_t value;
 
-    hal_result_t result = hal_dio_get(hal_env, HANDLE(handle), &value);
+    hal_result_t result = hal_aio_get(hal_env, HANDLE(handle), &value);
     if (HAL_SUCCESS != result) {
-        return -((jint) result);
+        return -((jlong) result);
     }
 
-    return VALUE_INT(value);
+    return VALUE_JAVA(value);
 }
