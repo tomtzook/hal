@@ -20,7 +20,12 @@
 typedef struct hal_env {
     bool initialized;
     lookup_table_t dio_table;
+    lookup_table_t aio_table;
     interface_env_t* interface_env;
 } hal_env_t;
+
+typedef struct {
+    port_id_t port_id;
+} generic_port_t;
 
 #endif //HAL_HAL_GLOBAL_H

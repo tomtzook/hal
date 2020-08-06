@@ -15,4 +15,5 @@ add_library(hal_impl
         OBJECT
         interface.c
         dio_interface.c
+        aio_interface.c
         ${BBBIO_SOURCES})

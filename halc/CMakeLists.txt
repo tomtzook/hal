@@ -5,7 +5,9 @@ set(CMAKE_C_STANDARD 11)
 
 set(BASE_INTERFACE
         base/hal_base.c
-        base/hal_base_dio.c)
+        base/port_table.c
+        base/hal_base_dio.c
+        base/hal_base_aio.c)
 
 set(UTIL
         util/lookup_table.c)
