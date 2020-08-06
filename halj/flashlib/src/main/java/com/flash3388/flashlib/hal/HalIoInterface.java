@@ -20,12 +20,16 @@ public class HalIoInterface implements IoInterface {
 
     @Override
     public AnalogInput newAnalogInput(IoChannel channel) {
-        throw new UnsupportedOperationException("No support in HAL");
+        HalIoChannel halIoChannel = IoChannel.cast(channel, HalIoChannel.class);
+        int handle = mHal.aioInit(halIoChannel.getPortId(), PortDirection.INPUT);
+        return new HalAnalogInput(mHal, handle);
     }
 
     @Override
     public AnalogOutput newAnalogOutput(IoChannel channel) {
-        throw new UnsupportedOperationException("No support in HAL");
+        HalIoChannel halIoChannel = IoChannel.cast(channel, HalIoChannel.class);
+        int handle = mHal.aioInit(halIoChannel.getPortId(), PortDirection.OUTPUT);
+        return new HalAnalogOutput(mHal, handle);
     }
 
     @Override
