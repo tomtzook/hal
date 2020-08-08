@@ -7,10 +7,6 @@ import com.castle.code.loader.TempNativeLibraryLoader;
 import com.castle.nio.zip.ArchivedNativeLibraryFinder;
 import com.castle.nio.zip.Zip;
 import com.castle.util.java.JavaSources;
-import com.flash3388.flashlib.hal.HalIoChannel;
-import com.flash3388.flashlib.hal.HalIoInterface;
-import com.flash3388.flashlib.robot.io.DigitalOutput;
-import com.flash3388.flashlib.robot.io.IoInterface;
 import com.hal.Hal;
 import com.hal.PortDirection;
 
@@ -39,12 +35,6 @@ public class Main {
         } finally {
             hal.aioFree(handle);
         }
-    }
-
-    private static void flashlibTest(Hal hal) {
-        IoInterface ioInterface = new HalIoInterface(hal);
-        DigitalOutput output = ioInterface.newDigitalOutput(new HalIoChannel(0));
-        output.set(true);
     }
 
     private static void loadNative() throws Exception {

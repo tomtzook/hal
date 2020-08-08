@@ -1,5 +1,4 @@
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.platform.Architecture
 
 plugins {
     id 'java-library'
@@ -16,10 +15,6 @@ if (project.hasProperty('HAL_INTERFACE')) {
 
 ext.CMAKE_PROPERTIES = "-DHAL_INTERFACE=${halInterfacePath}"
 ext.CMAKE_FILE = project.file('src/CMakeLists.txt')
-
-def is64bit() {
-    return System.getProperty("os.arch").indexOf("64") != -1
-}
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 

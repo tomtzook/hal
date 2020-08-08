@@ -10,12 +10,9 @@ repositories {
 }
 
 dependencies {
-    implementation project(':halj:core')
+    implementation project(':halj')
 
     implementation group: 'com.github.tomtzook', name: 'castle', version: '1.0.0'
-
-    implementation project(':halj:flashlib')
-    implementation group: 'com.flash3388.flashlib', name: 'flashlib', version: '3.0.0-test-io.1'
 }
 
 application {
