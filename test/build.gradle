@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation project(':halj')
+    implementation project(':halj.java')
 
     implementation group: 'com.github.tomtzook', name: 'castle', version: '1.0.0'
 }
