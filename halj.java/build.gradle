@@ -42,6 +42,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 publishing {
     publications {
         mavenHalJava(MavenPublication) {
+            artifactId 'hal-java'
             from components.java
 
             artifact sourcesJar

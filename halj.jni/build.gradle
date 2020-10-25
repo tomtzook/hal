@@ -83,7 +83,7 @@ ext.PUBLISHING_MAPS = createPublishingMaps()
 publishing {
     publications {
         mavenHalJni(MavenPublication) {
-            artifactId 'halj-jni'
+            artifactId 'hal-jni'
             for (Map<String, String> map : PUBLISHING_MAPS) {
                 artifact map
             }
