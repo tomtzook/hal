@@ -4,7 +4,6 @@ project(hal C)
 add_subdirectory(hal-base)
 add_subdirectory(natives)
 
-include_directories(hal-base/include)
-
+include_directories(${HAL_INCLUDES})
 add_executable(test test/main.c)
-target_link_libraries(test hal hal_stub)
+target_link_libraries(test ${HAL_LIBRARIES} hal_stub)

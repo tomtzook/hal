@@ -8,3 +8,7 @@ add_library(hal STATIC
         src/init.c
         src/ports/ports_dio.c
         src/ports/ports_internal.c)
+
+
+set(HAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include PARENT_SCOPE)
+set(HAL_LIBRARIES hal PARENT_SCOPE)
