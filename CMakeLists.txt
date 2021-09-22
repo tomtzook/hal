@@ -2,3 +2,9 @@ cmake_minimum_required(VERSION 3.5.1)
 project(hal C)
 
 add_subdirectory(hal-base)
+add_subdirectory(natives)
+
+include_directories(hal-base/include)
+
+add_executable(test test/main.c)
+target_link_libraries(test hal hal_stub)

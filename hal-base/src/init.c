@@ -4,15 +4,25 @@
 #include "ports/ports_internal.h"
 
 
-hal_error_t hal_init(hal_env_t** env, hal_native_t native) {
+hal_error_t hal_init(hal_env_t** env) {
     if (HAL_IS_INITIALIZED(*env)) {
         return HAL_SUCCESS;
     }
 
     hal_error_t status = HAL_SUCCESS;
+    hal_env_t* make_env = NULL;
+    hal_native_t native;
 
-    hal_env_t* make_env = (hal_env_t*) malloc(sizeof(hal_env_t));
-    HAL_CHECK_ALLOCATED(make_env);
+    make_env = (hal_env_t*) malloc(sizeof(hal_env_t));
+    if (make_env == NULL) {
+        status = HAL_ERROR_NOT_ALLOCATED;
+        goto cleanup;
+    }
+
+    status = hal_define_natives(&native);
+    if (HAL_IS_ERROR(status)) {
+        goto cleanup;
+    }
 
     // TODO: handle error
     status = hal_ports_init(make_env, native);

@@ -8,8 +8,3 @@ add_library(hal STATIC
         src/init.c
         src/ports/ports_dio.c
         src/ports/ports_internal.c)
-
-
-
-add_executable(test test/main.c)
-target_link_libraries(test hal)

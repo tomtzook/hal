@@ -14,7 +14,9 @@ typedef struct _hal_native {
     hal_error_t (*ports_init)(hal_env_t* env, ports_native_t* native);
 } hal_native_t;
 
-hal_error_t hal_init(hal_env_t** env, hal_native_t native);
+extern hal_error_t hal_define_natives(hal_native_t* native);
+
+hal_error_t hal_init(hal_env_t** env);
 
 void hal_quit(hal_env_t** env);
 
