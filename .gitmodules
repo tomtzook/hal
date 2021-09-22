@@ -1,3 +1,0 @@
-[submodule "halc/interfaces/bbb/bbbio"]
-	path = halc/interfaces/bbb/bbbio
-	url = https://github.com/tomtzook/BBBIO.git
