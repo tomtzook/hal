@@ -113,7 +113,7 @@ hal_error_t hal_dio_set(hal_env_t* env, hal_handle_t handle, hal_dio_value_t val
     }
 
     hal_error_t status = env->ports_sys.native.dio_write(env, &node->port, value);
-    if (status) {
+    if (HAL_IS_ERROR(status)) {
         return status;
     }
 

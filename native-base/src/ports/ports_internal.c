@@ -9,7 +9,11 @@ hal_error_t hal_ports_init(hal_env_t* env, hal_native_t hal_native) {
     env->ports_sys.dio_head = NULL;
     env->ports_sys.dio_tail = NULL;
 
-    hal_native.ports_init(env, &env->ports_sys.native);
+    hal_error_t status = hal_native.ports_init(env, &env->ports_sys.native);
+    if (HAL_IS_ERROR(status)) {
+        return status;
+    }
+
     return HAL_SUCCESS;
 }
 

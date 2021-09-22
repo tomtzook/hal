@@ -16,7 +16,7 @@ hal_error_t hal_init(hal_env_t** env, hal_native_t native) {
 
     // TODO: handle error
     status = hal_ports_init(make_env, native);
-    if (status) {
+    if (HAL_IS_ERROR(status)) {
         goto cleanup;
     }
 
@@ -24,7 +24,7 @@ hal_error_t hal_init(hal_env_t** env, hal_native_t native) {
     *env = make_env;
 
 cleanup:
-    if (status) {
+    if (HAL_IS_ERROR(status)) {
         free(make_env);
     }
 
