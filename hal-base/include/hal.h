@@ -4,6 +4,7 @@
 
 #include "ports/ports_sys.h"
 #include "ports/ports_dio.h"
+#include "ports/ports_aio.h"
 
 
 #ifdef __cplusplus

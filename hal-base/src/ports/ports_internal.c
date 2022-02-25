@@ -11,6 +11,7 @@
 
 
 extern ports_interface_t _dio_interface;
+extern ports_interface_t _aio_interface;
 
 typedef struct {
     hal_env_t* env;
@@ -51,12 +52,18 @@ hal_error_t hal_ports_init(hal_env_t* env) {
     env->ports_sys.dio.ports.head = NULL;
     env->ports_sys.dio.ports_interface = &_dio_interface;
 
+    env->ports_sys.aio.ports.head = NULL;
+    env->ports_sys.aio.ports_interface = &_aio_interface;
+
     return HAL_SUCCESS;
 }
 
 void hal_ports_quit(hal_env_t* env) {
     list_free_args_t free_args = {.env = env, .ports_interface = env->ports_sys.dio.ports_interface};
     list_clear(&env->ports_sys.dio.ports, list_free_port_callback, &free_args);
+
+    free_args.ports_interface = env->ports_sys.aio.ports_interface;
+    list_clear(&env->ports_sys.aio.ports, list_free_port_callback, &free_args);
 
     env->ports_sys.native.native_interface.free(env);
 }

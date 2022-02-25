@@ -22,6 +22,7 @@ typedef struct _ports_env {
     ports_native_t native;
 
     ports dio;
+    ports aio;
 } ports_env_t;
 
 

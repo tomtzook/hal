@@ -13,6 +13,8 @@ typedef enum _hal_dio_value {
     HAL_DIO_HIGH
 } hal_dio_value_t;
 
+typedef uint16_t hal_aio_value_t;
+
 typedef enum _hal_port_dir {
     PORT_DIR_OUTPUT,
     PORT_DIR_INPUT
@@ -28,6 +30,14 @@ typedef struct _dio_port {
     void* native_data;
 } dio_port_t;
 
+typedef struct _aio_port {
+    hal_port_t port;
+    hal_port_dir_t dir;
+    hal_aio_value_t value;
+
+    void* native_data;
+} aio_port_t;
+
 typedef struct _ports_native_interface {
     hal_error_t (*init)(hal_env_t* env, void** data);
     void (*free)(hal_env_t* env);
@@ -36,6 +46,11 @@ typedef struct _ports_native_interface {
     void (*dio_free)(hal_env_t* env, dio_port_t* port);
     hal_error_t (*dio_write)(hal_env_t* env, dio_port_t* port, hal_dio_value_t value);
     hal_error_t (*dio_read)(hal_env_t* env, dio_port_t* port, hal_dio_value_t* value);
+
+    hal_error_t (*aio_init)(hal_env_t* env, aio_port_t* port);
+    void (*aio_free)(hal_env_t* env, aio_port_t* port);
+    hal_error_t (*aio_write)(hal_env_t* env, aio_port_t* port, hal_aio_value_t value);
+    hal_error_t (*aio_read)(hal_env_t* env, aio_port_t* port, hal_aio_value_t* value);
 } ports_native_interface;
 
 typedef struct _ports_native {

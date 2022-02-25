@@ -10,11 +10,11 @@ int main() {
     }
 
     hal_handle_t handle;
-    if (HAL_IS_ERROR(hal_dio_open(env, 1, PORT_DIR_OUTPUT, &handle))) {
+    if (HAL_IS_ERROR(hal_aio_open(env, 1, PORT_DIR_OUTPUT, &handle))) {
         goto done;
     }
 
-    hal_dio_set(env, handle, HAL_DIO_HIGH);
+    hal_aio_set(env, handle, 0);
 
 done:
     hal_quit(&env);
