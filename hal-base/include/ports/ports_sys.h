@@ -28,16 +28,22 @@ typedef struct _dio_port {
     void* native_data;
 } dio_port_t;
 
-typedef struct _ports_native {
-    void (*free)(hal_env_t* env, struct _ports_native* native);
+typedef struct _ports_native_interface {
+    hal_error_t (*init)(hal_env_t* env, void** data);
+    void (*free)(hal_env_t* env);
 
     hal_error_t (*dio_init)(hal_env_t* env, dio_port_t* port);
     void (*dio_free)(hal_env_t* env, dio_port_t* port);
     hal_error_t (*dio_write)(hal_env_t* env, dio_port_t* port, hal_dio_value_t value);
     hal_error_t (*dio_read)(hal_env_t* env, dio_port_t* port, hal_dio_value_t* value);
+} ports_native_interface;
 
+typedef struct _ports_native {
+    ports_native_interface native_interface;
     void* data;
 } ports_native_t;
+
+extern ports_native_interface _ports_native_interface;
 
 #ifdef __cplusplus
 }

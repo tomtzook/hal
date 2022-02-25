@@ -9,6 +9,9 @@
 #define NODE_TO_HANDLE(node) ((hal_handle_t) node)
 
 
+
+extern ports_interface_t _dio_interface;
+
 typedef struct {
     hal_env_t* env;
     ports_interface_t* ports_interface;
@@ -37,33 +40,36 @@ static void list_free_port_callback(list_node_t* node, void* arg) {
 }
 
 
-hal_error_t hal_ports_init(hal_env_t* env, hal_native_t hal_native) {
-    hal_error_t status = hal_native.ports_init(env, &env->ports_sys.native);
+hal_error_t hal_ports_init(hal_env_t* env) {
+    env->ports_sys.native.native_interface = _ports_native_interface;
+
+    hal_error_t status = env->ports_sys.native.native_interface.init(env, &env->ports_sys.native.data);
     if (HAL_IS_ERROR(status)) {
         return status;
     }
 
-    hal_ports_dio_init_interface(env, &env->ports_sys.dio);
+    env->ports_sys.dio.ports.head = NULL;
+    env->ports_sys.dio.ports_interface = &_dio_interface;
 
     return HAL_SUCCESS;
 }
 
 void hal_ports_quit(hal_env_t* env) {
-    list_free_args_t free_args = {.env = env, .ports_interface = &env->ports_sys.dio};
+    list_free_args_t free_args = {.env = env, .ports_interface = env->ports_sys.dio.ports_interface};
     list_clear(&env->ports_sys.dio.ports, list_free_port_callback, &free_args);
 
-    env->ports_sys.native.free(env, &env->ports_sys.native);
+    env->ports_sys.native.native_interface.free(env);
 }
 
 
-hal_error_t hal_ports_open(hal_env_t* env, ports_interface_t* ports_interface, hal_port_t port, void* args,
+hal_error_t hal_ports_open(hal_env_t* env, ports* ports, hal_port_t port, void* args,
                            hal_handle_t* handle_out) {
     HAL_CHECK_INITIALIZED(env);
 
     list_node_t* node = NULL;
-    list_find_args_t find_args = {.env = env, .ports_interface = ports_interface, .port = port};
+    list_find_args_t find_args = {.env = env, .ports_interface = ports->ports_interface, .port = port};
 
-    if (!list_find(&ports_interface->ports, list_find_port_callback, &find_args, &node)) {
+    if (!list_find(&ports->ports, list_find_port_callback, &find_args, &node)) {
         // port already open
         return HAL_ERROR_TAKEN;
     }
@@ -71,13 +77,13 @@ hal_error_t hal_ports_open(hal_env_t* env, ports_interface_t* ports_interface, h
     node = (list_node_t*) malloc(sizeof(list_node_t));
     HAL_CHECK_ALLOCATED(node);
 
-    if (list_add(&ports_interface->ports, node)) {
+    if (list_add(&ports->ports, node)) {
         return HAL_DATA_ERROR;
     }
 
-    hal_error_t status = ports_interface->open(env, port, node, args);
+    hal_error_t status = ports->ports_interface->open(env, port, node, args);
     if (HAL_IS_ERROR(status)) {
-        list_remove(&ports_interface->ports, node);
+        list_remove(&ports->ports, node);
         free(node);
         return status;
     }
@@ -87,20 +93,20 @@ hal_error_t hal_ports_open(hal_env_t* env, ports_interface_t* ports_interface, h
     return HAL_SUCCESS;
 }
 
-hal_error_t hal_ports_close(hal_env_t* env, ports_interface_t* ports_interface, hal_handle_t handle) {
+hal_error_t hal_ports_close(hal_env_t* env, ports* ports, hal_handle_t handle) {
     HAL_CHECK_INITIALIZED(env);
 
     list_node_t* node = HANDLE_TO_NODE(handle);
 
-    ports_interface->close(env, node);
-    list_remove(&ports_interface->ports, node);
+    ports->ports_interface->close(env, node);
+    list_remove(&ports->ports, node);
 
     free(node);
 
     return HAL_SUCCESS;
 }
 
-hal_error_t hal_ports_action(hal_env_t* env, ports_interface_t* ports_interface, hal_handle_t handle,
+hal_error_t hal_ports_action(hal_env_t* env, ports* ports, hal_handle_t handle,
                              port_action_t action, void* args) {
     HAL_CHECK_INITIALIZED(env);
 

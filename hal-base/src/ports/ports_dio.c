@@ -31,7 +31,7 @@ static hal_error_t internal_open(hal_env_t* env, hal_port_t port, list_node_t* n
     port_struct->value = HAL_DIO_LOW;
     port_struct->native_data = NULL;
 
-    hal_error_t status = env->ports_sys.native.dio_init(env, port_struct);
+    hal_error_t status = env->ports_sys.native.native_interface.dio_init(env, port_struct);
     if (HAL_IS_ERROR(status)) {
         free(port_struct);
         return status;
@@ -42,7 +42,7 @@ static hal_error_t internal_open(hal_env_t* env, hal_port_t port, list_node_t* n
 }
 
 static hal_error_t internal_close(hal_env_t* env, list_node_t* node) {
-    env->ports_sys.native.dio_free(env, node->data);
+    env->ports_sys.native.native_interface.dio_free(env, node->data);
     free(node->data);
     return HAL_SUCCESS;
 }
@@ -57,7 +57,7 @@ static hal_error_t action_get(hal_env_t* env, list_node_t* node, void* args) {
     dio_action_get_args_t* get_args = (dio_action_get_args_t*) args;
 
     if (PORT_DIR_INPUT == port->dir) {
-        hal_error_t status = env->ports_sys.native.dio_read(env, port, get_args->value_out);
+        hal_error_t status = env->ports_sys.native.native_interface.dio_read(env, port, get_args->value_out);
         if (HAL_IS_ERROR(status)) {
             return status;
         }
@@ -76,22 +76,13 @@ static hal_error_t action_set(hal_env_t* env, list_node_t* node, void* args) {
         return HAL_UNSUPPORTED_OPERATION;
     }
 
-    hal_error_t status = env->ports_sys.native.dio_write(env, port, set_args->value_in);
+    hal_error_t status = env->ports_sys.native.native_interface.dio_write(env, port, set_args->value_in);
     if (HAL_IS_ERROR(status)) {
         return status;
     }
 
     port->value = set_args->value_in;
     return HAL_SUCCESS;
-}
-
-
-void hal_ports_dio_init_interface(hal_env_t* env, ports_interface_t* ports_interface) {
-    ports_interface->open = internal_open;
-    ports_interface->close = internal_close;
-    ports_interface->is_same = internal_is_same;
-
-    ports_interface->ports.head = NULL;
 }
 
 hal_error_t hal_dio_open(hal_env_t* env, hal_port_t port, hal_port_dir_t dir, hal_handle_t* handle) {
@@ -120,3 +111,9 @@ hal_error_t hal_dio_set(hal_env_t* env, hal_handle_t handle, hal_dio_value_t val
     dio_action_set_args_t args = {.value_in = value};
     return hal_ports_action(env, &env->ports_sys.dio, handle, action_set, &args);
 }
+
+ports_interface_t _dio_interface = {
+    .open = internal_open,
+    .close = internal_close,
+    .is_same = internal_is_same
+};
