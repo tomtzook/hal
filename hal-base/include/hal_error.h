@@ -16,7 +16,9 @@ typedef enum _error_value {
     HAL_ERROR_NOT_INITIALIZED,
     HAL_ERROR_NOT_ALLOCATED,
     HAL_NOT_FOUND,
-    HAL_UNSUPPORTED_OPERATION
+    HAL_UNSUPPORTED_OPERATION,
+    HAL_ERROR_TAKEN,
+    HAL_DATA_ERROR
 } error_value_t;
 
 #define HAL_IS_ERROR(error_code) (HAL_SUCCESS != (error_code))

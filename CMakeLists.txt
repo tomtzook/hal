@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5.1)
 project(hal C)
 
+add_subdirectory(util)
 add_subdirectory(hal-base)
 add_subdirectory(natives)
 
