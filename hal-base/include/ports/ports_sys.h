@@ -9,10 +9,11 @@ extern "C" {
 #endif
 
 #define HAL_PORT_PROBE_EXISTS 0x1
-#define HAL_PORT_PROBE_DIGITAL 0x2
-#define HAL_PORT_PROBE_ANALOG 0x4
-#define HAL_PORT_PROBE_INPUT 0x8
-#define HAL_PORT_PROBE_OUTPUT 0x16
+#define HAL_PORT_PROBE_INPUT 0x2
+#define HAL_PORT_PROBE_OUTPUT 0x4
+#define HAL_PORT_PROBE_DIGITAL 0x8
+#define HAL_PORT_PROBE_ANALOG 0x16
+#define HAL_PORT_PROBE_PWM 0x32
 
 typedef enum _hal_dio_value {
     HAL_DIO_LOW,
@@ -20,6 +21,8 @@ typedef enum _hal_dio_value {
 } hal_dio_value_t;
 
 typedef uint16_t hal_aio_value_t;
+
+typedef uint16_t hal_pwm_value_t;
 
 typedef enum _hal_port_dir {
     PORT_DIR_OUTPUT,
@@ -44,6 +47,13 @@ typedef struct _aio_port {
     void* native_data;
 } aio_port_t;
 
+typedef struct _pwm_port { // only output
+    hal_port_t port;
+    hal_pwm_value_t value;
+
+    void* native_data;
+} pwm_port_t;
+
 typedef struct _ports_native_interface {
     hal_error_t (*init)(hal_env_t* env, void** data);
     void (*free)(hal_env_t* env);
@@ -59,6 +69,12 @@ typedef struct _ports_native_interface {
     hal_error_t (*aio_write)(hal_env_t* env, aio_port_t* port, hal_aio_value_t value);
     hal_error_t (*aio_read)(hal_env_t* env, aio_port_t* port, hal_aio_value_t* value);
     hal_aio_value_t (*aio_max_value)(hal_env_t* env);
+
+    hal_error_t (*pwm_init)(hal_env_t* env, pwm_port_t* port);
+    void (*pwm_free)(hal_env_t* env, pwm_port_t* port);
+    hal_error_t (*pwm_write)(hal_env_t* env, pwm_port_t* port, hal_pwm_value_t value);
+    hal_error_t (*pwm_frequency_read)(hal_env_t* env, pwm_port_t* port, float* value);
+    hal_pwm_value_t (*pwm_max_value)(hal_env_t* env);
 } ports_native_interface;
 
 typedef struct _ports_native {

@@ -19,6 +19,7 @@ typedef struct _ports_env {
 
     ports_interface_t* dio;
     ports_interface_t* aio;
+    ports_interface_t* pwm;
 } ports_env_t;
 
 

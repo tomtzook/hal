@@ -12,6 +12,7 @@
 
 extern ports_interface_t _dio_interface;
 extern ports_interface_t _aio_interface;
+extern ports_interface_t _pwm_interface;
 
 typedef struct {
     hal_port_t port;
@@ -46,6 +47,7 @@ hal_error_t hal_ports_init(hal_env_t* env) {
     env->ports_sys.allocated_ports.head = NULL;
     env->ports_sys.dio = &_dio_interface;
     env->ports_sys.aio = &_aio_interface;
+    env->ports_sys.pwm = &_pwm_interface;
 
     return HAL_SUCCESS;
 }
