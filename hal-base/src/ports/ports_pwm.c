@@ -28,7 +28,8 @@ static hal_error_t internal_open(hal_env_t* env, hal_port_t port, list_node_t* n
     port_struct->value = 0;
     port_struct->native_data = NULL;
 
-    hal_error_t status = env->ports_sys.native.native_interface.pwm_init(env, port_struct);
+    hal_error_t status = env->ports_sys.native.native_interface.pwm_init(
+            env, env->ports_sys.native.data, port_struct);
     if (HAL_IS_ERROR(status)) {
         free(port_struct);
         return status;
@@ -39,7 +40,8 @@ static hal_error_t internal_open(hal_env_t* env, hal_port_t port, list_node_t* n
 }
 
 static hal_error_t internal_close(hal_env_t* env, list_node_t* node) {
-    env->ports_sys.native.native_interface.pwm_free(env, node->data);
+    env->ports_sys.native.native_interface.pwm_free(
+            env, env->ports_sys.native.data, node->data);
     free(node->data);
     return HAL_SUCCESS;
 }
@@ -57,7 +59,8 @@ static hal_error_t action_set(hal_env_t* env, list_node_t* node, void* args) {
     pwm_port_t* port = (pwm_port_t*) node->data;
     pwm_action_set_args_t* set_args = (pwm_action_set_args_t*) args;
 
-    hal_error_t status = env->ports_sys.native.native_interface.pwm_write(env, port, set_args->value_in);
+    hal_error_t status = env->ports_sys.native.native_interface.pwm_write(
+            env, env->ports_sys.native.data, port, set_args->value_in);
     if (HAL_IS_ERROR(status)) {
         return status;
     }
@@ -70,7 +73,8 @@ static hal_error_t action_get_frequency(hal_env_t* env, list_node_t* node, void*
     pwm_port_t* port = (pwm_port_t*) node->data;
     pwm_action_get_frequency_args_t* get_args = (pwm_action_get_frequency_args_t*) args;
 
-    hal_error_t status = env->ports_sys.native.native_interface.pwm_frequency_read(env, port, get_args->value_out);
+    hal_error_t status = env->ports_sys.native.native_interface.pwm_frequency_read(
+            env, env->ports_sys.native.data, port, get_args->value_out);
     if (HAL_IS_ERROR(status)) {
         return status;
     }
@@ -112,7 +116,8 @@ hal_error_t hal_pwm_get_frequency(hal_env_t* env, hal_handle_t handle, float* va
 }
 
 hal_pwm_value_t hal_pwm_max_value(hal_env_t* env) {
-    return env->ports_sys.native.native_interface.pwm_max_value(env);
+    return env->ports_sys.native.native_interface.pwm_max_value(
+            env, env->ports_sys.native.data);
 }
 
 ports_interface_t _pwm_interface = {

@@ -19,10 +19,15 @@ typedef enum _error_value {
     HAL_ERROR_UNSUPPORTED_OPERATION,
     HAL_ERROR_TAKEN,
     HAL_ERROR_BAD_DATA,
-    HAL_ERROR_BAD_ARGUMENT
+    HAL_ERROR_BAD_ARGUMENT,
+    HAL_ERROR_PERMISSIONS
 } error_value_t;
 
 #define HAL_IS_ERROR(error_code) (HAL_SUCCESS != (error_code))
+#define HAL_JUMP_IF_ERROR(error_code, label) \
+    do { \
+         if (HAL_IS_ERROR(error_code)) goto label;  \
+    } while(0)
 
 #define HAL_CHECK_ALLOCATED(ptr) \
     do {                            \

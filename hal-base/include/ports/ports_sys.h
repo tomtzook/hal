@@ -56,25 +56,25 @@ typedef struct _pwm_port { // only output
 
 typedef struct _ports_native_interface {
     hal_error_t (*init)(hal_env_t* env, void** data);
-    void (*free)(hal_env_t* env);
-    hal_error_t (*probe)(hal_env_t* env, hal_port_t port, uint8_t flags);
+    void (*free)(hal_env_t* env, void* data);
+    hal_error_t (*probe)(hal_env_t* env, void* data, hal_port_t port, uint8_t flags);
 
-    hal_error_t (*dio_init)(hal_env_t* env, dio_port_t* port);
-    void (*dio_free)(hal_env_t* env, dio_port_t* port);
-    hal_error_t (*dio_write)(hal_env_t* env, dio_port_t* port, hal_dio_value_t value);
-    hal_error_t (*dio_read)(hal_env_t* env, dio_port_t* port, hal_dio_value_t* value);
+    hal_error_t (*dio_init)(hal_env_t* env, void* data, dio_port_t* port);
+    void (*dio_free)(hal_env_t* env, void* data, dio_port_t* port);
+    hal_error_t (*dio_write)(hal_env_t* env, void* data, dio_port_t* port, hal_dio_value_t value);
+    hal_error_t (*dio_read)(hal_env_t* env, void* data, dio_port_t* port, hal_dio_value_t* value);
 
-    hal_error_t (*aio_init)(hal_env_t* env, aio_port_t* port);
-    void (*aio_free)(hal_env_t* env, aio_port_t* port);
-    hal_error_t (*aio_write)(hal_env_t* env, aio_port_t* port, hal_aio_value_t value);
-    hal_error_t (*aio_read)(hal_env_t* env, aio_port_t* port, hal_aio_value_t* value);
-    hal_aio_value_t (*aio_max_value)(hal_env_t* env);
+    hal_error_t (*aio_init)(hal_env_t* env, void* data, aio_port_t* port);
+    void (*aio_free)(hal_env_t* env, void* data, aio_port_t* port);
+    hal_error_t (*aio_write)(hal_env_t* env, void* data, aio_port_t* port, hal_aio_value_t value);
+    hal_error_t (*aio_read)(hal_env_t* env, void* data, aio_port_t* port, hal_aio_value_t* value);
+    hal_aio_value_t (*aio_max_value)(hal_env_t* env, void* data);
 
-    hal_error_t (*pwm_init)(hal_env_t* env, pwm_port_t* port);
-    void (*pwm_free)(hal_env_t* env, pwm_port_t* port);
-    hal_error_t (*pwm_write)(hal_env_t* env, pwm_port_t* port, hal_pwm_value_t value);
-    hal_error_t (*pwm_frequency_read)(hal_env_t* env, pwm_port_t* port, float* value);
-    hal_pwm_value_t (*pwm_max_value)(hal_env_t* env);
+    hal_error_t (*pwm_init)(hal_env_t* env, void* data, pwm_port_t* port);
+    void (*pwm_free)(hal_env_t* env, void* data, pwm_port_t* port);
+    hal_error_t (*pwm_write)(hal_env_t* env, void* data, pwm_port_t* port, hal_pwm_value_t value);
+    hal_error_t (*pwm_frequency_read)(hal_env_t* env, void* data, pwm_port_t* port, float* value);
+    hal_pwm_value_t (*pwm_max_value)(hal_env_t* env, void* data);
 } ports_native_interface;
 
 typedef struct _ports_native {

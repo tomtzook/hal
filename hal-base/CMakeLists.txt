@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.5.1)
 
-set(CMAKE_C_STANDARD 11)
-
 include_directories(include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../util)
 

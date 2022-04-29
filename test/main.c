@@ -1,28 +1,49 @@
 #include <stdio.h>
 #include <hal.h>
+#include <unistd.h>
 
+
+#define HANDLE_ERROR(status) \
+    do {                     \
+        if (HAL_IS_ERROR(status)) { \
+            fprintf(stderr, "Error (%s: %d): %d\n", __FILE__, __LINE__, status);\
+            goto done;\
+        }\
+    } while(0)
+
+
+// usr3
+#define PORT (1 * 32 + 24)
 
 int main() {
+    printf("Hello\n");
+
     hal_env_t* env = NULL;
     hal_error_t status = hal_init(&env);
-    if (HAL_IS_ERROR(status)) {
-        return 1;
-    }
-
-    if (HAL_IS_ERROR(hal_ports_probe(env, 1, HAL_PORT_PROBE_ANALOG | HAL_PORT_PROBE_OUTPUT))) {
-        goto done;
-    }
+    HANDLE_ERROR(status);
 
     hal_handle_t handle;
-    if (HAL_IS_ERROR(hal_aio_open(env, 1, PORT_DIR_OUTPUT, &handle))) {
-        goto done;
-    }
-    printf("port opened");
+    status = hal_dio_open(env, PORT, PORT_DIR_OUTPUT, &handle);
+    HANDLE_ERROR(status);
 
-    hal_aio_set(env, handle, 0);
+    printf("port opened\n");
+
+    status = hal_dio_set(env, handle, HAL_DIO_LOW);
+    HANDLE_ERROR(status);
+    for (int i = 0; i < 10; ++i) {
+        status = hal_dio_set(env, handle, HAL_DIO_HIGH);
+        HANDLE_ERROR(status);
+        usleep(500000);
+        status = hal_dio_set(env, handle, HAL_DIO_LOW);
+        HANDLE_ERROR(status);
+        usleep(500000);
+    }
 
 done:
-    hal_quit(&env);
+    if (env != NULL) {
+        hal_quit(&env);
+    }
+    printf("Done\n");
 
     return 0;
 }

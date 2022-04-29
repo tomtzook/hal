@@ -56,11 +56,12 @@ void hal_ports_quit(hal_env_t* env) {
     list_free_args_t free_args = {.env = env};
     list_clear(&env->ports_sys.allocated_ports, list_free_port_callback, &free_args);
 
-    env->ports_sys.native.native_interface.free(env);
+    env->ports_sys.native.native_interface.free(env, env->ports_sys.native.data);
 }
 
 hal_error_t hal_ports_probe(hal_env_t* env, hal_port_t port, uint8_t flags) {
-    return env->ports_sys.native.native_interface.probe(env, port, flags);
+    return env->ports_sys.native.native_interface.probe(
+            env, env->ports_sys.native.data, port, flags);
 }
 
 
