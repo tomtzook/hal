@@ -12,6 +12,8 @@ void hal_aio_close(hal_env_t* env, hal_handle_t handle);
 hal_error_t hal_aio_get(hal_env_t* env, hal_handle_t handle, hal_aio_value_t* value);
 hal_error_t hal_aio_set(hal_env_t* env, hal_handle_t handle, hal_aio_value_t value);
 
+hal_aio_value_t hal_aio_max_value(hal_env_t* env);
+
 #ifdef __cplusplus
 }
 #endif

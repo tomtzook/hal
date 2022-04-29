@@ -9,10 +9,15 @@ int main() {
         return 1;
     }
 
+    if (HAL_IS_ERROR(hal_ports_probe(env, 1, HAL_PORT_PROBE_ANALOG | HAL_PORT_PROBE_OUTPUT))) {
+        goto done;
+    }
+
     hal_handle_t handle;
     if (HAL_IS_ERROR(hal_aio_open(env, 1, PORT_DIR_OUTPUT, &handle))) {
         goto done;
     }
+    printf("port opened");
 
     hal_aio_set(env, handle, 0);
 

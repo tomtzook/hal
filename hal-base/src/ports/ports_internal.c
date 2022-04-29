@@ -68,6 +68,10 @@ void hal_ports_quit(hal_env_t* env) {
     env->ports_sys.native.native_interface.free(env);
 }
 
+hal_error_t hal_ports_probe(hal_env_t* env, hal_port_t port, uint8_t flags) {
+    return env->ports_sys.native.native_interface.probe(env, port, flags);
+}
+
 
 hal_error_t hal_ports_open(hal_env_t* env, ports* ports, hal_port_t port, void* args,
                            hal_handle_t* handle_out) {
@@ -75,7 +79,6 @@ hal_error_t hal_ports_open(hal_env_t* env, ports* ports, hal_port_t port, void* 
 
     list_node_t* node = NULL;
     list_find_args_t find_args = {.env = env, .ports_interface = ports->ports_interface, .port = port};
-
     if (!list_find(&ports->ports, list_find_port_callback, &find_args, &node)) {
         // port already open
         return HAL_ERROR_TAKEN;
@@ -85,7 +88,7 @@ hal_error_t hal_ports_open(hal_env_t* env, ports* ports, hal_port_t port, void* 
     HAL_CHECK_ALLOCATED(node);
 
     if (list_add(&ports->ports, node)) {
-        return HAL_DATA_ERROR;
+        return HAL_ERROR_BAD_DATA;
     }
 
     hal_error_t status = ports->ports_interface->open(env, port, node, args);

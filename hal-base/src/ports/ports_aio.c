@@ -73,7 +73,7 @@ static hal_error_t action_set(hal_env_t* env, list_node_t* node, void* args) {
     aio_action_set_args_t* set_args = (aio_action_set_args_t*) args;
 
     if (PORT_DIR_INPUT == port->dir) {
-        return HAL_UNSUPPORTED_OPERATION;
+        return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
 
     hal_error_t status = env->ports_sys.native.native_interface.aio_write(env, port, set_args->value_in);
@@ -110,6 +110,10 @@ hal_error_t hal_aio_set(hal_env_t* env, hal_handle_t handle, hal_aio_value_t val
 
     aio_action_set_args_t args = {.value_in = value};
     return hal_ports_action(env, &env->ports_sys.aio, handle, action_set, &args);
+}
+
+hal_aio_value_t hal_aio_max_value(hal_env_t* env) {
+    return env->ports_sys.native.native_interface.aio_max_value(env);
 }
 
 ports_interface_t _aio_interface = {

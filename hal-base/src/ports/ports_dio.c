@@ -73,7 +73,7 @@ static hal_error_t action_set(hal_env_t* env, list_node_t* node, void* args) {
     dio_action_set_args_t* set_args = (dio_action_set_args_t*) args;
 
     if (PORT_DIR_INPUT == port->dir) {
-        return HAL_UNSUPPORTED_OPERATION;
+        return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
 
     hal_error_t status = env->ports_sys.native.native_interface.dio_write(env, port, set_args->value_in);

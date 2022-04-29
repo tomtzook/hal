@@ -8,6 +8,12 @@
 extern "C" {
 #endif
 
+#define HAL_PORT_PROBE_EXISTS 0x1
+#define HAL_PORT_PROBE_DIGITAL 0x2
+#define HAL_PORT_PROBE_ANALOG 0x4
+#define HAL_PORT_PROBE_INPUT 0x8
+#define HAL_PORT_PROBE_OUTPUT 0x16
+
 typedef enum _hal_dio_value {
     HAL_DIO_LOW,
     HAL_DIO_HIGH
@@ -41,6 +47,7 @@ typedef struct _aio_port {
 typedef struct _ports_native_interface {
     hal_error_t (*init)(hal_env_t* env, void** data);
     void (*free)(hal_env_t* env);
+    hal_error_t (*probe)(hal_env_t* env, hal_port_t port, uint8_t flags);
 
     hal_error_t (*dio_init)(hal_env_t* env, dio_port_t* port);
     void (*dio_free)(hal_env_t* env, dio_port_t* port);
@@ -51,6 +58,7 @@ typedef struct _ports_native_interface {
     void (*aio_free)(hal_env_t* env, aio_port_t* port);
     hal_error_t (*aio_write)(hal_env_t* env, aio_port_t* port, hal_aio_value_t value);
     hal_error_t (*aio_read)(hal_env_t* env, aio_port_t* port, hal_aio_value_t* value);
+    hal_aio_value_t (*aio_max_value)(hal_env_t* env);
 } ports_native_interface;
 
 typedef struct _ports_native {
@@ -59,6 +67,8 @@ typedef struct _ports_native {
 } ports_native_t;
 
 extern ports_native_interface _ports_native_interface;
+
+hal_error_t hal_ports_probe(hal_env_t* env, hal_port_t port, uint8_t flags);
 
 #ifdef __cplusplus
 }
