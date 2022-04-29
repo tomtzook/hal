@@ -47,11 +47,6 @@ static hal_error_t internal_close(hal_env_t* env, list_node_t* node) {
     return HAL_SUCCESS;
 }
 
-static bool internal_is_same(hal_env_t* env, hal_port_t port, list_node_t* node) {
-    dio_port_t* dio_port = (dio_port_t*) node->data;
-    return dio_port->port == port;
-}
-
 static hal_error_t action_get(hal_env_t* env, list_node_t* node, void* args) {
     dio_port_t* port = (dio_port_t*) node->data;
     dio_action_get_args_t* get_args = (dio_action_get_args_t*) args;
@@ -89,31 +84,30 @@ hal_error_t hal_dio_open(hal_env_t* env, hal_port_t port, hal_port_dir_t dir, ha
     HAL_CHECK_INITIALIZED(env);
 
     dio_open_args_t args = {.dir = dir};
-    return hal_ports_open(env, &env->ports_sys.dio, port, &args, handle);
+    return hal_ports_open(env, env->ports_sys.dio, port, &args, handle);
 }
 
 void hal_dio_close(hal_env_t* env, hal_handle_t handle) {
     HAL_CHECK_INITIALIZED_VOID(env);
 
-    hal_ports_close(env, &env->ports_sys.dio, handle);
+    hal_ports_close(env, env->ports_sys.dio, handle);
 }
 
 hal_error_t hal_dio_get(hal_env_t* env, hal_handle_t handle, hal_dio_value_t* value) {
     HAL_CHECK_INITIALIZED(env);
 
     dio_action_get_args_t args = {.value_out = value};
-    return hal_ports_action(env, &env->ports_sys.dio, handle, action_get, &args);
+    return hal_ports_action(env, env->ports_sys.dio, handle, action_get, &args);
 }
 
 hal_error_t hal_dio_set(hal_env_t* env, hal_handle_t handle, hal_dio_value_t value) {
     HAL_CHECK_INITIALIZED(env);
 
     dio_action_set_args_t args = {.value_in = value};
-    return hal_ports_action(env, &env->ports_sys.dio, handle, action_set, &args);
+    return hal_ports_action(env, env->ports_sys.dio, handle, action_set, &args);
 }
 
 ports_interface_t _dio_interface = {
     .open = internal_open,
     .close = internal_close,
-    .is_same = internal_is_same
 };

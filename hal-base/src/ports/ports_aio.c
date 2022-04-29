@@ -47,11 +47,6 @@ static hal_error_t internal_close(hal_env_t* env, list_node_t* node) {
     return HAL_SUCCESS;
 }
 
-static bool internal_is_same(hal_env_t* env, hal_port_t port, list_node_t* node) {
-    aio_port_t* aio_port = (aio_port_t*) node->data;
-    return aio_port->port == port;
-}
-
 static hal_error_t action_get(hal_env_t* env, list_node_t* node, void* args) {
     aio_port_t* port = (aio_port_t*) node->data;
     aio_action_get_args_t* get_args = (aio_action_get_args_t*) args;
@@ -89,27 +84,27 @@ hal_error_t hal_aio_open(hal_env_t* env, hal_port_t port, hal_port_dir_t dir, ha
     HAL_CHECK_INITIALIZED(env);
 
     aio_open_args_t args = {.dir = dir};
-    return hal_ports_open(env, &env->ports_sys.aio, port, &args, handle);
+    return hal_ports_open(env, env->ports_sys.aio, port, &args, handle);
 }
 
 void hal_aio_close(hal_env_t* env, hal_handle_t handle) {
     HAL_CHECK_INITIALIZED_VOID(env);
 
-    hal_ports_close(env, &env->ports_sys.aio, handle);
+    hal_ports_close(env, env->ports_sys.aio, handle);
 }
 
 hal_error_t hal_aio_get(hal_env_t* env, hal_handle_t handle, hal_aio_value_t* value) {
     HAL_CHECK_INITIALIZED(env);
 
     aio_action_get_args_t args = {.value_out = value};
-    return hal_ports_action(env, &env->ports_sys.aio, handle, action_get, &args);
+    return hal_ports_action(env, env->ports_sys.aio, handle, action_get, &args);
 }
 
 hal_error_t hal_aio_set(hal_env_t* env, hal_handle_t handle, hal_aio_value_t value) {
     HAL_CHECK_INITIALIZED(env);
 
     aio_action_set_args_t args = {.value_in = value};
-    return hal_ports_action(env, &env->ports_sys.aio, handle, action_set, &args);
+    return hal_ports_action(env, env->ports_sys.aio, handle, action_set, &args);
 }
 
 hal_aio_value_t hal_aio_max_value(hal_env_t* env) {
@@ -118,6 +113,5 @@ hal_aio_value_t hal_aio_max_value(hal_env_t* env) {
 
 ports_interface_t _aio_interface = {
         .open = internal_open,
-        .close = internal_close,
-        .is_same = internal_is_same
+        .close = internal_close
 };

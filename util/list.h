@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -8,6 +9,8 @@ extern "C" {
 
 typedef struct _list_node {
     void* data;
+    void* data2;
+    uint64_t data3;
 
     struct _list_node* next;
     struct _list_node* prev;
