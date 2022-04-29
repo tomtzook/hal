@@ -3,9 +3,10 @@
 #include <malloc.h>
 #include <memory.h>
 
+#include "include/bbb_gpiodef.h"
 #include "memio/peripheral.h"
-#include "memio/gpiodef.h"
 #include "memio/regs.h"
+
 
 typedef struct {
     peripheral_t gpio_peripherals[4];

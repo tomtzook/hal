@@ -2,44 +2,42 @@
 #include <hal.h>
 #include <unistd.h>
 
+#include <bbb_gpiodef.h>
 
-#define HANDLE_ERROR(status) \
-    do {                     \
-        if (HAL_IS_ERROR(status)) { \
-            fprintf(stderr, "Error (%s: %d): %d\n", __FILE__, __LINE__, status);\
+
+#define HANDLE_ERROR(...) \
+    do {                  \
+        hal_error_t __status = __VA_ARGS__;\
+        if (HAL_IS_ERROR(__status)) { \
+            fprintf(stderr, "[%s: %d] Error: (%d) %s\n", __FILE__, __LINE__, __status, hal_strerror(__status));\
             goto done;\
         }\
     } while(0)
 
 
-// usr3
-#define PORT (1 * 32 + 24)
-
 int main() {
     printf("Hello\n");
 
     hal_env_t* env = NULL;
-    hal_error_t status = hal_init(&env);
-    HANDLE_ERROR(status);
+    hal_handle_t led1 = HAL_EMPTY_HANDLE;
 
-    hal_handle_t handle;
-    status = hal_dio_open(env, PORT, PORT_DIR_OUTPUT, &handle);
-    HANDLE_ERROR(status);
+    HANDLE_ERROR(hal_init(&env));
+    HANDLE_ERROR(hal_dio_open(env, USR3, PORT_DIR_OUTPUT, &led1));
 
     printf("port opened\n");
 
-    status = hal_dio_set(env, handle, HAL_DIO_LOW);
-    HANDLE_ERROR(status);
+    HANDLE_ERROR(hal_dio_set(env, led1, HAL_DIO_LOW));
     for (int i = 0; i < 10; ++i) {
-        status = hal_dio_set(env, handle, HAL_DIO_HIGH);
-        HANDLE_ERROR(status);
+        HANDLE_ERROR(hal_dio_set(env, led1, HAL_DIO_HIGH));
         usleep(500000);
-        status = hal_dio_set(env, handle, HAL_DIO_LOW);
-        HANDLE_ERROR(status);
+        HANDLE_ERROR(hal_dio_set(env, led1, HAL_DIO_LOW));
         usleep(500000);
     }
 
 done:
+    if (led1 != HAL_EMPTY_HANDLE) {
+        hal_dio_close(env, led1);
+    }
     if (env != NULL) {
         hal_quit(&env);
     }

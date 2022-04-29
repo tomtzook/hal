@@ -8,12 +8,19 @@
 #pragma pack(push, 1)
 
 // gpio_registers
+
+#define GPIO0 0x44e07000
+#define GPIO1 0x4804c000
+#define GPIO2 0x481ac000
+#define GPIO3 0x481ae000
+#define GPIO_CTRL_SIZE 0x1000
+
 typedef enum {
     idle_mode_force = 0x0,
     idle_mode_no = 0x1,
     idle_mode_smart = 0x2,
     idle_mode_smart_wakeup = 0x3
-} idle_mode_t;
+} gpio_sysconfig_idle_mode_t;
 
 typedef struct {
     volatile union {
@@ -35,7 +42,7 @@ typedef struct {
             uint32_t auto_idle : 1;
             uint32_t softreset : 1;
             uint32_t ena_wakeup : 1;
-            idle_mode_t idle_mode : 2;
+            gpio_sysconfig_idle_mode_t idle_mode : 2;
         } bits;
     } sysconfig;
     uint8_t reserved1[0xc];

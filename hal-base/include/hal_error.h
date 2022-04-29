@@ -23,6 +23,8 @@ typedef enum _error_value {
     HAL_ERROR_PERMISSIONS
 } error_value_t;
 
+const char* hal_strerror(hal_error_t error);
+
 #define HAL_IS_ERROR(error_code) (HAL_SUCCESS != (error_code))
 #define HAL_JUMP_IF_ERROR(error_code, label) \
     do { \
