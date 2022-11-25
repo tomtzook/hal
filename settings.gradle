@@ -1,4 +1,0 @@
-include ':halc'
-include ':halj.java'
-include ':halj.jni'
-include 'test'
