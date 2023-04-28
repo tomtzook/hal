@@ -35,6 +35,12 @@ const char* hal_strerror(hal_error_t error);
          if (HAL_IS_ERROR(error_code)) goto label;  \
     } while(0)
 
+#define HAL_RETURN_IF_ERROR(...) \
+    do {                         \
+         hal_error_t _status = __VA_ARGS__;  \
+         if (HAL_IS_ERROR(_status)) return _status;  \
+    } while(0)
+
 #define HAL_CHECK_ALLOCATED(ptr) \
     do {                            \
         if(NULL == ptr) { \

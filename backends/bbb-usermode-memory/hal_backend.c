@@ -5,7 +5,7 @@
 #include <hal_backend.h>
 #include <hal.h>
 
-#include "include/bbb_gpiodef.h"
+#include "../bbb-includes/bbb_gpiodef.h"
 #include "memio/peripheral.h"
 #include "memio/regs.h"
 
