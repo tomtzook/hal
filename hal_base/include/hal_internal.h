@@ -14,20 +14,20 @@ typedef struct _hal_used_port {
     void* native_data;
 } hal_used_port_t;
 
-struct _hal_native {
-    uint32_t (*probe)(hal_native_t* env, hal_port_t port);
-    hal_error_t (*open)(hal_native_t* env, hal_port_t port, hal_port_type_t type, void** data);
-    hal_error_t (*close)(hal_native_t* env, hal_port_t port, hal_port_type_t type, void* data);
+struct _hal_backend {
+    uint32_t (*probe)(hal_backend_t* env, hal_port_t port);
+    hal_error_t (*open)(hal_backend_t* env, hal_port_t port, hal_port_type_t type, void** data);
+    hal_error_t (*close)(hal_backend_t* env, hal_port_t port, hal_port_type_t type, void* data);
 
-    hal_error_t (*dio_get)(hal_native_t* env, hal_port_t port, void* data, hal_dio_value_t* value);
-    hal_error_t (*dio_set)(hal_native_t* env, hal_port_t port, void* data, hal_dio_value_t value);
+    hal_error_t (*dio_get)(hal_backend_t* env, hal_port_t port, void* data, hal_dio_value_t* value);
+    hal_error_t (*dio_set)(hal_backend_t* env, hal_port_t port, void* data, hal_dio_value_t value);
 
     void* data;
 };
 
 struct _hal_env {
     hal_list_t used_ports;
-    hal_native_t native;
+    hal_backend_t backend;
 };
 
 int hal_find_port_node(hal_env_t* env, hal_port_t port, hal_port_type_t type, hal_list_node_t** node);

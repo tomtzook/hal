@@ -21,7 +21,7 @@ typedef enum _hal_port_type {
     HAL_TYPE_ANALOG_OUTPUT = (0x1 << 3),
 } hal_port_type_t;
 
-typedef struct _hal_native hal_native_t;
+typedef struct _hal_backend hal_backend_t;
 typedef struct _hal_env hal_env_t;
 
 #ifdef __cplusplus

@@ -3,7 +3,7 @@
 
 #include "hal.h"
 #include "hal_internal.h"
-#include "hal_native.h"
+#include "hal_backend.h"
 
 
 int hal_find_port_node(hal_env_t* env, hal_port_t port, hal_port_type_t type, hal_list_node_t** node_out) {
@@ -49,7 +49,7 @@ hal_error_t hal_init(hal_env_t** env) {
 
     _env->used_ports.head = NULL;
 
-    status = hal_native_init(&_env->native);
+    status = hal_backend_init(&_env->backend);
     HAL_JUMP_IF_ERROR(status, error);
 
     *env = _env;
@@ -68,14 +68,14 @@ void hal_shutdown(hal_env_t* env) {
         return;
     }
 
-    hal_native_shutdown(&env->native);
+    hal_backend_shutdown(&env->backend);
     free(env);
 }
 
 hal_error_t hal_probe(hal_env_t* env, hal_port_t port, hal_port_t type) {
     HAL_CHECK_INITIALIZED(env);
 
-    uint32_t flags = env->native.probe(&env->native, port);
+    uint32_t flags = env->backend.probe(&env->backend, port);
     if ((flags & type) != type) {
         return HAL_ERROR_TYPE_NOT_SUPPORTED;
     }
@@ -106,7 +106,7 @@ hal_error_t hal_open(hal_env_t* env, hal_port_t port, hal_port_t type, hal_handl
     used_port->port = port;
     used_port->type = type;
 
-    status = env->native.open(&env->native, port, type, &native_data);
+    status = env->backend.open(&env->backend, port, type, &native_data);
     HAL_JUMP_IF_ERROR(status, error);
 
     used_port->native_data = native_data;
@@ -123,7 +123,7 @@ error:
         free(node);
     }
     if (NULL != native_data) {
-        env->native.close(&env->native, port, type, native_data);
+        env->backend.close(&env->backend, port, type, native_data);
     }
 
     return status;
@@ -139,6 +139,6 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
 
-    env->native.close(&env->native, used_port->port, used_port->type, used_port->native_data);
+    env->backend.close(&env->backend, used_port->port, used_port->type, used_port->native_data);
     hal_list_remove(&env->used_ports, node);
 }

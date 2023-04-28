@@ -8,7 +8,7 @@ set(HAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(hal_base)
 add_subdirectory(halpp)
-add_subdirectory(natives)
+add_subdirectory(backends)
 
 if(NOT DEFINED HAL_INTERFACE)
     message(STATUS "Interface implementation not given")
@@ -33,7 +33,3 @@ else()
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/halpp/include>)
     target_link_libraries(halpp hal)
 endif()
-
-
-add_executable(test test.cpp)
-target_link_libraries(test halpp hal)

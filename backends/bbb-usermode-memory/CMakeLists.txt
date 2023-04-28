@@ -7,7 +7,7 @@ add_library(hal_bbb_usermode_memory OBJECT
         memio/peripheral.h
         memio/regs.h
 
-        hal_native.c
+        hal_backend.c
         memio/peripheral.c
         )
 target_include_directories(hal_bbb_usermode_memory

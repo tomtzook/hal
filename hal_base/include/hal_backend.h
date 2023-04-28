@@ -8,8 +8,8 @@
 extern "C" {
 #endif
 
-hal_error_t hal_native_init(hal_native_t* native);
-void hal_native_shutdown(hal_native_t* native);
+hal_error_t hal_backend_init(hal_backend_t* backend);
+void hal_backend_shutdown(hal_backend_t* backend);
 
 #ifdef __cplusplus
 }

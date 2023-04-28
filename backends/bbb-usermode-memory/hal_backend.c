@@ -2,7 +2,7 @@
 #include <malloc.h>
 #include <memory.h>
 
-#include <hal_native.h>
+#include <hal_backend.h>
 #include <hal.h>
 
 #include "include/bbb_gpiodef.h"
@@ -15,11 +15,11 @@ typedef struct {
 } context_t;
 
 
-static uint32_t probe(hal_native_t* env, hal_port_t port) {
+static uint32_t probe(hal_backend_t* env, hal_port_t port) {
     return HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT;
 }
 
-static hal_error_t open(hal_native_t* env, hal_port_t port, hal_port_type_t type, void** data) {
+static hal_error_t open(hal_backend_t* env, hal_port_t port, hal_port_type_t type, void** data) {
     context_t* context = (context_t*) env->data;
 
     if (type == HAL_TYPE_DIGITAL_INPUT) {
@@ -41,11 +41,11 @@ static hal_error_t open(hal_native_t* env, hal_port_t port, hal_port_type_t type
     return HAL_SUCCESS;
 }
 
-static hal_error_t close(hal_native_t* env, hal_port_t port, hal_port_type_t type, void* data) {
+static hal_error_t close(hal_backend_t* env, hal_port_t port, hal_port_type_t type, void* data) {
     return HAL_SUCCESS;
 }
 
-static hal_error_t dio_get(hal_native_t* env, hal_port_t port, void* data, hal_dio_value_t* value) {
+static hal_error_t dio_get(hal_backend_t* env, hal_port_t port, void* data, hal_dio_value_t* value) {
     context_t* context = (context_t*) env->data;
 
     unsigned module = MODULE(port);
@@ -61,7 +61,7 @@ static hal_error_t dio_get(hal_native_t* env, hal_port_t port, void* data, hal_d
     return HAL_SUCCESS;
 }
 
-static hal_error_t dio_set(hal_native_t* env, hal_port_t port, void* data, hal_dio_value_t value) {
+static hal_error_t dio_set(hal_backend_t* env, hal_port_t port, void* data, hal_dio_value_t value) {
     context_t* context = (context_t*) env->data;
 
     unsigned module = MODULE(port);
@@ -78,7 +78,7 @@ static hal_error_t dio_set(hal_native_t* env, hal_port_t port, void* data, hal_d
 }
 
 
-hal_error_t hal_native_init(hal_native_t* native) {
+hal_error_t hal_backend_init(hal_backend_t* backend) {
     context_t* context = (context_t*) malloc(sizeof(context_t));
     HAL_CHECK_ALLOCATED(context);
     memset(context, 0, sizeof(context_t));
@@ -94,12 +94,12 @@ hal_error_t hal_native_init(hal_native_t* native) {
     status = map_peripheral(GPIO3, GPIO_CTRL_SIZE, &context->gpio_peripherals[3]);
     HAL_JUMP_IF_ERROR(status, error);
 
-    native->probe = probe;
-    native->open = open;
-    native->close = close;
-    native->dio_get = dio_get;
-    native->dio_set = dio_set;
-    native->data = context;
+    backend->probe = probe;
+    backend->open = open;
+    backend->close = close;
+    backend->dio_get = dio_get;
+    backend->dio_set = dio_set;
+    backend->data = context;
     return HAL_SUCCESS;
 error:
     for (int i = 0; i < 4; ++i) {
@@ -110,8 +110,8 @@ error:
     return status;
 }
 
-void hal_native_shutdown(hal_native_t* native) {
-    context_t* context = (context_t*) native->data;
+void hal_backend_shutdown(hal_backend_t* backend) {
+    context_t* context = (context_t*) backend->data;
 
     for (int i = 0; i < 4; ++i) {
         free_peripheral(&context->gpio_peripherals[i]);
