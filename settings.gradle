@@ -1,0 +1,2 @@
+include ':hal-java'
+include ':hal-native'

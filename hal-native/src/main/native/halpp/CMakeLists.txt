@@ -8,4 +8,4 @@ add_library(halpp_base OBJECT
         src/except.cpp
         src/hal.cpp
         src/ports.cpp)
-target_include_directories(halpp_base PUBLIC ${HAL_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(halpp_base PUBLIC ${HAL_INCLUDES} include)

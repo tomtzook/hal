@@ -22,7 +22,8 @@ typedef enum _hal_error_value {
     HAL_ERROR_BAD_ARGUMENT,
     HAL_ERROR_PERMISSIONS,
     HAL_ERROR_BAD_HANDLE,
-    HAL_ERROR_TYPE_NOT_SUPPORTED
+    HAL_ERROR_TYPE_NOT_SUPPORTED,
+    HAL_ERROR_UNKNOWN
 } hal_error_value_t;
 
 const char* hal_strerror(hal_error_t error);

@@ -72,7 +72,7 @@ void hal_shutdown(hal_env_t* env) {
     free(env);
 }
 
-hal_error_t hal_probe(hal_env_t* env, hal_port_t port, hal_port_t type) {
+hal_error_t hal_probe(hal_env_t* env, hal_port_t port, hal_port_type_t type) {
     HAL_CHECK_INITIALIZED(env);
 
     uint32_t flags = env->backend.probe(&env->backend, port);
@@ -83,7 +83,7 @@ hal_error_t hal_probe(hal_env_t* env, hal_port_t port, hal_port_t type) {
     return HAL_SUCCESS;
 }
 
-hal_error_t hal_open(hal_env_t* env, hal_port_t port, hal_port_t type, hal_handle_t* handle) {
+hal_error_t hal_open(hal_env_t* env, hal_port_t port, hal_port_type_t type, hal_handle_t* handle) {
     HAL_CHECK_INITIALIZED(env);
 
     hal_error_t status;

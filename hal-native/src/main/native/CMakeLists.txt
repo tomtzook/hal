@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.5.1)
-project(hal C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -26,10 +25,15 @@ else()
             PRIVATE $<BUILD_INTERFACE:${HAL_NATIVE_INCLUDES}>
             PUBLIC $<BUILD_INTERFACE:${HAL_INCLUDES}> $<BUILD_INTERFACE:${HAL_IMPL_INCLUDES}>)
 
+    add_library(hal_shared
+            SHARED
+            $<TARGET_OBJECTS:hal_base>
+            $<TARGET_OBJECTS:${HAL_INTERFACE_TARGET}>)
+
     add_library(halpp
             STATIC
             $<TARGET_OBJECTS:halpp_base>)
-    target_include_directories(hal PUBLIC
+    target_include_directories(halpp PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/halpp/include>)
     target_link_libraries(halpp hal)
 endif()

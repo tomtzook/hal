@@ -9,5 +9,5 @@ add_library(hal_bbb_usermode_sysfs OBJECT
         hal_backend.c
         )
 target_include_directories(hal_bbb_usermode_sysfs
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../bbb-includes ${HAL_INCLUDES}
+        PUBLIC ../bbb-includes ${HAL_INCLUDES}
         PRIVATE ${HAL_NATIVE_INCLUDES})

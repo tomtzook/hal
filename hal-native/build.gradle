@@ -1,0 +1,201 @@
+plugins {
+    id "io.github.tomtzook.gradle-cmake" version "1.2.1"
+    id 'maven-publish'
+    id 'signing'
+}
+
+apply from: rootProject.file('extras.gradle')
+
+machines.customMachines.register("windows-x86_x64") {
+    it.toolchainFile.set(rootProject.file('cmake-toolchain-files/x86_64-mingw-gcc.cmake'))
+}
+machines.customMachines.register("linux-gnueabihf-arm") {
+    it.toolchainFile.set(rootProject.file('cmake-toolchain-files/arm-linux-gnueabihf-gcc.cmake'))
+}
+machines.customMachines.register("linux-aarch64") {
+    it.toolchainFile.set(rootProject.file('cmake-toolchain-files/aarch64-linux-gnu-gcc.cmake'))
+}
+
+def compileMachineTargets = [machines.host]
+
+if (project.hasProperty('crosscompile')) {
+    compileMachineTargets.addAll(machines.customMachines)
+}
+
+def backends = [
+    'bbb-usermode-sysfs': [
+        'linux-gnueabihf-arm'
+    ],
+    'bbb-usermode-memory': [
+        'linux-gnueabihf-arm'
+    ]
+]
+
+backends.forEach{ backend, arches ->
+    def wantedMachines = arches.collect { archName ->
+        machines.customMachines.getByName(archName)
+    }
+
+    cmake {
+        targets {
+            "hal_${backend}" {
+                cmakeLists.set(file('src/main/CMakeLists.txt'))
+                targetMachines.addAll(wantedMachines)
+                cmakeArgs.addAll("-DHAL_INTERFACE=${backend}")
+            }
+        }
+    }
+}
+
+tasks.clean.dependsOn tasks.cmakeClean
+tasks.build.dependsOn tasks.cmakeBuild
+
+publishing {
+    repositories {
+        maven {
+            if (isReleaseBuild()) {
+                name = 'NexusStaging'
+                url = NEXUS_RELEASE_REPOSITORY_URL
+            } else {
+                name = 'NexusSnapshot'
+                url = NEXUS_SNAPSHOT_REPOSITORY_URL
+            }
+
+            credentials {
+                username getNexusUsername()
+                password getNexusPassword()
+            }
+        }
+    }
+}
+
+backends.forEach { backend, arches ->
+    arches.forEach { archName ->
+        tasks.register("jarNative_${backend}_${archName}", Jar) {
+            dependsOn(tasks.cmakeBuild)
+
+            def outputDir = cmake.outputDir.dir("hal_${backend}/${archName}")
+            from (outputDir.map {
+                return it.asFileTree.matching {
+                    include '**/*hal_jni.dll'
+                    include '**/libhal_jni.so'
+                    exclude '**/CMakeFiles/**'
+                }.files
+            }) {
+                into("/")
+            }
+
+            archiveBaseName.set("${project.name}-jni")
+            archiveClassifier.set("${backend}_${archName}")
+        }
+
+        tasks.register("zipNative_${backend}_${archName}", Zip) {
+            dependsOn(tasks.cmakeBuild)
+
+            def outputDir = cmake.outputDir.dir("hal_${backend}/${archName}")
+            from (outputDir.map {
+                return it.asFileTree.matching {
+                    include '**/*hal*.dll'
+                    include '**/*hal*.so'
+                    include '**/*hal*.lib'
+                    include '**/*hal*.a'
+                    exclude '**/*hal_jni*'
+                    exclude '**/CMakeFiles/**'
+                }.files
+            }) {
+                into("/")
+            }
+
+            from (project.file('src/main/native/include')) {
+                into('include')
+            }
+
+            archiveBaseName.set("${project.name}")
+            archiveClassifier.set("${backend}_${archName}")
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJni(MavenPublication) {
+            artifactId = "hal-jni"
+
+            backends.forEach { backend, arches ->
+                arches.forEach { archName ->
+                    artifact tasks."jarNative_${backend}_${archName}"
+                }
+            }
+
+            pom {
+                name = "hal-jni"
+                description = 'Java Bindings for HAL (JNI)'
+                url = 'https://github.com/tomtzook/hal'
+
+                licenses {
+                    license {
+                        name = 'Apache License 2.0'
+                        url = ' http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'tomtzook'
+                        name = 'Tom Tzook'
+                        email = 'tomtzook@gmail.com'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/tomtzook/hal.git'
+                    developerConnection = 'scm:git:ssh://github.com/tomtzook/hal.git'
+                    url = 'https://github.com/tomtzook/hal'
+                }
+            }
+        }
+        mavenNative(MavenPublication) {
+            artifactId = "hal-native"
+
+            backends.forEach { backend, arches ->
+                arches.forEach { archName ->
+                    artifact tasks."zipNative_${backend}_${archName}"
+                }
+            }
+
+            pom {
+                name = "hal-native"
+                description = 'HAL shared and static libraries'
+                url = 'https://github.com/tomtzook/hal'
+
+                licenses {
+                    license {
+                        name = 'Apache License 2.0'
+                        url = ' http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'tomtzook'
+                        name = 'Tom Tzook'
+                        email = 'tomtzook@gmail.com'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/tomtzook/hal.git'
+                    developerConnection = 'scm:git:ssh://github.com/tomtzook/hal.git'
+                    url = 'https://github.com/tomtzook/hal'
+                }
+            }
+        }
+    }
+}
+
+if (shouldSign()) {
+    signing {
+        sign publishing.publications.mavenJni
+        sign publishing.publications.mavenNative
+    }
+}
