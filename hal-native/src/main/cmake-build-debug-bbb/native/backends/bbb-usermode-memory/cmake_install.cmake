@@ -1,4 +1,4 @@
-# Install script for directory: /home/tomtzook/projects/hal/hal-native/src/main/native/backends
+# Install script for directory: /home/tomtzook/projects/hal/hal-native/src/main/native/backends/bbb-usermode-memory
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,12 +40,5 @@ endif()
 # Set default install directory permissions.
 if(NOT DEFINED CMAKE_OBJDUMP)
   set(CMAKE_OBJDUMP "/usr/bin/arm-linux-gnueabihf-objdump")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for each subdirectory.
-  include("/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/bbb-usermode-memory/cmake_install.cmake")
-  include("/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/bbb-usermode-sysfs/cmake_install.cmake")
-
 endif()
 

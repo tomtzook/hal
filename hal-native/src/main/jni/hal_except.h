@@ -5,6 +5,8 @@
 #include <except.h>
 
 
+DEFINE_OBJECT_TYPE(HalException, "hal/HalException")
+
 #define CHECK_ERROR(__env, ...) \
 do {                             \
     auto __rc = __VA_ARGS__;     \

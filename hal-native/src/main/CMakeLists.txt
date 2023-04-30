@@ -15,3 +15,6 @@ add_library(hal_jni SHARED
         jni/hal_dio_jni.cpp)
 target_link_libraries(hal_jni hal jnikit)
 target_include_directories(hal_jni PRIVATE ${JNI_INCLUDE_DIRS} ${HAL_INCLUDES})
+
+add_executable(hal_test test.cpp)
+target_link_libraries(hal_test halpp hal)

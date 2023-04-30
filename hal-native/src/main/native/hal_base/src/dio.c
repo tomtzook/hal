@@ -16,6 +16,8 @@ hal_error_t hal_dio_get(hal_env_t* env, hal_handle_t handle, hal_dio_value_t* va
         return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
 
+    TRACE_INFO("Reading from DIO port %d (handle %u)", used_port->port, handle);
+
     hal_error_t status = env->backend.dio_get(&env->backend, used_port->port, used_port->native_data, value);
     if (HAL_IS_ERROR(status)) {
         return status;
@@ -36,6 +38,8 @@ hal_error_t hal_dio_set(hal_env_t* env, hal_handle_t handle, hal_dio_value_t val
     if (used_port->type != HAL_TYPE_DIGITAL_OUTPUT) {
         return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
+
+    TRACE_INFO("Writing %d to DIO port %d (handle %u)", value, used_port->port, handle);
 
     hal_error_t status = env->backend.dio_set(&env->backend, used_port->port, used_port->native_data, value);
     if (HAL_IS_ERROR(status)) {

@@ -92,8 +92,6 @@ static hal_error_t write_numbered_file(unsigned number, const char* file, const 
 
 
 hal_error_t gpio_export_pin(unsigned number) {
-    TRACE_DEBUG("Exporting pin %d", number);
-
     char str[3];
     sprintf(str, "%d", number);
     HAL_RETURN_IF_ERROR(write_file(SYSFS_EXPORT, str));
@@ -102,8 +100,6 @@ hal_error_t gpio_export_pin(unsigned number) {
 }
 
 hal_error_t gpio_unexport_pin(unsigned number) {
-    TRACE_DEBUG("Unexporting pin %d", number);
-
     char str[3];
     sprintf(str, "%d", number);
     HAL_RETURN_IF_ERROR(write_file(SYSFS_UNEXPORT, str));
@@ -123,8 +119,6 @@ hal_error_t gpio_set_direction(unsigned number, direction_t direction) {
         default:
             return HAL_ERROR_BAD_ARGUMENT;
     }
-
-    TRACE_DEBUG("Setting direction for pin %d: %s", number, to_write);
 
     HAL_RETURN_IF_ERROR(write_numbered_file(number, FILE_DIRECTION, to_write));
     return HAL_SUCCESS;
@@ -149,8 +143,6 @@ hal_error_t gpio_set_edge(unsigned number, edge_t edge) {
             return HAL_ERROR_BAD_ARGUMENT;
     }
 
-    TRACE_DEBUG("Setting edge for pin %d: %s", number, to_write);
-
     HAL_RETURN_IF_ERROR(write_numbered_file(number, FILE_EDGE, to_write));
     return HAL_SUCCESS;
 }
@@ -167,8 +159,6 @@ hal_error_t gpio_set_value(unsigned number, hal_dio_value_t value) {
         default:
             return HAL_ERROR_BAD_ARGUMENT;
     }
-
-    TRACE_DEBUG("Setting value for pin %d: %s", number, to_write);
 
     HAL_RETURN_IF_ERROR(write_numbered_file(number, FILE_VALUE, to_write));
     return HAL_SUCCESS;

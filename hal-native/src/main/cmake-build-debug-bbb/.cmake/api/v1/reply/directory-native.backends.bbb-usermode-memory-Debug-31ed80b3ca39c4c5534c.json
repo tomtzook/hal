@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "native/backends/bbb-usermode-memory",
+		"source" : "native/backends/bbb-usermode-memory"
+	}
+}

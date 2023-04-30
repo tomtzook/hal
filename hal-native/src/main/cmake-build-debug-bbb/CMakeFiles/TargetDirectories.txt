@@ -1,9 +1,7 @@
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/CMakeFiles/hal_jni.dir
+/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/CMakeFiles/hal_test.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/CMakeFiles/edit_cache.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/CMakeFiles/rebuild_cache.dir
-/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/CMakeFiles/hal.dir
-/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/CMakeFiles/hal_shared.dir
-/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/CMakeFiles/halpp.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/CMakeFiles/edit_cache.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/CMakeFiles/rebuild_cache.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/hal_base/CMakeFiles/hal_base.dir
@@ -14,6 +12,9 @@
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/halpp/CMakeFiles/rebuild_cache.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/CMakeFiles/edit_cache.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/CMakeFiles/rebuild_cache.dir
+/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/bbb-usermode-memory/CMakeFiles/hal_bbb_usermode_memory.dir
+/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/bbb-usermode-memory/CMakeFiles/edit_cache.dir
+/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/bbb-usermode-memory/CMakeFiles/rebuild_cache.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/bbb-usermode-sysfs/CMakeFiles/hal_bbb_usermode_sysfs.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/bbb-usermode-sysfs/CMakeFiles/edit_cache.dir
 /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb/native/backends/bbb-usermode-sysfs/CMakeFiles/rebuild_cache.dir

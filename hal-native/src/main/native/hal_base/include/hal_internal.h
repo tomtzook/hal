@@ -24,6 +24,7 @@ struct _hal_backend {
     hal_error_t (*dio_set)(hal_backend_t* env, hal_port_t port, void* data, hal_dio_value_t value);
 
     void* data;
+    char* name;
 };
 
 struct _hal_env {

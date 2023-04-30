@@ -134,6 +134,9 @@
 			"path" : "native/backends/CMakeLists.txt"
 		},
 		{
+			"path" : "native/backends/bbb-usermode-memory/CMakeLists.txt"
+		},
+		{
 			"path" : "native/backends/bbb-usermode-sysfs/CMakeLists.txt"
 		},
 		{

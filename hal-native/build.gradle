@@ -6,14 +6,8 @@ plugins {
 
 apply from: rootProject.file('extras.gradle')
 
-machines.customMachines.register("windows-x86_x64") {
-    it.toolchainFile.set(rootProject.file('cmake-toolchain-files/x86_64-mingw-gcc.cmake'))
-}
 machines.customMachines.register("linux-gnueabihf-arm") {
     it.toolchainFile.set(rootProject.file('cmake-toolchain-files/arm-linux-gnueabihf-gcc.cmake'))
-}
-machines.customMachines.register("linux-aarch64") {
-    it.toolchainFile.set(rootProject.file('cmake-toolchain-files/aarch64-linux-gnu-gcc.cmake'))
 }
 
 def compileMachineTargets = [machines.host]
@@ -72,7 +66,7 @@ publishing {
 
 backends.forEach { backend, arches ->
     arches.forEach { archName ->
-        tasks.register("jarNative_${backend}_${archName}", Jar) {
+        def jarTask = tasks.register("jarNative_${backend}_${archName}", Jar) {
             dependsOn(tasks.cmakeBuild)
 
             def outputDir = cmake.outputDir.dir("hal_${backend}/${archName}")
@@ -90,7 +84,7 @@ backends.forEach { backend, arches ->
             archiveClassifier.set("${backend}_${archName}")
         }
 
-        tasks.register("zipNative_${backend}_${archName}", Zip) {
+        def zipTask = tasks.register("zipNative_${backend}_${archName}", Zip) {
             dependsOn(tasks.cmakeBuild)
 
             def outputDir = cmake.outputDir.dir("hal_${backend}/${archName}")
@@ -114,6 +108,8 @@ backends.forEach { backend, arches ->
             archiveBaseName.set("${project.name}")
             archiveClassifier.set("${backend}_${archName}")
         }
+
+        tasks.build.dependsOn(jarTask, zipTask)
     }
 }
 

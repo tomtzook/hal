@@ -49,7 +49,7 @@ JNIEXPORT jlong JNICALL Java_hal_HALJNI_open
         auto hal_env = reinterpret_cast<hal_env_t*>(ptr);
         hal_handle_t handle;
         CHECK_ERROR(env, hal_open(hal_env, port, static_cast<hal_port_type_t>(type), &handle));
-        return reinterpret_cast<jlong>(hal_env);
+        return static_cast<jlong>(handle);
     });
 }
 

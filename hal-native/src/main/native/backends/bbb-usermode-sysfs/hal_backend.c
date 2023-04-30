@@ -50,12 +50,14 @@ static hal_error_t dio_set(hal_backend_t* env, hal_port_t port, void* data, hal_
 
 
 hal_error_t hal_backend_init(hal_backend_t* backend) {
+    backend->name = "bbb-usermode-sysfs";
     backend->probe = probe;
     backend->open = open;
     backend->close = close;
     backend->dio_get = dio_get;
     backend->dio_set = dio_set;
     backend->data = NULL;
+
     return HAL_SUCCESS;
 }
 

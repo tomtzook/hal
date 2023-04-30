@@ -1,6 +1,6 @@
 /home/tomtzook/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/222.4345.21/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/tomtzook/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/222.4345.21/bin/ninja/linux/ninja -DCMAKE_C_COMPILER=/usr/bin/arm-linux-gnueabihf-gcc -DCMAKE_CXX_COMPILER=/usr/bin/arm-linux-gnueabihf-g++ -G Ninja -S /home/tomtzook/projects/hal/hal-native/src/main -B /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb
--- Interface implementation given, adding it
--- Interface implementation given, defining static library
+-- Interface implementation not given, adding all
+-- Interface implementation not given
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb

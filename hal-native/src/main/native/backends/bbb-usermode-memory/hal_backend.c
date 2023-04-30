@@ -95,12 +95,14 @@ hal_error_t hal_backend_init(hal_backend_t* backend) {
     status = map_peripheral(GPIO3, GPIO_CTRL_SIZE, &context->gpio_peripherals[3]);
     HAL_JUMP_IF_ERROR(status, error);
 
+    backend->name = "bbb-usermode-memory";
     backend->probe = probe;
     backend->open = open;
     backend->close = close;
     backend->dio_get = dio_get;
     backend->dio_set = dio_set;
     backend->data = context;
+
     return HAL_SUCCESS;
 error:
     for (int i = 0; i < 4; ++i) {

@@ -52,10 +52,13 @@ hal_error_t hal_init(hal_env_t** env) {
     HAL_CHECK_ALLOCATED(_env);
 
     _env->used_ports.head = NULL;
+    _env->backend.name = "N/A";
 
     TRACE_INFO("Initializing BACKEND");
     status = hal_backend_init(&_env->backend);
     HAL_JUMP_IF_ERROR(status, error);
+
+    TRACE_INFO("Using BACKEND %s", _env->backend.name);
 
     *env = _env;
     return HAL_SUCCESS;
@@ -108,6 +111,8 @@ hal_error_t hal_open(hal_env_t* env, hal_port_t port, hal_port_type_t type, hal_
         return status;
     }
 
+    TRACE_INFO("Opening port %d of type %d", port, type);
+
     node = (hal_list_node_t*) malloc(sizeof(hal_list_node_t) + sizeof(hal_used_port_t));
     HAL_CHECK_ALLOCATED(node);
 
@@ -125,6 +130,7 @@ hal_error_t hal_open(hal_env_t* env, hal_port_t port, hal_port_type_t type, hal_
     }
 
     *handle = ((hal_handle_t) used_port);
+    TRACE_INFO("New port %d assigned handle %u", port, *handle);
 
     return HAL_SUCCESS;
 error:
@@ -147,6 +153,8 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
     }
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
+
+    TRACE_INFO("closing port %d of type %d (handle %u)", used_port->port, used_port->type, handle);
 
     env->backend.close(&env->backend, used_port->port, used_port->type, used_port->native_data);
     hal_list_remove(&env->used_ports, node);
