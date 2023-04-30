@@ -32,15 +32,6 @@ static const char* STR_VALUE_LOW = "0";
 static const char* STR_VALUE_HIGH = "1";
 
 
-static hal_error_t errno_to_hal_error() {
-    switch (errno) {
-        case EPERM:
-            return HAL_ERROR_PERMISSIONS;
-        default:
-            return HAL_ERROR_UNKNOWN;
-    }
-}
-
 static hal_error_t read_numbered_file(unsigned number, const char* file, char* buffer, size_t size) {
     char path[PATH_MAX] = {0};
     sprintf(path, SYSFS_FILE_FORMAT, number, file);
@@ -48,14 +39,14 @@ static hal_error_t read_numbered_file(unsigned number, const char* file, char* b
     int fd = open(path, O_RDONLY);
     if (fd < 0) {
         TRACE_ERROR("failed to open %s: (%d) %s", path, errno, strerror(errno));
-        return errno_to_hal_error();
+        return HAL_ERROR_ENVIRONMENT;
     }
 
     hal_error_t status = HAL_SUCCESS;
     ssize_t amount = read(fd, buffer, size);
     if (amount < 0) {
         TRACE_ERROR("failed to read from %s: (%d) %s", path, errno, strerror(errno));
-        status = errno_to_hal_error();
+        status = HAL_ERROR_ENVIRONMENT;
         goto done;
     }
 
@@ -68,14 +59,14 @@ static hal_error_t write_file(const char* path, const char* buffer) {
     int fd = open(path, O_WRONLY);
     if (fd < 0) {
         TRACE_ERROR("failed to open %s: (%d) %s", path, errno, strerror(errno));
-        return errno_to_hal_error();
+        return HAL_ERROR_ENVIRONMENT;
     }
 
     hal_error_t status = HAL_SUCCESS;
     ssize_t amount = write(fd, buffer, strlen(buffer));
     if (amount < 0) {
         TRACE_ERROR("failed to write to %s: (%d) %s", path, errno, strerror(errno));
-        status = errno_to_hal_error();
+        status = HAL_ERROR_ENVIRONMENT;
         goto done;
     }
 

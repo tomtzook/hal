@@ -94,6 +94,13 @@ public:
     {}
 };
 
+class hal_environment_error : public hal_general_exception {
+public:
+    hal_environment_error()
+            : hal_general_exception(HAL_ERROR_ENVIRONMENT)
+    {}
+};
+
 void throw_if_error(hal_error_t error_code);
 
 }

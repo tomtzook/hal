@@ -28,6 +28,8 @@ void throw_if_error(hal_error_t error_code) {
             throw hal_bad_handle();
         case HAL_ERROR_TYPE_NOT_SUPPORTED:
             throw hal_type_not_supported();
+        case HAL_ERROR_ENVIRONMENT:
+            throw hal_environment_error();
         default:
             throw hal_general_exception(error_code);
     }
