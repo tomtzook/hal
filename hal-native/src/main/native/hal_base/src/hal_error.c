@@ -15,7 +15,7 @@ const char* hal_strerror(hal_error_t error) {
         case HAL_ERROR_PERMISSIONS: return "HAL missing system permissions";
         case HAL_ERROR_BAD_HANDLE: return "HAL was given a bad handle";
         case HAL_ERROR_TYPE_NOT_SUPPORTED: return "HAL type is not supported by port";
-        case HAL_ERROR_ENVIRONMENT: "HAL encountered system error";
+        case HAL_ERROR_ENVIRONMENT: return "HAL encountered system error";
         default: return "";
     }
 }
