@@ -1,0 +1,115 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "native/libhal_shared.so"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library"
+		],
+		"files" : 
+		[
+			"native/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 28,
+				"parent" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "hal_base::@58570c34860dd4a35191"
+		},
+		{
+			"id" : "hal_bbb_usermode_sysfs::@94a04767a9c52c79b1ea"
+		}
+	],
+	"id" : "hal_shared::@39f8f1661852dc709093",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "",
+				"role" : "flags"
+			}
+		],
+		"language" : "C"
+	},
+	"name" : "hal_shared",
+	"nameOnDisk" : "libhal_shared.so",
+	"paths" : 
+	{
+		"build" : "native",
+		"source" : "native"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Object Libraries",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug-bbb/native/hal_base/CMakeFiles/hal_base.dir/src/hal.c.o",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug-bbb/native/hal_base/CMakeFiles/hal_base.dir/src/hal_error.c.o",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug-bbb/native/hal_base/CMakeFiles/hal_base.dir/src/list.c.o",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug-bbb/native/hal_base/CMakeFiles/hal_base.dir/src/dio.c.o",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug-bbb/native/backends/bbb-usermode-sysfs/CMakeFiles/hal_bbb_usermode_sysfs.dir/sysfs/gpio.c.o",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug-bbb/native/backends/bbb-usermode-sysfs/CMakeFiles/hal_bbb_usermode_sysfs.dir/hal_backend.c.o",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "SHARED_LIBRARY"
+}

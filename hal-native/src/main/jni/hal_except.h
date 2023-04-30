@@ -5,7 +5,7 @@
 #include <except.h>
 
 
-#define CHECK_ERROR(__env, __VA_ARGS__) \
+#define CHECK_ERROR(__env, ...) \
 do {                             \
     auto __rc = __VA_ARGS__;     \
     CHECK_ERROR2(__env, __rc);   \

@@ -2,10 +2,11 @@
 #include <malloc.h>
 #include <memory.h>
 
+#include <hal_error_handling.h>
 #include <hal_backend.h>
 #include <hal.h>
+#include <bbb_gpiodef.h>
 
-#include "bbb_gpiodef.h"
 #include "sysfs/gpio.h"
 
 

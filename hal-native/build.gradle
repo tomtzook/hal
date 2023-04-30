@@ -42,6 +42,7 @@ backends.forEach{ backend, arches ->
                 cmakeLists.set(file('src/main/CMakeLists.txt'))
                 targetMachines.addAll(wantedMachines)
                 cmakeArgs.addAll("-DHAL_INTERFACE=${backend}")
+                generator.set(generators.ninja)
             }
         }
     }

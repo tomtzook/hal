@@ -1,0 +1,239 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						6
+					],
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5.1"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "native",
+					"childIndexes" : 
+					[
+						2,
+						3,
+						4
+					],
+					"jsonFile" : "directory-native-Debug-bee44d8b88055f286f95.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5.1"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "native",
+					"targetIndexes" : 
+					[
+						0,
+						4,
+						5
+					]
+				},
+				{
+					"build" : "native/hal_base",
+					"jsonFile" : "directory-native.hal_base-Debug-710de15217aedd67870d.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "native/hal_base",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "native/halpp",
+					"jsonFile" : "directory-native.halpp-Debug-048442cae128787e0e66.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "native/halpp",
+					"targetIndexes" : 
+					[
+						6
+					]
+				},
+				{
+					"build" : "native/backends",
+					"childIndexes" : 
+					[
+						5
+					],
+					"jsonFile" : "directory-native.backends-Debug-b5b352797659d5e7b7da.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "native/backends"
+				},
+				{
+					"build" : "native/backends/bbb-usermode-sysfs",
+					"jsonFile" : "directory-native.backends.bbb-usermode-sysfs-Debug-e97fdbccd398d44cd398.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5.1"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "native/backends/bbb-usermode-sysfs",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "jnikit",
+					"jsonFile" : "directory-jnikit-Debug-75ef1fac448023d25af9.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "jnikit",
+					"targetIndexes" : 
+					[
+						7
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"name" : "hal",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						6
+					],
+					"name" : "jnikit",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						7
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "hal::@39f8f1661852dc709093",
+					"jsonFile" : "target-hal-Debug-c408307d8b8b9da0f435.json",
+					"name" : "hal",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "hal_base::@58570c34860dd4a35191",
+					"jsonFile" : "target-hal_base-Debug-5aac13abd8f1ea757fea.json",
+					"name" : "hal_base",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "hal_bbb_usermode_sysfs::@94a04767a9c52c79b1ea",
+					"jsonFile" : "target-hal_bbb_usermode_sysfs-Debug-2500870fad3ee4dc5d47.json",
+					"name" : "hal_bbb_usermode_sysfs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "hal_jni::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-hal_jni-Debug-9c0c14fd2a1ceddfc2c4.json",
+					"name" : "hal_jni",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hal_shared::@39f8f1661852dc709093",
+					"jsonFile" : "target-hal_shared-Debug-5501046b453596201ea4.json",
+					"name" : "hal_shared",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "halpp::@39f8f1661852dc709093",
+					"jsonFile" : "target-halpp-Debug-e3147dd1db3c75f2ddb4.json",
+					"name" : "halpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "halpp_base::@3712c09e1242a89a22ad",
+					"jsonFile" : "target-halpp_base-Debug-1b24dc9bf8c541099371.json",
+					"name" : "halpp_base",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "jnikit::@d6ce2f744387d23d184d",
+					"jsonFile" : "target-jnikit-Debug-99bc513cd98c9f34a930.json",
+					"name" : "jnikit",
+					"projectIndex" : 1
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/tomtzook/projects/hal/hal-native/src/main/cmake-build-debug-bbb",
+		"source" : "/home/tomtzook/projects/hal/hal-native/src/main"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}

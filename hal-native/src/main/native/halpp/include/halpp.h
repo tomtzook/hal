@@ -25,7 +25,10 @@ public:
     env& operator=(env&&) = delete;
 
     template<hal_port_type_t T>
-    port<T> open(hal_port_t port);
+    port<T> open(hal_port_t _port) {
+        auto handle = open(_port, T);
+        return port<T>{m_env, handle};
+    }
 
 private:
     hal_env_t* m_env;
@@ -38,11 +41,5 @@ private:
 
     friend env init();
 };
-
-template<hal_port_type_t T>
-port<T> env::open(hal_port_t _port) {
-    auto handle = open(_port, T);
-    return port<T>{m_env, handle};
-}
 
 }

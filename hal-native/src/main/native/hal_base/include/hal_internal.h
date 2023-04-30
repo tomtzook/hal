@@ -2,6 +2,7 @@
 
 #include "hal.h"
 #include "list.h"
+#include "hal_error_handling.h"
 
 
 #ifdef __cplusplus

@@ -31,38 +31,6 @@ const char* hal_strerror(hal_error_t error);
 
 #define HAL_IS_ERROR(error_code) (HAL_SUCCESS != (error_code))
 
-#define HAL_JUMP_IF_ERROR(error_code, label) \
-    do { \
-         if (HAL_IS_ERROR(error_code)) goto label;  \
-    } while(0)
-
-#define HAL_RETURN_IF_ERROR(...) \
-    do {                         \
-         hal_error_t _status = __VA_ARGS__;  \
-         if (HAL_IS_ERROR(_status)) return _status;  \
-    } while(0)
-
-#define HAL_CHECK_ALLOCATED(ptr) \
-    do {                            \
-        if(NULL == ptr) { \
-            return HAL_ERROR_ALLOCATION_FAILED; \
-        } \
-    } while(0)
-
-#define HAL_CHECK_INITIALIZED(ptr) \
-    do {                            \
-        if(NULL == ptr) { \
-            return HAL_ERROR_NOT_INITIALIZED; \
-        } \
-    } while(0)
-
-#define HAL_CHECK_INITIALIZED_VOID(ptr) \
-    do {                            \
-        if(NULL == ptr) { \
-            return; \
-        } \
-    } while(0)
-
 #ifdef __cplusplus
 }
 #endif

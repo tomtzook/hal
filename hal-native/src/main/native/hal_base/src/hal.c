@@ -1,5 +1,6 @@
 
 #include <malloc.h>
+#include <syslog.h>
 
 #include "hal.h"
 #include "hal_internal.h"
@@ -44,11 +45,15 @@ int hal_find_port_node_from_handle(hal_env_t* env, hal_handle_t handle, hal_list
 hal_error_t hal_init(hal_env_t** env) {
     hal_error_t status;
 
+    openlog("HAL", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+    TRACE_INFO("Initializing HAL");
+
     hal_env_t* _env = (hal_env_t*) malloc(sizeof(hal_env_t));
     HAL_CHECK_ALLOCATED(_env);
 
     _env->used_ports.head = NULL;
 
+    TRACE_INFO("Initializing BACKEND");
     status = hal_backend_init(&_env->backend);
     HAL_JUMP_IF_ERROR(status, error);
 
@@ -59,6 +64,7 @@ error:
     if (NULL != _env) {
         free(_env);
     }
+    closelog();
 
     return status;
 }
@@ -68,8 +74,11 @@ void hal_shutdown(hal_env_t* env) {
         return;
     }
 
+    TRACE_INFO("Shutting down HAL");
+
     hal_backend_shutdown(&env->backend);
     free(env);
+    closelog();
 }
 
 hal_error_t hal_probe(hal_env_t* env, hal_port_t port, hal_port_type_t type) {

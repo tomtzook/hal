@@ -37,3 +37,5 @@ else()
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/halpp/include>)
     target_link_libraries(halpp hal)
 endif()
+
+set(HAL_INCLUDES ${HAL_INCLUDES} PARENT_SCOPE)

@@ -1,0 +1,14 @@
+# ninja log v5
+128	155	1682864992859474648	native/libhalpp.a	df21ec409f2e571e
+155	211	1682864992915475061	hal_test	e90e6db7d3b6ca2f
+0	43	1682864992747473822	native/hal_base/CMakeFiles/hal_base.dir/src/list.c.o	cd913a9e1c917cf6
+44	94	1682864992799474205	native/halpp/CMakeFiles/halpp_base.dir/src/ports.cpp.o	f648e2786a2bb04
+0	38	1682864992743473792	native/hal_base/CMakeFiles/hal_base.dir/src/hal_error.c.o	4124d1ec0d9d4f67
+0	99	1682864992803474235	CMakeFiles/hal_test.dir/test.cpp.o	f0a5c696df30fa10
+39	93	1682864992799474205	native/halpp/CMakeFiles/halpp_base.dir/src/hal.cpp.o	41b733749c6eb9cf
+44	95	1682864992799474205	native/backends/bbb-usermode-sysfs/CMakeFiles/hal_bbb_usermode_sysfs.dir/sysfs/gpio.c.o	2edaec229f3c4f93
+1	99	1682864992803474235	native/halpp/CMakeFiles/halpp_base.dir/src/except.cpp.o	7e16c2750cde0b99
+104	128	1682864992831474442	native/libhal.a	c8afc979605fafe3
+0	44	1682864992743473792	native/hal_base/CMakeFiles/hal_base.dir/src/dio.c.o	72323bd02c1ac05d
+50	104	1682864992807474265	native/backends/bbb-usermode-sysfs/CMakeFiles/hal_bbb_usermode_sysfs.dir/hal_backend.c.o	348ea8f338c3b918
+0	50	1682864992755473881	native/hal_base/CMakeFiles/hal_base.dir/src/hal.c.o	e61c542574a2e190

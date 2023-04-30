@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include <hal_error_handling.h>
+
 #include "gpio.h"
 
 
@@ -39,18 +41,20 @@ static hal_error_t errno_to_hal_error() {
     }
 }
 
-static hal_error_t read_numbered_file(unsigned number, const char* file, const char* buffer, size_t size) {
+static hal_error_t read_numbered_file(unsigned number, const char* file, char* buffer, size_t size) {
     char path[PATH_MAX] = {0};
     sprintf(path, SYSFS_FILE_FORMAT, number, file);
 
     int fd = open(path, O_RDONLY);
     if (fd < 0) {
+        TRACE_ERROR("failed to open %s: (%d) %s", path, errno, strerror(errno));
         return errno_to_hal_error();
     }
 
     hal_error_t status = HAL_SUCCESS;
     ssize_t amount = read(fd, buffer, size);
     if (amount < 0) {
+        TRACE_ERROR("failed to read from %s: (%d) %s", path, errno, strerror(errno));
         status = errno_to_hal_error();
         goto done;
     }
@@ -63,12 +67,14 @@ done:
 static hal_error_t write_file(const char* path, const char* buffer) {
     int fd = open(path, O_WRONLY);
     if (fd < 0) {
+        TRACE_ERROR("failed to open %s: (%d) %s", path, errno, strerror(errno));
         return errno_to_hal_error();
     }
 
     hal_error_t status = HAL_SUCCESS;
     ssize_t amount = write(fd, buffer, strlen(buffer));
     if (amount < 0) {
+        TRACE_ERROR("failed to write to %s: (%d) %s", path, errno, strerror(errno));
         status = errno_to_hal_error();
         goto done;
     }
@@ -86,16 +92,22 @@ static hal_error_t write_numbered_file(unsigned number, const char* file, const 
 
 
 hal_error_t gpio_export_pin(unsigned number) {
+    TRACE_DEBUG("Exporting pin %d", number);
+
     char str[3];
     sprintf(str, "%d", number);
     HAL_RETURN_IF_ERROR(write_file(SYSFS_EXPORT, str));
+
     return HAL_SUCCESS;
 }
 
 hal_error_t gpio_unexport_pin(unsigned number) {
+    TRACE_DEBUG("Unexporting pin %d", number);
+
     char str[3];
     sprintf(str, "%d", number);
     HAL_RETURN_IF_ERROR(write_file(SYSFS_UNEXPORT, str));
+
     return HAL_SUCCESS;
 }
 
@@ -111,6 +123,8 @@ hal_error_t gpio_set_direction(unsigned number, direction_t direction) {
         default:
             return HAL_ERROR_BAD_ARGUMENT;
     }
+
+    TRACE_DEBUG("Setting direction for pin %d: %s", number, to_write);
 
     HAL_RETURN_IF_ERROR(write_numbered_file(number, FILE_DIRECTION, to_write));
     return HAL_SUCCESS;
@@ -135,6 +149,8 @@ hal_error_t gpio_set_edge(unsigned number, edge_t edge) {
             return HAL_ERROR_BAD_ARGUMENT;
     }
 
+    TRACE_DEBUG("Setting edge for pin %d: %s", number, to_write);
+
     HAL_RETURN_IF_ERROR(write_numbered_file(number, FILE_EDGE, to_write));
     return HAL_SUCCESS;
 }
@@ -152,6 +168,8 @@ hal_error_t gpio_set_value(unsigned number, hal_dio_value_t value) {
             return HAL_ERROR_BAD_ARGUMENT;
     }
 
+    TRACE_DEBUG("Setting value for pin %d: %s", number, to_write);
+
     HAL_RETURN_IF_ERROR(write_numbered_file(number, FILE_VALUE, to_write));
     return HAL_SUCCESS;
 }
@@ -159,6 +177,8 @@ hal_error_t gpio_set_value(unsigned number, hal_dio_value_t value) {
 hal_error_t gpio_get_value(unsigned number, hal_dio_value_t* value) {
     char buffer[16] = {0};
     HAL_RETURN_IF_ERROR(read_numbered_file(number, FILE_VALUE, buffer, sizeof(buffer)));
+
+    TRACE_DEBUG("Value retrieved for pin %d: %s", number, buffer);
 
     if (0 == strcmp(buffer, STR_VALUE_HIGH)) {
         *value = HAL_DIO_HIGH;
