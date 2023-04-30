@@ -11,13 +11,15 @@
 hal_error_t map_peripheral(uintptr_t address, size_t size, peripheral_t* peripheral) {
     int fd = open("/dev/mem", O_RDWR);
     if (fd < 0) {
-        TRACE_ERROR("failed to /dev/mem: (%d) %s", errno, strerror(errno));
+        TRACE_ERROR("failed to open /dev/mem");
+        TRACE_SYSTEM_ERROR();
         return HAL_ERROR_ENVIRONMENT;
     }
 
     void* mem = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, address);
     if (MAP_FAILED == mem) {
-        TRACE_ERROR("failed to map /dev/mem at 0x%x: (%d) %s", address, errno, strerror(errno));
+        TRACE_ERROR("failed to map /dev/mem at 0x%x", address);
+        TRACE_SYSTEM_ERROR();
         close(fd);
         return HAL_ERROR_ENVIRONMENT;
     }

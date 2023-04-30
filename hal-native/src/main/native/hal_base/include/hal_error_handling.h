@@ -1,5 +1,6 @@
 #pragma once
 
+#include <errno.h>
 #include <syslog.h>
 #include <hal_error.h>
 
@@ -7,6 +8,7 @@
 #define TRACE_DEBUG(format, ...) TRACE(LOG_DEBUG, format, ##__VA_ARGS__)
 #define TRACE_INFO(format, ...) TRACE(LOG_INFO, format, ##__VA_ARGS__)
 #define TRACE_ERROR(format, ...) TRACE(LOG_ERR, "Error (%s:%d)" format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define TRACE_SYSTEM_ERROR() TRACE_ERROR(": (%d) %s", errno, strerror(errno))
 
 #define HAL_JUMP_IF_ERROR(error_code, label) \
     do { \
