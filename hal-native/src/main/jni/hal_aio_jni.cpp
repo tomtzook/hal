@@ -13,7 +13,7 @@ JNIEXPORT jint JNICALL Java_hal_HALAIOJNI_get
         auto hal_env = reinterpret_cast<hal_env_t*>(ptr);
         hal_aio_value_t value;
         CHECK_ERROR(env, hal_aio_get(hal_env, static_cast<hal_handle_t>(handle), &value));
-        return value == HAL_DIO_HIGH;
+        return static_cast<jint>(value);
     });
 }
 

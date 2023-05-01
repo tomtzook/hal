@@ -19,7 +19,7 @@ hal_error_t adc_read(unsigned number, hal_aio_value_t* value) {
     sprintf(path, SYSFS_FILE_FORMAT, number);
     HAL_RETURN_IF_ERROR(read_file(path, buffer, sizeof(buffer)));
 
-    *value = atoi(buffer);
+    *value = (hal_aio_value_t) atoi(buffer);
     return HAL_SUCCESS;
 }
 
