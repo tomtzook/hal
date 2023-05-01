@@ -127,7 +127,7 @@ static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type
     if (type == HAL_TYPE_DIGITAL_INPUT) {
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
         HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_INPUT));
-        //HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_GPIO_CONFIG_RESISTOR_PULLUP));// TODO causes operation not permitted
+        HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_GPIO_CONFIG_RESISTOR_PULLDOWN));
         HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_GPIO_CONFIG_EDGE_RISING));
     } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
@@ -160,6 +160,62 @@ static hal_error_t close(hal_backend_t* env, const char* port_name, hal_port_typ
     return HAL_SUCCESS;
 }
 
+hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
+                          hal_prop_key_t key, hal_prop_value_t* value) {
+    pin_t* pin = find_pin_def_for_name(port_name);
+    if (NULL == pin) {
+        return HAL_ERROR_BAD_ARGUMENT;
+    }
+
+    switch (key) {
+        case HAL_CONFIG_GPIO_POLL_EDGE: {
+            if (type != HAL_TYPE_DIGITAL_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+
+            return gpio_get_edge(pin, value);
+        }
+        case HAL_CONFIG_GPIO_RESISTOR: {
+            if (type != HAL_TYPE_DIGITAL_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+
+            return gpio_get_pinmux(pin, value);
+        }
+        case HAL_CONFIG_ANALOG_MAX_VALUE: {
+            if (type != HAL_TYPE_ANALOG_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+
+            *value = 2045;
+            return HAL_SUCCESS;
+        }
+        default:
+            return HAL_ERROR_UNSUPPORTED_OPERATION;
+    }
+}
+
+hal_error_t port_get_prop_f(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
+                          hal_prop_key_t key, float* value) {
+    pin_t* pin = find_pin_def_for_name(port_name);
+    if (NULL == pin) {
+        return HAL_ERROR_BAD_ARGUMENT;
+    }
+
+    switch (key) {
+        case HAL_CONFIG_ANALOG_MAX_VOLTAGE: {
+            if (type != HAL_TYPE_ANALOG_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+
+            *value = 3.3f;
+            return HAL_SUCCESS;
+        }
+        default:
+            return HAL_ERROR_UNSUPPORTED_OPERATION;
+    }
+}
+
 hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
                           hal_prop_key_t key, hal_prop_value_t value) {
     pin_t* pin = find_pin_def_for_name(port_name);
@@ -185,6 +241,17 @@ hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_ty
         default:
             return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
+}
+
+hal_error_t port_set_prop_f(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
+                          hal_prop_key_t key, float value) {
+    pin_t* pin = find_pin_def_for_name(port_name);
+    if (NULL == pin) {
+        return HAL_ERROR_BAD_ARGUMENT;
+    }
+
+    // not supporting any keys here for now
+    return HAL_ERROR_UNSUPPORTED_OPERATION;
 }
 
 static hal_error_t dio_get(hal_backend_t* env, const char* port_name, void* data, hal_dio_value_t* value) {
@@ -223,6 +290,10 @@ hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->probe = probe;
     backend->open = open;
     backend->close = close;
+    backend->port_get_prop = port_get_prop;
+    backend->port_get_prop_f = port_get_prop_f;
+    backend->port_set_prop = port_set_prop;
+    backend->port_set_prop_f = port_set_prop_f;
     backend->dio_get = dio_get;
     backend->dio_set = dio_set;
     backend->aio_get = aio_get;

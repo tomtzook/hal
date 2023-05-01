@@ -157,6 +157,40 @@ hal_error_t gpio_set_value(pin_t* pin, hal_dio_value_t value) {
     return HAL_SUCCESS;
 }
 
+hal_error_t gpio_get_pinmux(pin_t* pin, hal_gpio_config_resistor_t* resistor) {
+    char path[PATH_MAX];
+    sprintf(path, PINMUX_FILE_FORMAT, pin->name);
+
+    char buffer[32] = {0};
+    HAL_RETURN_IF_ERROR(read_file(path, buffer, sizeof(buffer)));
+    if (0 == strcmp(buffer, STR_RESISTOR_PULLDOWN)) {
+        *resistor = HAL_GPIO_CONFIG_RESISTOR_PULLDOWN;
+    } else if (0 == strcmp(buffer, STR_RESISTOR_PULLUP)) {
+        *resistor = HAL_GPIO_CONFIG_RESISTOR_PULLUP;
+    } else {
+        *resistor = HAL_GPIO_CONFIG_RESISTOR_NONE;
+    }
+
+    return HAL_SUCCESS;
+}
+
+hal_error_t gpio_get_edge(pin_t* pin, hal_gpio_config_poll_edge_t* edge) {
+    char buffer[32] = {0};
+    HAL_RETURN_IF_ERROR(read_numbered_file(pin->pin_number, FILE_EDGE, buffer, sizeof(buffer)));
+
+    if (0 == strcmp(buffer, STR_EDGE_FALLING)) {
+        *edge = HAL_GPIO_CONFIG_EDGE_FALLING;
+    } else if (0 == strcmp(buffer, STR_EDGE_RISING)) {
+        *edge = HAL_GPIO_CONFIG_EDGE_RISING;
+    } else if (0 == strcmp(buffer, STR_EDGE_BOTH)) {
+        *edge = HAL_GPIO_CONFIG_EDGE_BOTH;
+    } else {
+        *edge = HAL_GPIO_CONFIG_EDGE_NONE;
+    }
+
+    return HAL_SUCCESS;
+}
+
 hal_error_t gpio_get_value(pin_t* pin, hal_dio_value_t* value) {
     char buffer[1] = {0};
     HAL_RETURN_IF_ERROR(read_numbered_file(pin->pin_number, FILE_VALUE, buffer, sizeof(buffer)));

@@ -73,6 +73,32 @@ JNIEXPORT void JNICALL Java_hal_HALJNI_close
 }
 
 extern "C"
+JNIEXPORT jint JNICALL Java_hal_HALJNI_getProperty
+        (JNIEnv* env, jclass obj, jlong ptr, jlong handle, jint key) {
+    return jnikit::context<jint>(env, [ptr, handle, key](jnikit::Env& env) -> jint {
+        auto hal_env = reinterpret_cast<hal_env_t*>(ptr);
+        hal_prop_value_t value;
+        CHECK_ERROR(env, hal_get_port_property(hal_env, static_cast<hal_handle_t>(handle),
+                                               static_cast<hal_prop_key_t>(key),
+                                               &value));
+        return static_cast<jint>(value);
+    });
+}
+
+extern "C"
+JNIEXPORT jfloat JNICALL Java_hal_HALJNI_getProperty_f
+        (JNIEnv* env, jclass obj, jlong ptr, jlong handle, jint key) {
+    return jnikit::context<jfloat>(env, [ptr, handle, key](jnikit::Env& env) -> jfloat {
+        auto hal_env = reinterpret_cast<hal_env_t*>(ptr);
+        float value;
+        CHECK_ERROR(env, hal_get_port_property_f(hal_env, static_cast<hal_handle_t>(handle),
+                                               static_cast<hal_prop_key_t>(key),
+                                               &value));
+        return static_cast<jfloat>(value);
+    });
+}
+
+extern "C"
 JNIEXPORT void JNICALL Java_hal_HALJNI_setProperty
         (JNIEnv* env, jclass obj, jlong ptr, jlong handle, jint key, jint value) {
     jnikit::context<void>(env, [ptr, handle, key, value](jnikit::Env& env) -> void {
@@ -80,6 +106,17 @@ JNIEXPORT void JNICALL Java_hal_HALJNI_setProperty
         CHECK_ERROR(env, hal_set_port_property(hal_env, static_cast<hal_handle_t>(handle),
                                                static_cast<hal_prop_key_t>(key),
                                                static_cast<hal_prop_value_t>(value)));
+    });
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_hal_HALJNI_setProperty_f
+        (JNIEnv* env, jclass obj, jlong ptr, jlong handle, jint key, jfloat value) {
+    jnikit::context<void>(env, [ptr, handle, key, value](jnikit::Env& env) -> void {
+        auto hal_env = reinterpret_cast<hal_env_t*>(ptr);
+        CHECK_ERROR(env, hal_set_port_property_f(hal_env, static_cast<hal_handle_t>(handle),
+                                               static_cast<hal_prop_key_t>(key),
+                                               static_cast<float>(value)));
     });
 }
 

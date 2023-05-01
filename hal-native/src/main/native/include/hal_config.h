@@ -12,7 +12,9 @@ typedef uint32_t hal_prop_value_t;
 
 typedef enum {
     HAL_CONFIG_GPIO_POLL_EDGE = 1,
-    HAL_CONFIG_GPIO_RESISTOR = 2
+    HAL_CONFIG_GPIO_RESISTOR = 2,
+    HAL_CONFIG_ANALOG_MAX_VALUE = 3,
+    HAL_CONFIG_ANALOG_MAX_VOLTAGE = 4,
 } hal_config_keys_t;
 
 typedef enum {
@@ -29,7 +31,11 @@ typedef enum {
 } hal_gpio_config_resistor_t;
 
 
+hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_prop_value_t* value);
+hal_error_t hal_get_port_property_f(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, float* value);
+
 hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_prop_value_t value);
+hal_error_t hal_set_port_property_f(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, float value);
 
 #ifdef __cplusplus
 }

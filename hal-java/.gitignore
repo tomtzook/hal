@@ -1,9 +1,0 @@
-/bin/
-.project
-.classpath
-/out/
-/.settings/*
-build/
-.idea/
-.gradle/
-*.log
