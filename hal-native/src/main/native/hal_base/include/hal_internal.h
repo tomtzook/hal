@@ -20,6 +20,10 @@ struct _hal_backend {
     hal_error_t (*open)(hal_backend_t* env, const char* port_name, hal_port_type_t type, void** data);
     hal_error_t (*close)(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data);
 
+    hal_error_t (*port_set_prop)(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
+            hal_prop_key_t key,
+            hal_prop_value_t value);
+
     hal_error_t (*dio_get)(hal_backend_t* env, const char* port_name, void* data, hal_dio_value_t* value);
     hal_error_t (*dio_set)(hal_backend_t* env, const char* port_name, void* data, hal_dio_value_t value);
 

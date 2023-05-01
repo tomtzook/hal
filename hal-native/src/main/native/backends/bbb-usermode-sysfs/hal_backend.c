@@ -10,14 +10,6 @@
 #include "sysfs/adc.h"
 
 
-#define PIN_NUMBER(module, index) ((module) * 32 + (index))
-
-typedef struct {
-    const char* name;
-    unsigned pin_number;
-    uint32_t supported_types;
-} pin_t;
-
 pin_t PINS[] = {
         {"P8_13", PIN_NUMBER(0, 23), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // EHRPWM2B
         {"P8_14", PIN_NUMBER(0, 26), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // EHRPWM2A
@@ -102,7 +94,7 @@ pin_t PINS[] = {
 };
 
 
-pin_t* find_pin_def_for_name(const char* port_name) {
+static pin_t* find_pin_def_for_name(const char* port_name) {
     for (int i = 0; i < sizeof(PINS) / sizeof(pin_t); ++i) {
         pin_t* pin = PINS + i;
         if (0 == strcmp(pin->name, port_name)) {
@@ -112,7 +104,6 @@ pin_t* find_pin_def_for_name(const char* port_name) {
 
     return NULL;
 }
-
 
 static uint32_t probe(hal_backend_t* env, const char* port_name) {
     pin_t* pin = find_pin_def_for_name(port_name);
@@ -129,14 +120,20 @@ static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type
         return HAL_ERROR_BAD_ARGUMENT;
     }
 
-    if (type == HAL_TYPE_DIGITAL_INPUT) {
-        HAL_RETURN_IF_ERROR(gpio_export_pin(pin->pin_number));
-        HAL_RETURN_IF_ERROR(gpio_set_direction(pin->pin_number, DIR_INPUT));
-    } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
-        HAL_RETURN_IF_ERROR(gpio_export_pin(pin->pin_number));
-        HAL_RETURN_IF_ERROR(gpio_set_direction(pin->pin_number, DIR_OUTPUT));
-    } else if (type == HAL_TYPE_ANALOG_INPUT) {
+    if ((pin->supported_types & type) != type) {
+        return HAL_ERROR_UNSUPPORTED_OPERATION;
+    }
 
+    if (type == HAL_TYPE_DIGITAL_INPUT) {
+        HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
+        HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_INPUT));
+        //HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_GPIO_CONFIG_RESISTOR_PULLUP));// TODO causes operation not permitted
+        HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_GPIO_CONFIG_EDGE_RISING));
+    } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
+        HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
+        HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_OUTPUT));
+    } else if (type == HAL_TYPE_ANALOG_INPUT) {
+        // no action needed
     } else {
         return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
@@ -151,9 +148,9 @@ static hal_error_t close(hal_backend_t* env, const char* port_name, hal_port_typ
     }
 
     if (type == HAL_TYPE_DIGITAL_INPUT) {
-        HAL_RETURN_IF_ERROR(gpio_unexport_pin(pin->pin_number));
+        HAL_RETURN_IF_ERROR(gpio_unexport_pin(pin));
     } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
-        HAL_RETURN_IF_ERROR(gpio_unexport_pin(pin->pin_number));
+        HAL_RETURN_IF_ERROR(gpio_unexport_pin(pin));
     } else if (type == HAL_TYPE_ANALOG_INPUT) {
 
     } else {
@@ -163,13 +160,40 @@ static hal_error_t close(hal_backend_t* env, const char* port_name, hal_port_typ
     return HAL_SUCCESS;
 }
 
+hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
+                          hal_prop_key_t key, hal_prop_value_t value) {
+    pin_t* pin = find_pin_def_for_name(port_name);
+    if (NULL == pin) {
+        return HAL_ERROR_BAD_ARGUMENT;
+    }
+
+    switch (key) {
+        case HAL_CONFIG_GPIO_POLL_EDGE: {
+            if (type != HAL_TYPE_DIGITAL_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+
+            return gpio_set_edge(pin, value);
+        }
+        case HAL_CONFIG_GPIO_RESISTOR: {
+            if (type != HAL_TYPE_DIGITAL_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+
+            return gpio_set_pinmux(pin, value);
+        }
+        default:
+            return HAL_ERROR_UNSUPPORTED_OPERATION;
+    }
+}
+
 static hal_error_t dio_get(hal_backend_t* env, const char* port_name, void* data, hal_dio_value_t* value) {
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
     }
 
-    HAL_RETURN_IF_ERROR(gpio_get_value(pin->pin_number, value));
+    HAL_RETURN_IF_ERROR(gpio_get_value(pin, value));
     return HAL_SUCCESS;
 }
 
@@ -179,7 +203,7 @@ static hal_error_t dio_set(hal_backend_t* env, const char* port_name, void* data
         return HAL_ERROR_BAD_ARGUMENT;
     }
 
-    HAL_RETURN_IF_ERROR(gpio_set_value(pin->pin_number, value));
+    HAL_RETURN_IF_ERROR(gpio_set_value(pin, value));
     return HAL_SUCCESS;
 }
 

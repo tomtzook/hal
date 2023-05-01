@@ -164,3 +164,29 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
     env->backend.close(&env->backend, used_port->port_name, used_port->type, used_port->native_data);
     hal_list_remove(&env->used_ports, node);
 }
+
+hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_prop_value_t value) {
+    HAL_CHECK_INITIALIZED(env);
+
+    hal_list_node_t* node;
+    if (hal_find_port_node_from_handle(env, handle, &node)) {
+        return HAL_ERROR_BAD_HANDLE;
+    }
+
+    hal_used_port_t* used_port = (hal_used_port_t*) node->data;
+
+    TRACE_INFO("Configuring port %s of type %d (handle %u): key=%d value=0x%x",
+               used_port->port_name, used_port->type, handle,
+               key, value);
+
+    hal_error_t status = env->backend.port_set_prop(&env->backend,
+                                                    used_port->port_name,
+                                                    used_port->type,
+                                                    used_port->native_data,
+                                                    key, value);
+    if (HAL_IS_ERROR(status)) {
+        return status;
+    }
+
+    return HAL_SUCCESS;
+}

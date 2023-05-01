@@ -72,3 +72,14 @@ JNIEXPORT void JNICALL Java_hal_HALJNI_close
     });
 }
 
+extern "C"
+JNIEXPORT void JNICALL Java_hal_HALJNI_setProperty
+        (JNIEnv* env, jclass obj, jlong ptr, jlong handle, jint key, jint value) {
+    jnikit::context<void>(env, [ptr, handle, key, value](jnikit::Env& env) -> void {
+        auto hal_env = reinterpret_cast<hal_env_t*>(ptr);
+        CHECK_ERROR(env, hal_set_port_property(hal_env, static_cast<hal_handle_t>(handle),
+                                               static_cast<hal_prop_key_t>(key),
+                                               static_cast<hal_prop_value_t>(value)));
+    });
+}
+
