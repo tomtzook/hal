@@ -53,6 +53,10 @@ hal_error_t hal_init(hal_env_t** env) {
 
     _env->used_ports.head = NULL;
     _env->backend.name = "N/A";
+    _env->backend.dio_get = NULL;
+    _env->backend.dio_set = NULL;
+    _env->backend.aio_get = NULL;
+    _env->backend.aio_set = NULL;
 
     TRACE_INFO("Initializing BACKEND");
     status = hal_backend_init(&_env->backend);

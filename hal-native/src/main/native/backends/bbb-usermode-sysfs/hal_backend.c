@@ -11,7 +11,7 @@
 
 
 static uint32_t probe(hal_backend_t* env, hal_port_t port) {
-    return HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT;
+    return HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_ANALOG_INPUT;
 }
 
 static hal_error_t open(hal_backend_t* env, hal_port_t port, hal_port_type_t type, void** data) {
@@ -21,6 +21,8 @@ static hal_error_t open(hal_backend_t* env, hal_port_t port, hal_port_type_t typ
     } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
         HAL_RETURN_IF_ERROR(gpio_export_pin(port));
         HAL_RETURN_IF_ERROR(gpio_set_direction(port, DIR_OUTPUT));
+    } else if (type == HAL_TYPE_ANALOG_INPUT) {
+
     } else {
         return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
@@ -33,6 +35,10 @@ static hal_error_t close(hal_backend_t* env, hal_port_t port, hal_port_type_t ty
         HAL_RETURN_IF_ERROR(gpio_unexport_pin(port));
     } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
         HAL_RETURN_IF_ERROR(gpio_unexport_pin(port));
+    } else if (type == HAL_TYPE_ANALOG_INPUT) {
+
+    } else {
+        return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
 
     return HAL_SUCCESS;
@@ -48,6 +54,11 @@ static hal_error_t dio_set(hal_backend_t* env, hal_port_t port, void* data, hal_
     return HAL_SUCCESS;
 }
 
+static hal_error_t aio_get(hal_backend_t* env, hal_port_t port, void* data, hal_aio_value_t* value) {
+
+    return HAL_SUCCESS;
+}
+
 
 hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->name = "bbb-usermode-sysfs";
@@ -56,6 +67,7 @@ hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->close = close;
     backend->dio_get = dio_get;
     backend->dio_set = dio_set;
+    backend->aio_get = aio_get;
     backend->data = NULL;
 
     return HAL_SUCCESS;

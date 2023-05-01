@@ -23,6 +23,9 @@ struct _hal_backend {
     hal_error_t (*dio_get)(hal_backend_t* env, hal_port_t port, void* data, hal_dio_value_t* value);
     hal_error_t (*dio_set)(hal_backend_t* env, hal_port_t port, void* data, hal_dio_value_t value);
 
+    hal_error_t (*aio_get)(hal_backend_t* env, hal_port_t port, void* data, hal_aio_value_t* value);
+    hal_error_t (*aio_set)(hal_backend_t* env, hal_port_t port, void* data, hal_aio_value_t value);
+
     void* data;
     char* name;
 };

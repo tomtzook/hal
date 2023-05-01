@@ -3,6 +3,7 @@
 #include "hal_types.h"
 #include "hal_error.h"
 #include "hal_dio.h"
+#include "hal_aio.h"
 
 
 #ifdef __cplusplus

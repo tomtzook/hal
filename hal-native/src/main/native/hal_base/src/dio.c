@@ -13,6 +13,12 @@ hal_error_t hal_dio_get(hal_env_t* env, hal_handle_t handle, hal_dio_value_t* va
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
     if (used_port->type != HAL_TYPE_DIGITAL_OUTPUT && used_port->type != HAL_TYPE_DIGITAL_INPUT) {
+        TRACE_ERROR("BACKEND does not support DIO GET");
+        return HAL_ERROR_UNSUPPORTED_OPERATION;
+    }
+
+    if (env->backend.dio_get == NULL) {
+        TRACE_ERROR("BACKEND does not support DIO GET");
         return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
 
@@ -36,6 +42,12 @@ hal_error_t hal_dio_set(hal_env_t* env, hal_handle_t handle, hal_dio_value_t val
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
     if (used_port->type != HAL_TYPE_DIGITAL_OUTPUT) {
+        TRACE_ERROR("BACKEND does not support DIO SET");
+        return HAL_ERROR_UNSUPPORTED_OPERATION;
+    }
+
+    if (env->backend.dio_set == NULL) {
+        TRACE_ERROR("BACKEND does not support DIO SET");
         return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
 
