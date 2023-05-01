@@ -84,6 +84,18 @@ void hal_shutdown(hal_env_t* env) {
 
     TRACE_INFO("Shutting down HAL");
 
+    hal_list_node_t* node = env->used_ports.head;
+    hal_list_node_t* next_node;
+    while (NULL != node) {
+        hal_used_port_t* used_port = (hal_used_port_t*)node->data;
+        next_node = node->next;
+
+        env->backend.close(&env->backend, used_port->port_name, used_port->type, used_port->native_data);
+        hal_list_remove(&env->used_ports, node);
+
+        node = next_node;
+    }
+
     hal_backend_shutdown(&env->backend);
     free(env);
     closelog();
