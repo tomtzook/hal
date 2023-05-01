@@ -5,4 +5,4 @@
 #include <hal_aio.h>
 
 
-hal_error_t aio_get(unsigned number, hal_aio_value_t* value);
+hal_error_t adc_read(unsigned number, hal_aio_value_t* value);

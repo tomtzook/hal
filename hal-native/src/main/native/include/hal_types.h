@@ -11,8 +11,7 @@ extern "C" {
 typedef uintptr_t hal_handle_t;
 
 #define HAL_EMPTY_HANDLE ((hal_handle_t)0)
-
-typedef uint32_t hal_port_t;
+#define PORT_NAME_MAX 32
 
 typedef enum _hal_port_type {
     HAL_TYPE_DIGITAL_INPUT = (0x1 << 0),

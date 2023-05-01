@@ -16,10 +16,16 @@ public class HalEnv implements Closeable {
         mEnvPtr = envPtr;
     }
 
-    public DioPort openDigitalPort(int port, boolean output) {
+    public DioPort openDigitalPort(String port, boolean output) {
         long handle = HALJNI.open(mEnvPtr, port,
                 output ? HAL_TYPE_DIGITAL_OUTPUT : HAL_TYPE_DIGITAL_INPUT);
         return new DioPort(mEnvPtr, handle);
+    }
+
+    public AioPort openAnalogPort(String port, boolean output) {
+        long handle = HALJNI.open(mEnvPtr, port,
+                output ? HAL_TYPE_ANALOG_OUTPUT : HAL_TYPE_ANALOG_INPUT);
+        return new AioPort(mEnvPtr, handle);
     }
 
     @Override

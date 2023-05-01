@@ -31,9 +31,9 @@ env::~env() {
     hal_shutdown(m_env);
 }
 
-hal_handle_t env::open(hal_port_t port, hal_port_type_t type) {
+hal_handle_t env::open(const char* port_name, hal_port_type_t type) {
     hal_handle_t handle;
-    HAL_CALL(hal_open(m_env, port, type, &handle));
+    HAL_CALL(hal_open(m_env, port_name, type, &handle));
 
     return handle;
 }

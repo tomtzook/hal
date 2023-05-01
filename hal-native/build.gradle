@@ -19,9 +19,6 @@ if (project.hasProperty('crosscompile')) {
 def backends = [
     'bbb-usermode-sysfs': [
         'linux-gnueabihf-arm'
-    ],
-    'bbb-usermode-memory': [
-        'linux-gnueabihf-arm'
     ]
 ]
 

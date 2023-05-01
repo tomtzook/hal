@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5.1)
 
-set(HAL_IMPL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../bbb-includes)
+set(HAL_IMPL_INCLUDES )
 
 add_library(hal_bbb_usermode_sysfs OBJECT
         sysfs/gpio.c

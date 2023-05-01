@@ -26,10 +26,14 @@ JNIEXPORT void JNICALL Java_hal_HALJNI_shutdown
 
 extern "C"
 JNIEXPORT jboolean JNICALL Java_hal_HALJNI_probe
-        (JNIEnv* env, jclass obj, jlong ptr, jint port, jint types) {
-    return jnikit::context<jboolean>(env, [ptr, port, types](jnikit::Env& env) -> jboolean {
+        (JNIEnv* _env, jclass obj, jlong ptr, jstring port, jint types) {
+    return jnikit::context<jboolean>(_env, [_env, ptr, port, types](jnikit::Env& env) -> jboolean {
         auto hal_env = reinterpret_cast<hal_env_t*>(ptr);
-        auto status = hal_probe(hal_env, port, static_cast<hal_port_type_t>(types));
+
+        const char* port_name = _env->GetStringUTFChars(port, nullptr);
+        auto status = hal_probe(hal_env, port_name, static_cast<hal_port_type_t>(types));
+        _env->ReleaseStringUTFChars(port, port_name);
+
         if (status == HAL_SUCCESS) {
             return true;
         }
@@ -44,11 +48,17 @@ JNIEXPORT jboolean JNICALL Java_hal_HALJNI_probe
 
 extern "C"
 JNIEXPORT jlong JNICALL Java_hal_HALJNI_open
-        (JNIEnv* env, jclass obj, jlong ptr, jint port, jint type) {
-    return jnikit::context<jlong>(env, [ptr, port, type](jnikit::Env& env) -> jlong {
+        (JNIEnv* _env, jclass obj, jlong ptr, jstring port, jint type) {
+    return jnikit::context<jlong>(_env, [_env, ptr, port, type](jnikit::Env& env) -> jlong {
         auto hal_env = reinterpret_cast<hal_env_t*>(ptr);
+
+        const char* port_name = _env->GetStringUTFChars(port, nullptr);
+
         hal_handle_t handle;
-        CHECK_ERROR(env, hal_open(hal_env, port, static_cast<hal_port_type_t>(type), &handle));
+        auto status = hal_open(hal_env, port_name, static_cast<hal_port_type_t>(type), &handle);
+        _env->ReleaseStringUTFChars(port, port_name);
+        CHECK_ERROR2(env, status);
+
         return static_cast<jlong>(handle);
     });
 }

@@ -1,17 +1,18 @@
 
 #include <malloc.h>
 #include <syslog.h>
+#include <string.h>
 
 #include "hal.h"
 #include "hal_internal.h"
 #include "hal_backend.h"
 
 
-int hal_find_port_node(hal_env_t* env, hal_port_t port, hal_port_type_t type, hal_list_node_t** node_out) {
+int hal_find_port_node(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_list_node_t** node_out) {
     hal_list_node_t* node = env->used_ports.head;
     while (NULL != node) {
         hal_used_port_t* node_data = (hal_used_port_t*)node->data;
-        if (node_data->port == port && node_data->type == type) {
+        if (0 == strcmp(node_data->port_name, port_name) && node_data->type == type) {
             *node_out = node;
             return 0;
         }
@@ -31,7 +32,7 @@ int hal_find_port_node_from_handle(hal_env_t* env, hal_handle_t handle, hal_list
     hal_list_node_t* node = env->used_ports.head;
     while (NULL != node) {
         hal_used_port_t* node_data = (hal_used_port_t*)node->data;
-        if (node_data->port == used_port->port && node_data->type == used_port->type) {
+        if (0 == strcmp(node_data->port_name, used_port->port_name) && node_data->type == used_port->type) {
             *node_out = node;
             return 0;
         }
@@ -88,10 +89,10 @@ void hal_shutdown(hal_env_t* env) {
     closelog();
 }
 
-hal_error_t hal_probe(hal_env_t* env, hal_port_t port, hal_port_type_t type) {
+hal_error_t hal_probe(hal_env_t* env, const char* port_name, hal_port_type_t type) {
     HAL_CHECK_INITIALIZED(env);
 
-    uint32_t flags = env->backend.probe(&env->backend, port);
+    uint32_t flags = env->backend.probe(&env->backend, port_name);
     if ((flags & type) != type) {
         return HAL_ERROR_TYPE_NOT_SUPPORTED;
     }
@@ -99,32 +100,32 @@ hal_error_t hal_probe(hal_env_t* env, hal_port_t port, hal_port_type_t type) {
     return HAL_SUCCESS;
 }
 
-hal_error_t hal_open(hal_env_t* env, hal_port_t port, hal_port_type_t type, hal_handle_t* handle) {
+hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_handle_t* handle) {
     HAL_CHECK_INITIALIZED(env);
 
     hal_error_t status;
     void* native_data = NULL;
     hal_list_node_t* node;
 
-    if (!hal_find_port_node(env, port, type, &node)) {
+    if (!hal_find_port_node(env, port_name, type, &node)) {
         return HAL_ERROR_TAKEN;
     }
 
-    status = hal_probe(env, port, type);
+    status = hal_probe(env, port_name, type);
     if (HAL_IS_ERROR((status))) {
         return status;
     }
 
-    TRACE_INFO("Opening port %d of type %d", port, type);
+    TRACE_INFO("Opening port %s of type %d", port_name, type);
 
     node = (hal_list_node_t*) malloc(sizeof(hal_list_node_t) + sizeof(hal_used_port_t));
     HAL_CHECK_ALLOCATED(node);
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
-    used_port->port = port;
+    strncpy(used_port->port_name, port_name, PORT_NAME_MAX);
     used_port->type = type;
 
-    status = env->backend.open(&env->backend, port, type, &native_data);
+    status = env->backend.open(&env->backend, port_name, type, &native_data);
     HAL_JUMP_IF_ERROR(status, error);
 
     used_port->native_data = native_data;
@@ -134,7 +135,7 @@ hal_error_t hal_open(hal_env_t* env, hal_port_t port, hal_port_type_t type, hal_
     }
 
     *handle = ((hal_handle_t) used_port);
-    TRACE_INFO("New port %d assigned handle %u", port, *handle);
+    TRACE_INFO("New port %s assigned handle %u", port_name, *handle);
 
     return HAL_SUCCESS;
 error:
@@ -142,7 +143,7 @@ error:
         free(node);
     }
     if (NULL != native_data) {
-        env->backend.close(&env->backend, port, type, native_data);
+        env->backend.close(&env->backend, port_name, type, native_data);
     }
 
     return status;
@@ -158,8 +159,8 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
 
-    TRACE_INFO("closing port %d of type %d (handle %u)", used_port->port, used_port->type, handle);
+    TRACE_INFO("closing port %s of type %d (handle %u)", used_port->port_name, used_port->type, handle);
 
-    env->backend.close(&env->backend, used_port->port, used_port->type, used_port->native_data);
+    env->backend.close(&env->backend, used_port->port_name, used_port->type, used_port->native_data);
     hal_list_remove(&env->used_ports, node);
 }
