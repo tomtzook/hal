@@ -8,6 +8,7 @@ public class HalConfig {
     public static final int KEY_GPIO_RESISTOR = 2;
     public static final int KEY_ANALOG_MAX_VALUE = 3;
     public static final int KEY_ANALOG_MAX_VOLTAGE = 4;
+    public static final int KEY_ANALOG_SAMPLE_RATE = 5;
 
     public static final int VALUE_GPIO_POLL_EDGE_NONE = 0;
     public static final int VALUE_GPIO_POLL_EDGE_RISING = 1;

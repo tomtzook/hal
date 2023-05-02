@@ -10,6 +10,11 @@
 #include "sysfs/adc.h"
 
 
+#define ANALOG_MAX_VALUE 4095
+#define ANALOG_MAX_VOLTAGE 3.3f
+#define ANALOG_SAMPLE_RATE 200000.0f // 200khz
+
+
 pin_t PINS[] = {
         {"P8_13", PIN_NUMBER(0, 23), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // EHRPWM2B
         {"P8_14", PIN_NUMBER(0, 26), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // EHRPWM2A
@@ -187,7 +192,7 @@ hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_ty
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
 
-            *value = 2045;
+            *value = ANALOG_MAX_VALUE;
             return HAL_SUCCESS;
         }
         default:
@@ -208,7 +213,15 @@ hal_error_t port_get_prop_f(hal_backend_t* env, const char* port_name, hal_port_
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
 
-            *value = 3.3f;
+            *value = ANALOG_MAX_VOLTAGE;
+            return HAL_SUCCESS;
+        }
+        case HAL_CONFIG_ANALOG_SAMPLE_RATE: {
+            if (type != HAL_TYPE_ANALOG_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+
+            *value = ANALOG_SAMPLE_RATE;
             return HAL_SUCCESS;
         }
         default:

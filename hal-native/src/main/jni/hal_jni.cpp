@@ -86,7 +86,7 @@ JNIEXPORT jint JNICALL Java_hal_HALJNI_getProperty
 }
 
 extern "C"
-JNIEXPORT jfloat JNICALL Java_hal_HALJNI_getProperty_f
+JNIEXPORT jfloat JNICALL Java_hal_HALJNI_getProperty2
         (JNIEnv* env, jclass obj, jlong ptr, jlong handle, jint key) {
     return jnikit::context<jfloat>(env, [ptr, handle, key](jnikit::Env& env) -> jfloat {
         auto hal_env = reinterpret_cast<hal_env_t*>(ptr);
@@ -110,7 +110,7 @@ JNIEXPORT void JNICALL Java_hal_HALJNI_setProperty
 }
 
 extern "C"
-JNIEXPORT void JNICALL Java_hal_HALJNI_setProperty_f
+JNIEXPORT void JNICALL Java_hal_HALJNI_setProperty2
         (JNIEnv* env, jclass obj, jlong ptr, jlong handle, jint key, jfloat value) {
     jnikit::context<void>(env, [ptr, handle, key, value](jnikit::Env& env) -> void {
         auto hal_env = reinterpret_cast<hal_env_t*>(ptr);

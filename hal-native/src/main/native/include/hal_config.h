@@ -14,7 +14,8 @@ typedef enum {
     HAL_CONFIG_GPIO_POLL_EDGE = 1,
     HAL_CONFIG_GPIO_RESISTOR = 2,
     HAL_CONFIG_ANALOG_MAX_VALUE = 3,
-    HAL_CONFIG_ANALOG_MAX_VOLTAGE = 4,
+    HAL_CONFIG_ANALOG_MAX_VOLTAGE = 4, // in volts
+    HAL_CONFIG_ANALOG_SAMPLE_RATE = 5 // in HZ
 } hal_config_keys_t;
 
 typedef enum {

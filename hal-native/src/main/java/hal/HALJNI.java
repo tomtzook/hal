@@ -16,8 +16,8 @@ public class HALJNI {
     public static native long open(long ptr, String port, int type);
     public static native void close(long ptr, long handle);
 
-    public static native int getProperty(long ptr, long handle);
-    public static native float getProperty_f(long ptr, long handle);
+    public static native int getProperty(long ptr, long handle, int key);
+    public static native float getProperty2(long ptr, long handle, int key);
     public static native void setProperty(long ptr, long handle, int key, int value);
-    public static native void setProperty_f(long ptr, long handle, int key, float value);
+    public static native void setProperty2(long ptr, long handle, int key, float value);
 }
