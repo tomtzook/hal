@@ -18,7 +18,6 @@ hal_error_t hal_aio_get(hal_env_t* env, hal_handle_t handle, hal_aio_value_t* va
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
     if (used_port->type != HAL_TYPE_ANALOG_OUTPUT && used_port->type != HAL_TYPE_ANALOG_INPUT) {
-        TRACE_ERROR("BACKEND does not support AIO GET");
         status = HAL_ERROR_UNSUPPORTED_OPERATION;
         goto end;
     }
@@ -53,7 +52,6 @@ hal_error_t hal_aio_set(hal_env_t* env, hal_handle_t handle, hal_aio_value_t val
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
     if (used_port->type != HAL_TYPE_ANALOG_OUTPUT) {
-        TRACE_ERROR("port does not support AIO SET");
         status = HAL_ERROR_UNSUPPORTED_OPERATION;
         goto end;
     }

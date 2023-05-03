@@ -5,14 +5,8 @@
 #include <hal_dio.h>
 #include <hal_config.h>
 
+#include "pins.h"
 
-#define PIN_NUMBER(module, index) ((module) * 32 + (index))
-
-typedef struct {
-    const char* name;
-    unsigned pin_number;
-    uint32_t supported_types;
-} pin_t;
 
 typedef enum {
     DIR_OUTPUT,

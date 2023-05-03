@@ -15,7 +15,7 @@ add_library(hal_base OBJECT
         src/hal_error.c
         src/list.c
         src/dio.c
-        include/hal_error_handling.h src/aio.c)
+        include/hal_error_handling.h src/aio.c src/pwm.c)
 target_include_directories(hal_base
         PUBLIC ${HAL_INCLUDES}
         PRIVATE ${HAL_NATIVE_INCLUDES}

@@ -67,6 +67,10 @@ hal_error_t hal_init(hal_env_t** env) {
     _env->backend.dio_set = NULL;
     _env->backend.aio_get = NULL;
     _env->backend.aio_set = NULL;
+    _env->backend.pwm_get_duty = NULL;
+    _env->backend.pwm_get_frequency = NULL;
+    _env->backend.pwm_set_duty = NULL;
+    _env->backend.pwm_set_frequency = NULL;
 
     TRACE_INFO("Initializing BACKEND");
     status = hal_backend_init(&_env->backend);
@@ -215,7 +219,7 @@ end:
     pthread_mutex_unlock(&env->mutex);
 }
 
-hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_prop_value_t* value) {
+hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, unsigned* value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -271,7 +275,7 @@ end:
     return status;
 }
 
-hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_prop_value_t value) {
+hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, unsigned value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);

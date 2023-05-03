@@ -8,6 +8,7 @@ public class HALJNI {
     public static final int HAL_TYPE_DIGITAL_OUTPUT = (0x1 << 1);
     public static final int HAL_TYPE_ANALOG_INPUT = (0x1 << 2);
     public static final int HAL_TYPE_ANALOG_OUTPUT = (0x1 << 3);
+    public static final int HAL_TYPE_PWM_OUTPUT = (0x1 << 4);
 
     public static native long init();
     public static native void shutdown(long ptr);

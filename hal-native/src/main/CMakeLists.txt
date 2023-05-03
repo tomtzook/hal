@@ -12,6 +12,6 @@ add_library(hal_jni SHARED
         jni/hal_jni.cpp
         jni/hal_except.h
         jni/hal_except.cpp
-        jni/hal_dio_jni.cpp jni/hal_aio_jni.cpp)
+        jni/hal_dio_jni.cpp jni/hal_aio_jni.cpp jni/hal_pwm_jni.cpp)
 target_link_libraries(hal_jni hal jnikit)
 target_include_directories(hal_jni PRIVATE ${JNI_INCLUDE_DIRS} ${HAL_INCLUDES})

@@ -23,12 +23,14 @@ struct _hal_backend {
     hal_error_t (*close)(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data);
 
     hal_error_t (*port_get_prop)(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
-                                 hal_prop_key_t key, hal_prop_value_t* value);
+                                 hal_prop_key_t key,
+                                 unsigned* value);
     hal_error_t (*port_get_prop_f)(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
-                                 hal_prop_key_t key, float* value);
+                                 hal_prop_key_t key,
+                                 float* value);
     hal_error_t (*port_set_prop)(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
                                 hal_prop_key_t key,
-                                hal_prop_value_t value);
+                                 unsigned value);
     hal_error_t (*port_set_prop_f)(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
                                  hal_prop_key_t key,
                                  float value);
@@ -38,6 +40,11 @@ struct _hal_backend {
 
     hal_error_t (*aio_get)(hal_backend_t* env, const char* port_name, void* data, hal_aio_value_t* value);
     hal_error_t (*aio_set)(hal_backend_t* env, const char* port_name, void* data, hal_aio_value_t value);
+
+    hal_error_t (*pwm_get_duty)(hal_backend_t* env, const char* port_name, void* data, float* value);
+    hal_error_t (*pwm_get_frequency)(hal_backend_t* env, const char* port_name, void* data, float* value);
+    hal_error_t (*pwm_set_duty)(hal_backend_t* env, const char* port_name, void* data, float value);
+    hal_error_t (*pwm_set_frequency)(hal_backend_t* env, const char* port_name, void* data, float value);
 
     void* data;
     char* name;

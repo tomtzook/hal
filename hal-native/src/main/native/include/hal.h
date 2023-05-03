@@ -5,6 +5,7 @@
 #include "hal_config.h"
 #include "hal_dio.h"
 #include "hal_aio.h"
+#include "hal_pwm.h"
 
 
 #ifdef __cplusplus

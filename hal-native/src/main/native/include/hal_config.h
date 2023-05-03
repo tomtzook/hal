@@ -8,7 +8,6 @@ extern "C" {
 #endif
 
 typedef uint32_t hal_prop_key_t;
-typedef uint32_t hal_prop_value_t;
 
 typedef enum {
     HAL_CONFIG_GPIO_POLL_EDGE = 1,
@@ -32,10 +31,10 @@ typedef enum {
 } hal_gpio_config_resistor_t;
 
 
-hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_prop_value_t* value);
+hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, unsigned* value);
 hal_error_t hal_get_port_property_f(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, float* value);
 
-hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_prop_value_t value);
+hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, unsigned value);
 hal_error_t hal_set_port_property_f(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, float value);
 
 #ifdef __cplusplus

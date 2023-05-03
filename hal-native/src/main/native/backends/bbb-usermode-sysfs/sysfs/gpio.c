@@ -2,12 +2,13 @@
 #include <string.h>
 #include <stdio.h>
 #include <linux/limits.h>
-
-#include <hal_error_handling.h>
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <hal_error_handling.h>
+
 #include "common.h"
+#include "pins.h"
 #include "gpio.h"
 
 
@@ -15,8 +16,6 @@ static const char* SYSFS_EXPORT = "/sys/class/gpio/export";
 static const char* SYSFS_UNEXPORT = "/sys/class/gpio/unexport";
 
 static const char* SYSFS_FILE_FORMAT = "/sys/class/gpio/gpio%d/%s";
-
-static const char* PINMUX_FILE_FORMAT = "/sys/devices/platform/ocp/ocp:%s_pinmux/state";
 
 static const char* FILE_DIRECTION = "direction";
 static const char* FILE_EDGE = "edge";
@@ -97,10 +96,8 @@ hal_error_t gpio_set_pinmux(pin_t* pin, hal_gpio_config_resistor_t resistor) {
             return HAL_ERROR_BAD_ARGUMENT;
     }
 
-    char path[PATH_MAX];
-    sprintf(path, PINMUX_FILE_FORMAT, pin->name);
+    HAL_RETURN_IF_ERROR(set_pin_mode(pin, to_write));
 
-    HAL_RETURN_IF_ERROR(write_file(path, to_write));
     return HAL_SUCCESS;
 }
 
@@ -162,11 +159,9 @@ hal_error_t gpio_set_value(pin_t* pin, hal_dio_value_t value) {
 }
 
 hal_error_t gpio_get_pinmux(pin_t* pin, hal_gpio_config_resistor_t* resistor) {
-    char path[PATH_MAX];
-    sprintf(path, PINMUX_FILE_FORMAT, pin->name);
-
     char buffer[32] = {0};
-    HAL_RETURN_IF_ERROR(read_file(path, buffer, sizeof(buffer)));
+    HAL_RETURN_IF_ERROR(get_pin_mode(pin, buffer));
+
     if (0 == strcmp(buffer, STR_RESISTOR_PULLDOWN)) {
         *resistor = HAL_GPIO_CONFIG_RESISTOR_PULLDOWN;
     } else if (0 == strcmp(buffer, STR_RESISTOR_PULLUP)) {
