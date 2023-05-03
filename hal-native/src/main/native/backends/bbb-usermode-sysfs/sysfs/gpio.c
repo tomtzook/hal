@@ -64,6 +64,10 @@ hal_error_t gpio_export_pin(pin_t* pin) {
 }
 
 hal_error_t gpio_unexport_pin(pin_t* pin) {
+    if (!gpio_is_exported_pin(pin)) {
+        return HAL_SUCCESS;
+    }
+
     char str[3];
     sprintf(str, "%d", pin->pin_number);
     HAL_RETURN_IF_ERROR(write_file(SYSFS_UNEXPORT, str));
