@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.5.1)
 
 set(HAL_NATIVE_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 add_library(hal_base OBJECT
         include/hal_internal.h
         include/hal_backend.h
@@ -17,5 +20,6 @@ target_include_directories(hal_base
         PUBLIC ${HAL_INCLUDES}
         PRIVATE ${HAL_NATIVE_INCLUDES}
         )
+target_link_libraries(hal_base PRIVATE Threads::Threads)
 
 set(HAL_NATIVE_INCLUDES ${HAL_NATIVE_INCLUDES} PARENT_SCOPE)

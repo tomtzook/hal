@@ -1,5 +1,7 @@
 #pragma once
 
+#include <pthread.h>
+
 #include "hal.h"
 #include "list.h"
 #include "hal_error_handling.h"
@@ -44,6 +46,7 @@ struct _hal_backend {
 struct _hal_env {
     hal_list_t used_ports;
     hal_backend_t backend;
+    pthread_mutex_t mutex;
 };
 
 int hal_find_port_node(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_list_node_t** node);
