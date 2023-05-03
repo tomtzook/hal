@@ -37,7 +37,7 @@
 
 #define HAL_CHECK_INITIALIZED(ptr) \
     do {                            \
-        if(NULL == ptr) { \
+        if(NULL == ptr || !ptr->initialized) { \
             TRACE_ERROR("Uninitialized");                       \
             return HAL_ERROR_NOT_INITIALIZED; \
         } \
@@ -45,7 +45,7 @@
 
 #define HAL_CHECK_INITIALIZED_VOID(ptr) \
     do {                            \
-        if(NULL == ptr) {               \
+        if(NULL == ptr || !ptr->initialized) {               \
             TRACE_ERROR("Uninitialized");\
             return; \
         } \

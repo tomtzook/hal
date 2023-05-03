@@ -44,6 +44,7 @@ struct _hal_backend {
 };
 
 struct _hal_env {
+    int initialized;
     hal_list_t used_ports;
     hal_backend_t backend;
     pthread_mutex_t mutex;

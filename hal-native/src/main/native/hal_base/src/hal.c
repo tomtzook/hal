@@ -74,6 +74,7 @@ hal_error_t hal_init(hal_env_t** env) {
 
     TRACE_INFO("Using BACKEND %s", _env->backend.name);
 
+    _env->initialized = 1;
     *env = _env;
     return HAL_SUCCESS;
 error:
@@ -96,6 +97,8 @@ void hal_shutdown(hal_env_t* env) {
 
     TRACE_INFO("Shutting down HAL");
 
+    pthread_mutex_lock(&env->mutex);
+
     hal_list_node_t* node = env->used_ports.head;
     hal_list_node_t* next_node;
     while (NULL != node) {
@@ -107,6 +110,10 @@ void hal_shutdown(hal_env_t* env) {
 
         node = next_node;
     }
+
+    env->initialized = 0;
+
+    pthread_mutex_unlock(&env->mutex);
 
     hal_backend_shutdown(&env->backend);
     pthread_mutex_destroy(&env->mutex);
@@ -145,8 +152,9 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
         goto error;
     }
 
-    status = hal_probe(env, port_name, type);
-    if (HAL_IS_ERROR((status))) {
+    uint32_t flags = env->backend.probe(&env->backend, port_name);
+    if ((flags & type) != type) {
+        status = HAL_ERROR_TYPE_NOT_SUPPORTED;
         goto error;
     }
 
