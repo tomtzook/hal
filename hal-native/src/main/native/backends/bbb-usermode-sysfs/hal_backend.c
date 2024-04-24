@@ -161,6 +161,15 @@ hal_error_t port_get_prop_f(hal_backend_t* env, const char* port_name, hal_port_
             *value = ANALOG_SAMPLE_RATE;
             return HAL_SUCCESS;
         }
+        case HAL_CONFIG_PWM_FREQUENCY: {
+            if (type != HAL_TYPE_PWM_OUTPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+
+            pwm_t* pwm = (pwm_t*) data;
+            *value = pwm->period_ns / 1e9f;
+            return HAL_SUCCESS;
+        }
         default:
             return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
@@ -200,8 +209,18 @@ hal_error_t port_set_prop_f(hal_backend_t* env, const char* port_name, hal_port_
         return HAL_ERROR_BAD_ARGUMENT;
     }
 
-    // not supporting any keys here for now
-    return HAL_ERROR_UNSUPPORTED_OPERATION;
+    switch (key) {
+        case HAL_CONFIG_PWM_FREQUENCY: {
+            if (type != HAL_TYPE_PWM_OUTPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+
+            pwm_t* pwm = (pwm_t*) data;
+            return pwm_set_frequency(pwm, value);
+        }
+        default:
+            return HAL_ERROR_UNSUPPORTED_OPERATION;
+    }
 }
 
 static hal_error_t dio_get(hal_backend_t* env, const char* port_name, void* data, hal_dio_value_t* value) {
@@ -241,23 +260,10 @@ static hal_error_t pwm_getduty(hal_backend_t* env, const char* port_name, void* 
     return HAL_SUCCESS;
 }
 
-static hal_error_t pwm_getfreq(hal_backend_t* env, const char* port_name, void* data, float* value) {
-    pwm_t* pwm = (pwm_t*) data;
-    *value = pwm->period_ns / 1e9f;
-
-    return HAL_SUCCESS;
-}
-
 static hal_error_t pwm_setduty(hal_backend_t* env, const char* port_name, void* data, float value) {
     pwm_t* pwm = (pwm_t*) data;
     return pwm_set_duty_cycle(pwm, value);
 }
-
-static hal_error_t pwm_setfreq(hal_backend_t* env, const char* port_name, void* data, float value) {
-    pwm_t* pwm = (pwm_t*) data;
-    return pwm_set_frequency(pwm, value);
-}
-
 
 hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->name = "bbb-usermode-sysfs";
@@ -272,9 +278,7 @@ hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->dio_set = dio_set;
     backend->aio_get = aio_get;
     backend->pwm_get_duty = pwm_getduty;
-    backend->pwm_get_frequency = pwm_getfreq;
     backend->pwm_set_duty = pwm_setduty;
-    backend->pwm_set_frequency = pwm_setfreq;
     backend->data = NULL;
 
     return HAL_SUCCESS;

@@ -10,13 +10,12 @@ hal_error_t hal_dio_get(hal_env_t* env, hal_handle_t handle, hal_dio_value_t* va
 
     hal_error_t status = HAL_SUCCESS;
 
-    hal_list_node_t* node;
-    if (hal_find_port_node_from_handle(env, handle, &node)) {
+    hal_used_port_t* used_port;
+    if (hal_find_port_from_handle(handle, &used_port)) {
         status = HAL_ERROR_BAD_HANDLE;
         goto end;
     }
 
-    hal_used_port_t* used_port = (hal_used_port_t*) node->data;
     if (used_port->type != HAL_TYPE_DIGITAL_OUTPUT && used_port->type != HAL_TYPE_DIGITAL_INPUT) {
         status = HAL_ERROR_UNSUPPORTED_OPERATION;
         goto end;
@@ -44,13 +43,12 @@ hal_error_t hal_dio_set(hal_env_t* env, hal_handle_t handle, hal_dio_value_t val
 
     hal_error_t status;
 
-    hal_list_node_t* node;
-    if (hal_find_port_node_from_handle(env, handle, &node)) {
+    hal_used_port_t* used_port;
+    if (hal_find_port_from_handle(handle, &used_port)) {
         status = HAL_ERROR_BAD_HANDLE;
         goto end;
     }
 
-    hal_used_port_t* used_port = (hal_used_port_t*) node->data;
     if (used_port->type != HAL_TYPE_DIGITAL_OUTPUT) {
         status = HAL_ERROR_UNSUPPORTED_OPERATION;
         goto end;

@@ -166,8 +166,10 @@ hal_error_t gpio_get_pinmux(pin_t* pin, hal_gpio_config_resistor_t* resistor) {
         *resistor = HAL_GPIO_CONFIG_RESISTOR_PULLDOWN;
     } else if (0 == strcmp(buffer, STR_RESISTOR_PULLUP)) {
         *resistor = HAL_GPIO_CONFIG_RESISTOR_PULLUP;
-    } else {
+    } else if (0 == strcmp(buffer, STR_RESISTOR_NONE)) {
         *resistor = HAL_GPIO_CONFIG_RESISTOR_NONE;
+    } else {
+        return HAL_ERROR_BAD_DATA;
     }
 
     return HAL_SUCCESS;
@@ -183,8 +185,10 @@ hal_error_t gpio_get_edge(pin_t* pin, hal_gpio_config_poll_edge_t* edge) {
         *edge = HAL_GPIO_CONFIG_EDGE_RISING;
     } else if (0 == strcmp(buffer, STR_EDGE_BOTH)) {
         *edge = HAL_GPIO_CONFIG_EDGE_BOTH;
-    } else {
+    } else if (0 == strcmp(buffer, STR_EDGE_NONE)) {
         *edge = HAL_GPIO_CONFIG_EDGE_NONE;
+    } else {
+        return HAL_ERROR_BAD_DATA;
     }
 
     return HAL_SUCCESS;
@@ -196,8 +200,10 @@ hal_error_t gpio_get_value(pin_t* pin, hal_dio_value_t* value) {
 
     if (buffer[0] == '0') {
         *value = HAL_DIO_LOW;
-    } else {
+    } else if (buffer[0] == '1') {
         *value = HAL_DIO_HIGH;
+    } else {
+        return HAL_ERROR_BAD_DATA;
     }
 
     return HAL_SUCCESS;

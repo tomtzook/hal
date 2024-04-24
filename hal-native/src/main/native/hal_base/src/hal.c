@@ -8,6 +8,35 @@
 #include "hal_backend.h"
 
 
+static hal_error_t check_backend(const hal_backend_t* backend) {
+    if (backend->name == NULL ||
+            backend->probe == NULL ||
+            backend->open == NULL ||
+            backend->close == NULL ||
+            backend->port_get_prop == NULL ||
+            backend->port_get_prop_f == NULL ||
+            backend->port_set_prop == NULL ||
+            backend->port_set_prop_f == NULL) {
+        return HAL_ERROR_BAD_DATA;
+    }
+
+    return HAL_SUCCESS;
+}
+
+int hal_find_port_from_handle(hal_handle_t handle, hal_used_port_t** port_out) {
+    hal_used_port_t* used_port = (hal_used_port_t*) handle;
+    if (NULL == used_port) {
+        return 1;
+    }
+
+    if (used_port->magic != HAL_PORT_STRUCT_MAGIC) {
+        return 1;
+    }
+
+    *port_out = used_port;
+    return 0;
+}
+
 int hal_find_port_node(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_list_node_t** node_out) {
     hal_list_node_t* node = env->used_ports.head;
     while (NULL != node) {
@@ -24,28 +53,24 @@ int hal_find_port_node(hal_env_t* env, const char* port_name, hal_port_type_t ty
 }
 
 int hal_find_port_node_from_handle(hal_env_t* env, hal_handle_t handle, hal_list_node_t** node_out) {
-    hal_used_port_t* used_port = (hal_used_port_t*) handle;
-    if (NULL == used_port) {
+    hal_used_port_t* used_port;
+    if (hal_find_port_from_handle(handle, &used_port)) {
         return 1;
     }
 
-    hal_list_node_t* node = env->used_ports.head;
-    while (NULL != node) {
-        hal_used_port_t* node_data = (hal_used_port_t*)node->data;
-        if (0 == strcmp(node_data->port_name, used_port->port_name) && node_data->type == used_port->type) {
-            *node_out = node;
-            return 0;
-        }
-
-        node = node->next;
+    hal_list_node_t* node;
+    if (hal_find_port_node(env, used_port->port_name, used_port->type, &node)) {
+        return 1;
     }
 
-    return 1;
+    *node_out = node;
+    return 0;
 }
 
 hal_error_t hal_init(hal_env_t** env) {
     hal_error_t status;
     int mutex_initialized = 0;
+    int backend_initialized = 0;
 
     openlog("HAL", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
     TRACE_INFO("Initializing HAL");
@@ -62,18 +87,15 @@ hal_error_t hal_init(hal_env_t** env) {
     mutex_initialized = 1;
 
     _env->used_ports.head = NULL;
+    memset(&_env->backend, 0, sizeof(_env->backend));
     _env->backend.name = "N/A";
-    _env->backend.dio_get = NULL;
-    _env->backend.dio_set = NULL;
-    _env->backend.aio_get = NULL;
-    _env->backend.aio_set = NULL;
-    _env->backend.pwm_get_duty = NULL;
-    _env->backend.pwm_get_frequency = NULL;
-    _env->backend.pwm_set_duty = NULL;
-    _env->backend.pwm_set_frequency = NULL;
 
     TRACE_INFO("Initializing BACKEND");
     status = hal_backend_init(&_env->backend);
+    HAL_JUMP_IF_ERROR(status, error);
+    backend_initialized = 1;
+
+    status = check_backend(&_env->backend);
     HAL_JUMP_IF_ERROR(status, error);
 
     TRACE_INFO("Using BACKEND %s", _env->backend.name);
@@ -83,6 +105,9 @@ hal_error_t hal_init(hal_env_t** env) {
     return HAL_SUCCESS;
 error:
     *env = NULL;
+    if (backend_initialized) {
+        hal_backend_shutdown(&_env->backend);
+    }
     if (mutex_initialized) {
         pthread_mutex_destroy(&_env->mutex);
     }
@@ -132,13 +157,19 @@ hal_error_t hal_probe(hal_env_t* env, const char* port_name, hal_port_type_t typ
 
     hal_error_t status = HAL_SUCCESS;
 
+    if (env->backend.probe == NULL) {
+        TRACE_ERROR("BACKEND does not support PROBE");
+        status = HAL_ERROR_UNSUPPORTED_OPERATION;
+        goto end;
+    }
+
     uint32_t flags = env->backend.probe(&env->backend, port_name);
     if ((flags & type) != type) {
         status = HAL_ERROR_TYPE_NOT_SUPPORTED;
     }
 
+end:
     pthread_mutex_unlock(&env->mutex);
-
     return status;
 }
 
@@ -156,6 +187,12 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
         goto error;
     }
 
+    if (env->backend.probe == NULL) {
+        TRACE_ERROR("BACKEND does not support PROBE");
+        status = HAL_ERROR_UNSUPPORTED_OPERATION;
+        goto error;
+    }
+
     uint32_t flags = env->backend.probe(&env->backend, port_name);
     if ((flags & type) != type) {
         status = HAL_ERROR_TYPE_NOT_SUPPORTED;
@@ -168,8 +205,15 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
     HAL_CHECK_ALLOCATED(node);
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
+    used_port->magic = HAL_PORT_STRUCT_MAGIC;
     strncpy(used_port->port_name, port_name, PORT_NAME_MAX);
     used_port->type = type;
+
+    if (env->backend.open == NULL) {
+        TRACE_ERROR("BACKEND does not support OPEN");
+        status = HAL_ERROR_UNSUPPORTED_OPERATION;
+        goto error;
+    }
 
     status = env->backend.open(&env->backend, port_name, type, &native_data);
     HAL_JUMP_IF_ERROR(status, error);
@@ -210,6 +254,11 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
 
     hal_used_port_t* used_port = (hal_used_port_t*) node->data;
 
+    if (env->backend.close == NULL) {
+        TRACE_ERROR("BACKEND does not support CLOSE");
+        goto end;
+    }
+
     TRACE_INFO("closing port %s of type %d (handle %u)", used_port->port_name, used_port->type, handle);
 
     env->backend.close(&env->backend, used_port->port_name, used_port->type, used_port->native_data);
@@ -226,17 +275,22 @@ hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_
 
     hal_error_t status = HAL_SUCCESS;
 
-    hal_list_node_t* node;
-    if (hal_find_port_node_from_handle(env, handle, &node)) {
+    hal_used_port_t* used_port;
+    if (hal_find_port_from_handle(handle, &used_port)) {
         status = HAL_ERROR_BAD_HANDLE;
         goto end;
     }
 
-    hal_used_port_t* used_port = (hal_used_port_t*) node->data;
+    if (env->backend.port_get_prop == NULL) {
+        TRACE_ERROR("BACKEND does not support GET PROP");
+        status = HAL_ERROR_UNSUPPORTED_OPERATION;
+        goto end;
+    }
 
     TRACE_INFO("Reading configuration of port %s of type %d (handle %u): key=%d",
                used_port->port_name, used_port->type, handle,
                key);
+
     status = env->backend.port_get_prop(&env->backend,
                                         used_port->port_name,
                                         used_port->type,
@@ -254,17 +308,22 @@ hal_error_t hal_get_port_property_f(hal_env_t* env, hal_handle_t handle, hal_pro
 
     hal_error_t status = HAL_SUCCESS;
 
-    hal_list_node_t* node;
-    if (hal_find_port_node_from_handle(env, handle, &node)) {
+    hal_used_port_t* used_port;
+    if (hal_find_port_from_handle(handle, &used_port)) {
         status = HAL_ERROR_BAD_HANDLE;
         goto end;
     }
 
-    hal_used_port_t* used_port = (hal_used_port_t*) node->data;
+    if (env->backend.port_get_prop_f == NULL) {
+        TRACE_ERROR("BACKEND does not support GET PROP(f)");
+        status = HAL_ERROR_UNSUPPORTED_OPERATION;
+        goto end;
+    }
 
     TRACE_INFO("Reading configuration of port %s of type %d (handle %u): key=%d",
                used_port->port_name, used_port->type, handle,
                key);
+
     status = env->backend.port_get_prop_f(&env->backend,
                                         used_port->port_name,
                                         used_port->type,
@@ -282,13 +341,17 @@ hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_
 
     hal_error_t status = HAL_SUCCESS;
 
-    hal_list_node_t* node;
-    if (hal_find_port_node_from_handle(env, handle, &node)) {
+    hal_used_port_t* used_port;
+    if (hal_find_port_from_handle(handle, &used_port)) {
         status = HAL_ERROR_BAD_HANDLE;
         goto end;
     }
 
-    hal_used_port_t* used_port = (hal_used_port_t*) node->data;
+    if (env->backend.port_set_prop == NULL) {
+        TRACE_ERROR("BACKEND does not support SET PROP");
+        status = HAL_ERROR_UNSUPPORTED_OPERATION;
+        goto end;
+    }
 
     TRACE_INFO("Configuring port %s of type %d (handle %u): key=%d value=0x%x",
                used_port->port_name, used_port->type, handle,
@@ -312,13 +375,17 @@ hal_error_t hal_set_port_property_f(hal_env_t* env, hal_handle_t handle, hal_pro
 
     hal_error_t status = HAL_SUCCESS;
 
-    hal_list_node_t* node;
-    if (hal_find_port_node_from_handle(env, handle, &node)) {
+    hal_used_port_t* used_port;
+    if (hal_find_port_from_handle(handle, &used_port)) {
         status = HAL_ERROR_BAD_HANDLE;
         goto end;
     }
 
-    hal_used_port_t* used_port = (hal_used_port_t*) node->data;
+    if (env->backend.port_set_prop_f == NULL) {
+        TRACE_ERROR("BACKEND does not support SET PROP(f)");
+        status = HAL_ERROR_UNSUPPORTED_OPERATION;
+        goto end;
+    }
 
     TRACE_INFO("Configuring port %s of type %d (handle %u): key=%d value=%f",
                used_port->port_name, used_port->type, handle,

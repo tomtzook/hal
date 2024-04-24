@@ -11,7 +11,10 @@
 extern "C" {
 #endif
 
+#define HAL_PORT_STRUCT_MAGIC 0xea
+
 typedef struct _hal_used_port {
+    uint8_t magic;
     char port_name[PORT_NAME_MAX];
     hal_port_type_t type;
     void* native_data;
@@ -42,9 +45,7 @@ struct _hal_backend {
     hal_error_t (*aio_set)(hal_backend_t* env, const char* port_name, void* data, hal_aio_value_t value);
 
     hal_error_t (*pwm_get_duty)(hal_backend_t* env, const char* port_name, void* data, float* value);
-    hal_error_t (*pwm_get_frequency)(hal_backend_t* env, const char* port_name, void* data, float* value);
     hal_error_t (*pwm_set_duty)(hal_backend_t* env, const char* port_name, void* data, float value);
-    hal_error_t (*pwm_set_frequency)(hal_backend_t* env, const char* port_name, void* data, float value);
 
     void* data;
     char* name;
@@ -56,6 +57,8 @@ struct _hal_env {
     hal_backend_t backend;
     pthread_mutex_t mutex;
 };
+
+int hal_find_port_from_handle(hal_handle_t handle, hal_used_port_t** port_out);
 
 int hal_find_port_node(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_list_node_t** node);
 int hal_find_port_node_from_handle(hal_env_t* env, hal_handle_t handle, hal_list_node_t** node);
