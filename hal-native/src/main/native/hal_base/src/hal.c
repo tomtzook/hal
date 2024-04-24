@@ -13,6 +13,7 @@ static hal_error_t check_backend(const hal_backend_t* backend) {
             backend->probe == NULL ||
             backend->open == NULL ||
             backend->close == NULL ||
+            backend->port_probe_prop == NULL ||
             backend->port_get_prop == NULL ||
             backend->port_get_prop_f == NULL ||
             backend->port_set_prop == NULL ||
@@ -20,6 +21,36 @@ static hal_error_t check_backend(const hal_backend_t* backend) {
         return HAL_ERROR_BAD_DATA;
     }
 
+    return HAL_SUCCESS;
+}
+
+static hal_error_t get_port_config_flags(hal_config_keys_t key, hal_config_flags_t* flags) {
+    hal_config_flags_t _flags = 0;
+
+    switch (key) {
+        case HAL_CONFIG_GPIO_POLL_EDGE:
+            _flags |= HAL_CONFIG_FLAG_TYPE_INT;
+            break;
+        case HAL_CONFIG_GPIO_RESISTOR:
+            _flags |= HAL_CONFIG_FLAG_TYPE_INT;
+            break;
+        case HAL_CONFIG_ANALOG_MAX_VALUE:
+            _flags |= HAL_CONFIG_FLAG_TYPE_INT;
+            break;
+        case HAL_CONFIG_ANALOG_MAX_VOLTAGE:
+            _flags |= HAL_CONFIG_FLAG_TYPE_FLOAT;
+            break;
+        case HAL_CONFIG_ANALOG_SAMPLE_RATE:
+            _flags |= HAL_CONFIG_FLAG_TYPE_FLOAT;
+            break;
+        case HAL_CONFIG_PWM_FREQUENCY:
+            _flags |= HAL_CONFIG_FLAG_TYPE_FLOAT;
+            break;
+        default:
+            return HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED;
+    }
+
+    *flags = _flags;
     return HAL_SUCCESS;
 }
 
@@ -163,6 +194,8 @@ hal_error_t hal_probe(hal_env_t* env, const char* port_name, hal_port_type_t typ
         goto end;
     }
 
+    TRACE_INFO("Probing port %s for type %d", port_name, type);
+
     uint32_t flags = env->backend.probe(&env->backend, port_name);
     if ((flags & type) != type) {
         status = HAL_ERROR_TYPE_NOT_SUPPORTED;
@@ -266,6 +299,64 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
 
 end:
     pthread_mutex_unlock(&env->mutex);
+}
+
+hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, hal_config_flags_t* flags) {
+    HAL_CHECK_INITIALIZED(env);
+
+    pthread_mutex_lock(&env->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+
+    status = get_port_config_flags(key, flags);
+    HAL_JUMP_IF_ERROR(status, end);
+
+    if (env->backend.port_probe_prop == NULL) {
+        TRACE_ERROR("BACKEND does not support PROBE PROP");
+        status = HAL_ERROR_UNSUPPORTED_OPERATION;
+        goto end;
+    }
+
+    TRACE_INFO("Probing port configuration for %s with type %d for key %d",
+               port_name, type, key);
+
+    status = env->backend.port_probe_prop(&env->backend, port_name, type, key);
+
+end:
+    pthread_mutex_unlock(&env->mutex);
+    return status;
+}
+
+hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_config_flags_t* flags) {
+    HAL_CHECK_INITIALIZED(env);
+
+    pthread_mutex_lock(&env->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+
+    status = get_port_config_flags(key, flags);
+    HAL_JUMP_IF_ERROR(status, end);
+
+    hal_used_port_t* used_port;
+    if (hal_find_port_from_handle(handle, &used_port)) {
+        status = HAL_ERROR_BAD_HANDLE;
+        goto end;
+    }
+
+    if (env->backend.port_probe_prop == NULL) {
+        TRACE_ERROR("BACKEND does not support PROBE PROP");
+        status = HAL_ERROR_UNSUPPORTED_OPERATION;
+        goto end;
+    }
+
+    TRACE_INFO("Probing port configuration for port %s with type %d (handle %u) for key %d",
+               used_port->port_name, used_port->type, handle, key);
+
+    status = env->backend.port_probe_prop(&env->backend, used_port->port_name, used_port->type, key);
+
+end:
+    pthread_mutex_unlock(&env->mutex);
+    return status;
 }
 
 hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, unsigned* value) {

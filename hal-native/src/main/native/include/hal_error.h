@@ -24,6 +24,7 @@ typedef enum _hal_error_value {
     HAL_ERROR_BAD_HANDLE,
     HAL_ERROR_TYPE_NOT_SUPPORTED,
     HAL_ERROR_ENVIRONMENT,
+    HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED,
 
     HAL_CUSTOM_ERROR_STATE = 0xffff
 } hal_error_value_t;

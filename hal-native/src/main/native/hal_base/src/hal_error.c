@@ -16,6 +16,7 @@ const char* hal_strerror(hal_error_t error) {
         case HAL_ERROR_BAD_HANDLE: return "HAL was given a bad handle";
         case HAL_ERROR_TYPE_NOT_SUPPORTED: return "HAL type is not supported by port";
         case HAL_ERROR_ENVIRONMENT: return "HAL encountered system error";
-        default: return "";
+        case HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED: return "HAL configuration key is not supported";
+        default: return "N/A";
     }
 }
