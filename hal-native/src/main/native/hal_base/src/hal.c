@@ -296,7 +296,7 @@ end:
     pthread_mutex_unlock(&env->mutex);
 }
 
-hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key) {
+hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, hal_config_flags_t* flags) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -316,14 +316,14 @@ hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_p
     TRACE_INFO("Probing port configuration for %s with type %d for key %d",
                port_name, type, key);
 
-    status = env->backend.port_probe_prop(&env->backend, port_name, type, key);
+    status = env->backend.port_probe_prop(&env->backend, port_name, type, key, flags);
 
 end:
     pthread_mutex_unlock(&env->mutex);
     return status;
 }
 
-hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key) {
+hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_config_flags_t* flags) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -349,7 +349,7 @@ hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, 
     TRACE_INFO("Probing port configuration for port %s with type %d (handle %u) for key %d",
                used_port->port_name, used_port->type, handle, key);
 
-    status = env->backend.port_probe_prop(&env->backend, used_port->port_name, used_port->type, key);
+    status = env->backend.port_probe_prop(&env->backend, used_port->port_name, used_port->type, key, flags);
 
 end:
     pthread_mutex_unlock(&env->mutex);

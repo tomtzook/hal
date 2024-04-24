@@ -102,6 +102,64 @@ static hal_error_t close(hal_backend_t* env, const char* port_name, hal_port_typ
     return HAL_SUCCESS;
 }
 
+hal_error_t port_probe_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, hal_config_flags_t* flags) {
+    pin_t* pin = find_pin_def_for_name(port_name);
+    if (NULL == pin) {
+        return HAL_ERROR_BAD_ARGUMENT;
+    }
+
+    hal_config_flags_t _flags;
+    switch (key) {
+        case HAL_CONFIG_GPIO_POLL_EDGE: {
+            if (type != HAL_TYPE_DIGITAL_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+            _flags |= HAL_CONFIG_FLAG_READABLE | HAL_CONFIG_FLAG_WRITABLE;
+            break;
+        }
+        case HAL_CONFIG_GPIO_RESISTOR: {
+            if (type != HAL_TYPE_DIGITAL_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+            _flags |= HAL_CONFIG_FLAG_READABLE | HAL_CONFIG_FLAG_WRITABLE;
+            break;
+        }
+        case HAL_CONFIG_ANALOG_MAX_VALUE: {
+            if (type != HAL_TYPE_ANALOG_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+            _flags |= HAL_CONFIG_FLAG_READABLE;
+            break;
+        }
+        case HAL_CONFIG_ANALOG_MAX_VOLTAGE: {
+            if (type != HAL_TYPE_ANALOG_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+            _flags |= HAL_CONFIG_FLAG_READABLE;
+            break;
+        }
+        case HAL_CONFIG_ANALOG_SAMPLE_RATE: {
+            if (type != HAL_TYPE_ANALOG_INPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+            _flags |= HAL_CONFIG_FLAG_READABLE;
+            break;
+        }
+        case HAL_CONFIG_PWM_FREQUENCY: {
+            if (type != HAL_TYPE_PWM_OUTPUT) {
+                return HAL_ERROR_UNSUPPORTED_OPERATION;
+            }
+            _flags |= HAL_CONFIG_FLAG_READABLE | HAL_CONFIG_FLAG_WRITABLE;
+            break;
+        }
+        default:
+            return HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED;
+    }
+
+    *flags = _flags;
+    return HAL_SUCCESS;
+}
+
 hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
                           hal_prop_key_t key, hal_prop_value_t* value) {
     pin_t* pin = find_pin_def_for_name(port_name);
@@ -158,7 +216,7 @@ hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_ty
             return HAL_SUCCESS;
         }
         default:
-            return HAL_ERROR_UNSUPPORTED_OPERATION;
+            return HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED;
     }
 }
 
@@ -193,7 +251,7 @@ hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_ty
             return pwm_set_frequency(pwm, value);
         }
         default:
-            return HAL_ERROR_UNSUPPORTED_OPERATION;
+            return HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED;
     }
 }
 
