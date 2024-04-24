@@ -61,7 +61,7 @@ static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type
         status = pwm_export(pwm);
         HAL_JUMP_IF_ERROR(status, pwm_error);
 
-        status = pwm_set_frequency(pwm, 1);
+        status = pwm_set_frequency(pwm, 1000000);
         HAL_JUMP_IF_ERROR(status, pwm_error);
 
         *data = pwm;
@@ -103,7 +103,7 @@ static hal_error_t close(hal_backend_t* env, const char* port_name, hal_port_typ
 }
 
 hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
-                          hal_prop_key_t key, unsigned* value) {
+                          hal_prop_key_t key, hal_prop_value_t* value) {
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
@@ -132,25 +132,12 @@ hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_ty
             *value = ANALOG_MAX_VALUE;
             return HAL_SUCCESS;
         }
-        default:
-            return HAL_ERROR_UNSUPPORTED_OPERATION;
-    }
-}
-
-hal_error_t port_get_prop_f(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
-                          hal_prop_key_t key, float* value) {
-    pin_t* pin = find_pin_def_for_name(port_name);
-    if (NULL == pin) {
-        return HAL_ERROR_BAD_ARGUMENT;
-    }
-
-    switch (key) {
         case HAL_CONFIG_ANALOG_MAX_VOLTAGE: {
             if (type != HAL_TYPE_ANALOG_INPUT) {
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
 
-            *value = ANALOG_MAX_VOLTAGE;
+            *value = ANALOG_MAX_VOLTAGE_MV;
             return HAL_SUCCESS;
         }
         case HAL_CONFIG_ANALOG_SAMPLE_RATE: {
@@ -158,7 +145,7 @@ hal_error_t port_get_prop_f(hal_backend_t* env, const char* port_name, hal_port_
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
 
-            *value = ANALOG_SAMPLE_RATE;
+            *value = ANALOG_SAMPLE_RATE_PERIOD_US;
             return HAL_SUCCESS;
         }
         case HAL_CONFIG_PWM_FREQUENCY: {
@@ -167,7 +154,7 @@ hal_error_t port_get_prop_f(hal_backend_t* env, const char* port_name, hal_port_
             }
 
             pwm_t* pwm = (pwm_t*) data;
-            *value = pwm->period_ns / 1e9f;
+            *value = pwm->period_ns * 10e-3;
             return HAL_SUCCESS;
         }
         default:
@@ -176,7 +163,7 @@ hal_error_t port_get_prop_f(hal_backend_t* env, const char* port_name, hal_port_
 }
 
 hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
-                          hal_prop_key_t key, unsigned value) {
+                          hal_prop_key_t key, hal_prop_value_t value) {
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
@@ -197,19 +184,6 @@ hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_ty
 
             return gpio_set_pinmux(pin, value);
         }
-        default:
-            return HAL_ERROR_UNSUPPORTED_OPERATION;
-    }
-}
-
-hal_error_t port_set_prop_f(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
-                          hal_prop_key_t key, float value) {
-    pin_t* pin = find_pin_def_for_name(port_name);
-    if (NULL == pin) {
-        return HAL_ERROR_BAD_ARGUMENT;
-    }
-
-    switch (key) {
         case HAL_CONFIG_PWM_FREQUENCY: {
             if (type != HAL_TYPE_PWM_OUTPUT) {
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
@@ -253,14 +227,14 @@ static hal_error_t aio_get(hal_backend_t* env, const char* port_name, void* data
     return HAL_SUCCESS;
 }
 
-static hal_error_t pwm_getduty(hal_backend_t* env, const char* port_name, void* data, float* value) {
+static hal_error_t pwm_getduty(hal_backend_t* env, const char* port_name, void* data, uint32_t* value) {
     pwm_t* pwm = (pwm_t*) data;
-    *value = pwm->duty_ns / (float) pwm->period_ns;
+    *value = pwm->duty_ns * 10e-3;
 
     return HAL_SUCCESS;
 }
 
-static hal_error_t pwm_setduty(hal_backend_t* env, const char* port_name, void* data, float value) {
+static hal_error_t pwm_setduty(hal_backend_t* env, const char* port_name, void* data, uint32_t value) {
     pwm_t* pwm = (pwm_t*) data;
     return pwm_set_duty_cycle(pwm, value);
 }
@@ -271,9 +245,7 @@ hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->open = open;
     backend->close = close;
     backend->port_get_prop = port_get_prop;
-    backend->port_get_prop_f = port_get_prop_f;
     backend->port_set_prop = port_set_prop;
-    backend->port_set_prop_f = port_set_prop_f;
     backend->dio_get = dio_get;
     backend->dio_set = dio_set;
     backend->aio_get = aio_get;

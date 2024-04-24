@@ -76,26 +76,30 @@ hal_error_t pwm_disable(pwm_t* pwm) {
     return write_pwm_file_i(pwm->pin, FILE_ENABLE, 0);
 }
 
-hal_error_t pwm_set_duty_cycle(pwm_t* pwm, float duty) {
-    unsigned duty_ns = (unsigned)(duty * pwm->period_ns);
+hal_error_t pwm_set_duty_cycle(pwm_t* pwm, uint32_t duty) {
+    uint32_t duty_ns = (uint32_t)(duty * 10e3);
+    if (duty_ns > pwm->period_ns) {
+        return HAL_ERROR_BAD_ARGUMENT;
+    }
+
     HAL_RETURN_IF_ERROR(write_pwm_file_i(pwm->pin, FILE_DUTY_CYCLE, duty_ns));
     pwm->duty_ns = duty_ns;
 
     return HAL_SUCCESS;
 }
 
-hal_error_t pwm_set_frequency(pwm_t* pwm, float frequency) {
+hal_error_t pwm_set_frequency(pwm_t* pwm, uint32_t frequency) {
     pwm_disable(pwm);
 
     hal_error_t status;
-    float duty_f = pwm->duty_ns / (float)pwm->period_ns;
+    uint32_t duty = pwm->duty_ns * 10e-3;
 
-    unsigned period_ns = (unsigned)(1e9 / frequency);
+    uint32_t period_ns = (uint32_t)(frequency * 10e3);
     status = write_pwm_file_i(pwm->pin, FILE_FREQUENCY, period_ns);
     HAL_JUMP_IF_ERROR(status, end);
     pwm->period_ns = period_ns;
 
-    status = pwm_set_duty_cycle(pwm, duty_f);
+    status = pwm_set_duty_cycle(pwm, duty);
     HAL_JUMP_IF_ERROR(status, end);
 
 end:

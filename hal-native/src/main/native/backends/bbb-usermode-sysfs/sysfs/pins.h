@@ -4,7 +4,9 @@
 #define PIN_NUMBER(module, index) ((module) * 32 + (index))
 #define ANALOG_MAX_VALUE 4095
 #define ANALOG_MAX_VOLTAGE 3.3f
+#define ANALOG_MAX_VOLTAGE_MV 3300
 #define ANALOG_SAMPLE_RATE 200000.0f // 200khz
+#define ANALOG_SAMPLE_RATE_PERIOD_US 5
 
 
 typedef struct {

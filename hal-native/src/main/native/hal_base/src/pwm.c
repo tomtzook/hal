@@ -7,7 +7,7 @@
 
 
 
-hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, hal_handle_t handle, float* value) {
+hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t* value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -40,7 +40,7 @@ end:
     return status;
 }
 
-hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, float value) {
+hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -64,7 +64,7 @@ hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, float va
         goto end;
     }
 
-    TRACE_INFO("Writing %f to PWM port %s (handle %u)", value, used_port->port_name, handle);
+    TRACE_INFO("Writing %u to PWM port %s (handle %u)", value, used_port->port_name, handle);
 
     status = env->backend.pwm_set_duty(&env->backend, used_port->port_name, used_port->native_data, value);
 
