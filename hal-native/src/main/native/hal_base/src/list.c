@@ -1,6 +1,6 @@
 #include <stddef.h>
 
-#include "list.h"
+#include "hal_list.h"
 
 
 int hal_list_add(hal_list_t* list, hal_list_node_t* node) {

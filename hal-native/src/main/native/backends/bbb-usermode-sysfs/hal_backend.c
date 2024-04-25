@@ -302,6 +302,7 @@ hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->probe = probe;
     backend->open = open;
     backend->close = close;
+    backend->port_probe_prop = port_probe_prop;
     backend->port_get_prop = port_get_prop;
     backend->port_set_prop = port_set_prop;
     backend->dio_get = dio_get;

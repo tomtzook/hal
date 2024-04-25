@@ -9,13 +9,13 @@ find_package(Threads REQUIRED)
 add_library(hal_base OBJECT
         include/hal_internal.h
         include/hal_backend.h
-        include/list.h
+        include/hal_list.h
 
         src/hal.c
         src/hal_error.c
         src/list.c
         src/dio.c
-        include/hal_error_handling.h src/aio.c src/pwm.c)
+        include/hal_error_handling.h src/aio.c src/pwm.c include/hal_table.h src/table.c)
 target_include_directories(hal_base
         PUBLIC ${HAL_INCLUDES}
         PRIVATE ${HAL_NATIVE_INCLUDES}

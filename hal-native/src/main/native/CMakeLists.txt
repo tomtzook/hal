@@ -31,3 +31,5 @@ else()
 endif()
 
 set(HAL_INCLUDES ${HAL_INCLUDES} PARENT_SCOPE)
+
+add_subdirectory(test)

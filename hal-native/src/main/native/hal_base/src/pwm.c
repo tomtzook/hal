@@ -15,7 +15,8 @@ hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
     hal_error_t status = HAL_SUCCESS;
 
     hal_used_port_t* used_port;
-    if (hal_find_port_from_handle(handle, &used_port)) {
+    size_t index;
+    if (hal_find_port_from_handle(env, handle, &used_port, &index)) {
         status = HAL_ERROR_BAD_HANDLE;
         goto end;
     }
@@ -48,7 +49,8 @@ hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
     hal_error_t status;
 
     hal_used_port_t* used_port;
-    if (hal_find_port_from_handle(handle, &used_port)) {
+    size_t index;
+    if (hal_find_port_from_handle(env, handle, &used_port, &index)) {
         status = HAL_ERROR_BAD_HANDLE;
         goto end;
     }
