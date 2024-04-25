@@ -13,6 +13,9 @@ int main() {
         goto end;
     }
 
+    hal_config_flags_t flags;
+    hal_port_property_probe_handle(env, handle, HAL_CONFIG_GPIO_RESISTOR, &flags);
+
     hal_dio_set(env, handle, HAL_DIO_HIGH);
 
     hal_close(env, handle);

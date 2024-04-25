@@ -11,7 +11,7 @@ static uint32_t probe(hal_backend_t* env, const char* port_name) {
     return HAL_TYPE_PWM_OUTPUT | HAL_TYPE_ANALOG_INPUT | HAL_TYPE_ANALOG_OUTPUT | HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT;
 }
 
-static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type_t type, void** data) {
+static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data) {
     return HAL_SUCCESS;
 }
 

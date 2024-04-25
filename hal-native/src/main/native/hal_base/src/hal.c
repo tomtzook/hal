@@ -71,8 +71,14 @@ int hal_find_port_from_handle(hal_env_t* env, hal_handle_t handle, hal_used_port
         return 1;
     }
 
-    *port_out = used_port;
-    *index_out = index;
+    if (port_out != NULL) {
+        *port_out = used_port;
+    }
+
+    if (index_out != NULL) {
+        *index_out = index;
+    }
+
     return 0;
 }
 
@@ -195,7 +201,7 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
     pthread_mutex_lock(&env->mutex);
 
     hal_error_t status;
-    void* native_data = NULL;
+    int opened = 0;
     hal_used_port_t* used_port = NULL;
 
     size_t index;
@@ -217,9 +223,16 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
 
     TRACE_INFO("Opening port %s of type %d", port_name, type);
 
-    used_port = (hal_used_port_t *) malloc(sizeof(hal_used_port_t));
+    size_t extra_allocation_size = 0;
+    if (env->backend.native_data_size_for_port != NULL) {
+        extra_allocation_size = env->backend.native_data_size_for_port(&env->backend, type);
+    }
+
+    size_t total_allocation_size = sizeof(hal_used_port_t) + extra_allocation_size;
+    used_port = (hal_used_port_t*) malloc(total_allocation_size);
     HAL_CHECK_ALLOCATED(used_port);
 
+    memset(used_port, 0, sizeof(total_allocation_size));
     strncpy(used_port->port_name, port_name, PORT_NAME_MAX);
     used_port->type = type;
 
@@ -229,26 +242,26 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
         goto error;
     }
 
-    status = env->backend.open(&env->backend, port_name, type, &native_data);
+    status = env->backend.open(&env->backend, port_name, type, used_port->native_data);
     HAL_JUMP_IF_ERROR(status, error);
+    opened = 1;
 
-    used_port->native_data = native_data;
     if (hal_descriptor_table_add(&env->ports_table, used_port, &index)) {
         status = HAL_ERROR_BAD_DATA;
         goto error;
     }
 
     *handle = ((hal_handle_t) index);
-    TRACE_INFO("New port %s assigned handle %u", port_name, *handle);
+    TRACE_INFO("New port %s assigned handle %lu", port_name, *handle);
 
     pthread_mutex_unlock(&env->mutex);
     return HAL_SUCCESS;
 error:
+    if (opened) {
+        env->backend.close(&env->backend, port_name, type, used_port->native_data);
+    }
     if (NULL != used_port) {
         free(used_port);
-    }
-    if (NULL != native_data) {
-        env->backend.close(&env->backend, port_name, type, native_data);
     }
 
     pthread_mutex_unlock(&env->mutex);

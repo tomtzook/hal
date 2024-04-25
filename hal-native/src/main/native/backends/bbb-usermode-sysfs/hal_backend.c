@@ -11,6 +11,13 @@
 #include "sysfs/pins.h"
 #include "sysfs/pwm.h"
 
+static size_t native_data_size_for_port(hal_backend_t* env, hal_port_type_t type) {
+    if (type == HAL_TYPE_PWM_OUTPUT) {
+        return sizeof(pwm_t);
+    }
+
+    return 0;
+}
 
 static uint32_t probe(hal_backend_t* env, const char* port_name) {
     pin_t* pin = find_pin_def_for_name(port_name);
@@ -21,7 +28,8 @@ static uint32_t probe(hal_backend_t* env, const char* port_name) {
     return pin->supported_types;
 }
 
-static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type_t type, void** data) {
+static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data) {
+    // TODO: BETTER TEARDOWN ON FAILURES
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
@@ -48,7 +56,7 @@ static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type
         }
 
         pwm_pin_t* pwm_pin = get_pwm_pin_for_module(module_name);
-        pwm_t* pwm = (pwm_t*) malloc(sizeof(pwm_t));
+        pwm_t* pwm = (pwm_t*) data;
         HAL_CHECK_ALLOCATED(pwm);
         pwm->pin = pwm_pin;
         pwm->duty_ns = 0;
@@ -64,10 +72,8 @@ static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type
         status = pwm_set_frequency(pwm, 1000000);
         HAL_JUMP_IF_ERROR(status, pwm_error);
 
-        *data = pwm;
         return HAL_SUCCESS;
 pwm_error:
-        free(pwm);
         return status;
     } else {
         return HAL_ERROR_UNSUPPORTED_OPERATION;
@@ -93,8 +99,6 @@ static hal_error_t close(hal_backend_t* env, const char* port_name, hal_port_typ
 
         pwm_disable(pwm);
         pwm_unexport(pwm);
-
-        free(data);
     } else {
         return HAL_ERROR_UNSUPPORTED_OPERATION;
     }
@@ -299,6 +303,7 @@ static hal_error_t pwm_setduty(hal_backend_t* env, const char* port_name, void* 
 
 hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->name = "bbb-usermode-sysfs";
+    backend->native_data_size_for_port = native_data_size_for_port;
     backend->probe = probe;
     backend->open = open;
     backend->close = close;
