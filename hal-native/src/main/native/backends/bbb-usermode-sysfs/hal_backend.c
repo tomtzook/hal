@@ -11,6 +11,37 @@
 #include "sysfs/pins.h"
 #include "sysfs/pwm.h"
 
+
+static hal_error_t port_iter_struct_size(hal_backend_t* env) {
+    return sizeof(size_t);
+}
+
+static hal_error_t port_iter_start(hal_backend_t* env, hal_port_iter_t* iter) {
+    size_t* index = (size_t*)(iter->_iter_data);
+    *index = 0;
+
+    pin_t* pin = find_pin_def_for_index(*index);
+    iter->supported_types = pin->supported_types;
+    strcpy(iter->name, pin->name);
+
+    return HAL_SUCCESS;
+}
+
+static hal_error_t port_iter_next(hal_backend_t* env, hal_port_iter_t* iter) {
+    size_t* index = (size_t*)(iter->_iter_data);
+    index++;
+
+    pin_t* pin = find_pin_def_for_index(*index);
+    if (pin == NULL) {
+        return HAL_ERROR_ITER_END;
+    }
+
+    iter->supported_types = pin->supported_types;
+    strcpy(iter->name, pin->name);
+
+    return HAL_SUCCESS;
+}
+
 static size_t native_data_size_for_port(hal_backend_t* env, hal_port_type_t type) {
     if (type == HAL_TYPE_PWM_OUTPUT) {
         return sizeof(pwm_t);
@@ -303,6 +334,9 @@ static hal_error_t pwm_setduty(hal_backend_t* env, const char* port_name, void* 
 
 hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->name = "bbb-usermode-sysfs";
+    backend->port_iter_struct_size = port_iter_struct_size;
+    backend->port_iter_start = port_iter_start;
+    backend->port_iter_next = port_iter_next;
     backend->native_data_size_for_port = native_data_size_for_port;
     backend->probe = probe;
     backend->open = open;

@@ -17,7 +17,8 @@ const char* hal_strerror(hal_error_t error) {
         case HAL_ERROR_TYPE_NOT_SUPPORTED: return "HAL type is not supported by port";
         case HAL_ERROR_ENVIRONMENT: return "HAL encountered system error";
         case HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED: return "HAL configuration key is not supported";
-        case HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE: return "HAL operation not supported for type";
+        case HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE: return "HAL operation not supported for port type";
+        case HAL_ERROR_ITER_END: "HAL iteration reached its end";
         default: return "N/A";
     }
 }

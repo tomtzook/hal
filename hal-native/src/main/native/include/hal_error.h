@@ -26,6 +26,7 @@ typedef enum _hal_error_value {
     HAL_ERROR_ENVIRONMENT,
     HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED,
     HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE,
+    HAL_ERROR_ITER_END,
 
     HAL_CUSTOM_ERROR_STATE = 0xffff
 } hal_error_value_t;
@@ -33,6 +34,7 @@ typedef enum _hal_error_value {
 const char* hal_strerror(hal_error_t error);
 
 
+#define HAL_IS_SUCCESS(error_code) (HAL_SUCCESS == (error_code))
 #define HAL_IS_ERROR(error_code) (HAL_SUCCESS != (error_code))
 
 #ifdef __cplusplus

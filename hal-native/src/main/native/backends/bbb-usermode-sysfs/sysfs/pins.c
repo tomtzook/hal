@@ -131,6 +131,14 @@ pin_t* find_pin_def_for_name(const char* port_name) {
     return NULL;
 }
 
+pin_t* find_pin_def_for_index(size_t index) {
+    if (index >= sizeof(PINS) / sizeof(pin_t)) {
+        return NULL;
+    }
+
+    return PINS + index;
+}
+
 hal_error_t set_pin_mode(pin_t* pin, const char* mode) {
     char path[PATH_MAX];
     sprintf(path, PINMUX_FILE_FORMAT, pin->name);

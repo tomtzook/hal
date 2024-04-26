@@ -49,12 +49,24 @@ static int is_port_config_supported_for_type(hal_config_keys_t key, hal_port_typ
     return 0;
 }
 
-int hal_find_port_index(hal_env_t* env, const char* port_name, hal_port_type_t type, size_t* index) {
+static int find_next_port_index(hal_env_t* env, size_t start, size_t* index) {
+    for (size_t i = start; i < env->ports_table.capacity; ++i) {
+        hal_used_port_t* used_port;
+        if (!hal_descriptor_table_get(&env->ports_table, i, (void**) &used_port)) {
+            *index = i;
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+static int hal_find_port_index(hal_env_t* env, const char* port_name, size_t* index) {
     for (size_t i = 0; i < env->ports_table.capacity; ++i) {
         hal_used_port_t* used_port;
         if (!hal_descriptor_table_get(&env->ports_table, i, (void**) &used_port)) {
             // has such port
-            if (0 == strcmp(used_port->port_name, port_name) && used_port->type == type) {
+            if (0 == strcmp(used_port->port_name, port_name)) {
                 *index = i;
                 return 0;
             }
@@ -210,7 +222,7 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
     hal_used_port_t* used_port = NULL;
 
     size_t index;
-    if (!hal_find_port_index(env, port_name, type, &index)) {
+    if (!hal_find_port_index(env, port_name, &index)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_TAKEN, error);
     }
 
@@ -233,7 +245,7 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
 
     size_t total_allocation_size = sizeof(hal_used_port_t) + extra_allocation_size;
     used_port = (hal_used_port_t*) malloc(total_allocation_size);
-    HAL_CHECK_ALLOCATED(used_port);
+    HAL_CHECK_ALLOCATED(used_port, error);
 
     memset(used_port, 0, sizeof(total_allocation_size));
     strncpy(used_port->port_name, port_name, PORT_NAME_MAX);
@@ -293,6 +305,152 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
 
 end:
     pthread_mutex_unlock(&env->mutex);
+}
+
+hal_error_t hal_get_handle(hal_env_t* env, const char* port_name, hal_handle_t* handle) {
+    HAL_CHECK_INITIALIZED(env);
+
+    pthread_mutex_lock(&env->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+
+    size_t index;
+    if (hal_find_port_index(env, port_name, &index)) {
+        *handle = HAL_EMPTY_HANDLE;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    *handle = (hal_handle_t)index;
+end:
+    pthread_mutex_unlock(&env->mutex);
+    return status;
+}
+
+hal_error_t hal_iter_port_start(hal_env_t* env, hal_port_iter_t** iter) {
+    HAL_CHECK_INITIALIZED(env);
+
+    pthread_mutex_lock(&env->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    hal_port_iter_t* _iter;
+
+    if (iter == NULL) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, end);
+    }
+
+    size_t extra_allocation_size = 0;
+    if (env->backend.port_iter_struct_size == NULL) {
+        extra_allocation_size = env->backend.port_iter_struct_size(&env->backend);
+    }
+
+    if (env->backend.port_iter_start == NULL || env->backend.port_iter_next == NULL) {
+        TRACE_ERROR("BACKEND does not support PORT ITER");
+        HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
+    }
+
+    size_t total_allocation_size = sizeof(hal_port_iter_t) + extra_allocation_size;
+    _iter = (hal_port_iter_t*) malloc(total_allocation_size);
+    HAL_CHECK_ALLOCATED(_iter, end);
+
+    memset(_iter, 0, total_allocation_size);
+
+    status = env->backend.port_iter_start(&env->backend, _iter);
+    if (HAL_IS_SUCCESS(status)) {
+        *iter = _iter;
+    }
+end:
+    pthread_mutex_unlock(&env->mutex);
+    if (_iter != NULL && HAL_IS_ERROR(status)) {
+        free(_iter);
+    }
+
+    return status;
+}
+
+hal_error_t hal_iter_port_next(hal_env_t* env, hal_port_iter_t* iter) {
+    HAL_CHECK_INITIALIZED(env);
+
+    pthread_mutex_lock(&env->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+
+    if (iter == NULL) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, end);
+    }
+
+    if (env->backend.port_iter_next == NULL) {
+        TRACE_ERROR("BACKEND does not support PORT ITER");
+        HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
+    }
+
+    status = env->backend.port_iter_next(&env->backend, iter);
+end:
+    pthread_mutex_unlock(&env->mutex);
+    return status;
+}
+
+hal_error_t hal_iter_port_end(hal_env_t* env, hal_port_iter_t* iter) {
+    HAL_CHECK_INITIALIZED(env);
+
+    pthread_mutex_lock(&env->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+
+    if (iter == NULL) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, end);
+    }
+
+    free(iter);
+end:
+    pthread_mutex_unlock(&env->mutex);
+    return status;
+}
+
+hal_error_t hal_open_port_get_info(hal_env_t* env, hal_handle_t handle, hal_open_port_info_t* info) {
+    HAL_CHECK_INITIALIZED(env);
+
+    pthread_mutex_lock(&env->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+
+    hal_used_port_t* used_port;
+    if (hal_find_port_from_handle(env, handle, &used_port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
+    }
+
+    info->handle = handle;
+    info->type = used_port->type;
+    strcpy(info->name, used_port->port_name);
+
+end:
+    pthread_mutex_unlock(&env->mutex);
+    return status;
+}
+
+hal_error_t hal_iter_open_port_next(hal_env_t* env, hal_handle_t* handle) {
+    HAL_CHECK_INITIALIZED(env);
+
+    pthread_mutex_lock(&env->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+
+    size_t start_index;
+    if (*handle == HAL_EMPTY_HANDLE) {
+        start_index = 0;
+    } else {
+        start_index = *handle + 1;
+    }
+
+    size_t index;
+    if (find_next_port_index(env, start_index, &index)) {
+        *handle = HAL_EMPTY_HANDLE;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    *handle = (hal_handle_t) index;
+end:
+    pthread_mutex_unlock(&env->mutex);
+    return status;
 }
 
 hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, hal_config_flags_t* flags) {

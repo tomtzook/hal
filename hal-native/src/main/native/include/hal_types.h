@@ -24,6 +24,19 @@ typedef enum _hal_port_type {
 typedef struct _hal_backend hal_backend_t;
 typedef struct _hal_env hal_env_t;
 
+typedef struct {
+    char name[PORT_NAME_MAX];
+    uint32_t supported_types;
+
+    uint8_t _iter_data[];
+} hal_port_iter_t;
+
+typedef struct {
+    hal_handle_t handle;
+    char name[PORT_NAME_MAX];
+    hal_port_type_t type;
+} hal_open_port_info_t;
+
 #ifdef __cplusplus
 }
 #endif

@@ -7,6 +7,18 @@
 #include <hal.h>
 
 
+static hal_error_t port_iter_struct_size(hal_backend_t* env) {
+    return HAL_ERROR_UNSUPPORTED_OPERATION;
+}
+
+static hal_error_t port_iter_start(hal_backend_t* env, hal_port_iter_t* iter) {
+    return HAL_ERROR_UNSUPPORTED_OPERATION;
+}
+
+static hal_error_t port_iter_next(hal_backend_t* env, hal_port_iter_t* iter) {
+    return HAL_ERROR_UNSUPPORTED_OPERATION;
+}
+
 static uint32_t probe(hal_backend_t* env, const char* port_name) {
     return HAL_TYPE_PWM_OUTPUT | HAL_TYPE_ANALOG_INPUT | HAL_TYPE_ANALOG_OUTPUT | HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT;
 }
@@ -128,6 +140,9 @@ static hal_error_t pwm_setduty(hal_backend_t* env, const char* port_name, void* 
 
 hal_error_t hal_backend_init(hal_backend_t* backend) {
     backend->name = "stub";
+    backend->port_iter_struct_size = port_iter_struct_size;
+    backend->port_iter_start = port_iter_start;
+    backend->port_iter_next = port_iter_next;
     backend->probe = probe;
     backend->open = open;
     backend->close = close;

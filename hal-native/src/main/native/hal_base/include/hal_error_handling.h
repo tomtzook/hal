@@ -14,7 +14,8 @@
 #define HAL_JUMP_IF_ERROR(error_code, label) \
     do { \
          if (HAL_IS_ERROR(error_code)) {   \
-            TRACE_HAL_ERROR(error_code);   \
+            TRACE_HAL_ERROR(error_code);     \
+            status = error_code;            \
             goto label;                    \
          }  \
     } while(0)
@@ -28,11 +29,12 @@
         }\
     } while(0)
 
-#define HAL_CHECK_ALLOCATED(ptr) \
+#define HAL_CHECK_ALLOCATED(ptr, end) \
     do {                            \
         if(NULL == ptr) {        \
             TRACE_ERROR("Allocation failed");   \
-            return HAL_ERROR_ALLOCATION_FAILED; \
+            status = HAL_ERROR_ALLOCATION_FAILED; \
+            goto end; \
         } \
     } while(0)
 

@@ -21,6 +21,10 @@ typedef struct {
 } hal_used_port_t;
 
 struct _hal_backend {
+    hal_error_t (*port_iter_struct_size)(hal_backend_t* env);
+    hal_error_t (*port_iter_start)(hal_backend_t* env, hal_port_iter_t* iter);
+    hal_error_t (*port_iter_next)(hal_backend_t* env, hal_port_iter_t* iter);
+
     size_t (*native_data_size_for_port)(hal_backend_t* env, hal_port_type_t type);
     uint32_t (*probe)(hal_backend_t* env, const char* port_name);
     hal_error_t (*open)(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data);
