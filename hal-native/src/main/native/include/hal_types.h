@@ -8,9 +8,9 @@
 extern "C" {
 #endif
 
-typedef uintptr_t hal_handle_t;
+typedef uint32_t hal_handle_t;
 
-#define HAL_EMPTY_HANDLE ((hal_handle_t)0)
+#define HAL_EMPTY_HANDLE ((hal_handle_t)-1)
 #define PORT_NAME_MAX 32
 
 typedef enum _hal_port_type {

@@ -15,21 +15,17 @@ hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
     hal_error_t status = HAL_SUCCESS;
 
     hal_used_port_t* used_port;
-    size_t index;
-    if (hal_find_port_from_handle(env, handle, &used_port, &index)) {
-        status = HAL_ERROR_BAD_HANDLE;
-        goto end;
+    if (hal_find_port_from_handle(env, handle, &used_port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
     if (used_port->type != HAL_TYPE_PWM_OUTPUT) {
-        status = HAL_ERROR_UNSUPPORTED_OPERATION;
-        goto end;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
     }
 
     if (env->backend.pwm_get_duty == NULL) {
         TRACE_ERROR("BACKEND does not support PWM GETDUTY");
-        status = HAL_ERROR_UNSUPPORTED_OPERATION;
-        goto end;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
     TRACE_INFO("Reading from PWM port %s (handle %u)", used_port->port_name, handle);
@@ -46,24 +42,20 @@ hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
 
     pthread_mutex_lock(&env->mutex);
 
-    hal_error_t status;
+    hal_error_t status = HAL_SUCCESS;
 
     hal_used_port_t* used_port;
-    size_t index;
-    if (hal_find_port_from_handle(env, handle, &used_port, &index)) {
-        status = HAL_ERROR_BAD_HANDLE;
-        goto end;
+    if (hal_find_port_from_handle(env, handle, &used_port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
     if (used_port->type != HAL_TYPE_PWM_OUTPUT) {
-        status = HAL_ERROR_UNSUPPORTED_OPERATION;
-        goto end;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
     }
 
     if (env->backend.pwm_set_duty == NULL) {
         TRACE_ERROR("BACKEND does not support PWM SETDUTY");
-        status = HAL_ERROR_UNSUPPORTED_OPERATION;
-        goto end;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
     TRACE_INFO("Writing %u to PWM port %s (handle %u)", value, used_port->port_name, handle);

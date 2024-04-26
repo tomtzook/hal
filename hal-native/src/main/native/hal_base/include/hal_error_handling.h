@@ -36,18 +36,20 @@
         } \
     } while(0)
 
+#define HAL_IS_INITIALIZED(ptr) __sync_fetch_and_or(&ptr->initialized, 0)
+
 #define HAL_CHECK_INITIALIZED(ptr) \
     do {                            \
-        if(NULL == ptr || !ptr->initialized) { \
-            TRACE_ERROR("Uninitialized");     \
+        if(NULL == ptr || !HAL_IS_INITIALIZED(ptr)) { \
+            TRACE_ERROR("HAL Uninitialized");     \
             return HAL_ERROR_NOT_INITIALIZED; \
         } \
     } while(0)
 
 #define HAL_CHECK_INITIALIZED_VOID(ptr) \
     do {                            \
-        if(NULL == ptr || !ptr->initialized) {  \
-            TRACE_ERROR("Uninitialized"); \
+        if(NULL == ptr || !HAL_IS_INITIALIZED(ptr)) {  \
+            TRACE_ERROR("HAL Uninitialized"); \
             return; \
         } \
     } while(0)

@@ -3,7 +3,7 @@
 #include <hal_error.h>
 
 int main() {
-    hal_env_t* env;
+    hal_env_t* env = NULL;
     if (HAL_IS_ERROR(hal_init(&env))) {
         return 1;
     }

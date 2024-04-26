@@ -11,21 +11,17 @@ hal_error_t hal_aio_get(hal_env_t* env, hal_handle_t handle, hal_aio_value_t* va
     hal_error_t status = HAL_SUCCESS;
 
     hal_used_port_t* used_port;
-    size_t index;
-    if (hal_find_port_from_handle(env, handle, &used_port, &index)) {
-        status = HAL_ERROR_BAD_HANDLE;
-        goto end;
+    if (hal_find_port_from_handle(env, handle, &used_port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
     if (used_port->type != HAL_TYPE_ANALOG_OUTPUT && used_port->type != HAL_TYPE_ANALOG_INPUT) {
-        status = HAL_ERROR_UNSUPPORTED_OPERATION;
-        goto end;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
     }
 
     if (env->backend.aio_get == NULL) {
         TRACE_ERROR("BACKEND does not support AIO GET");
-        status = HAL_ERROR_UNSUPPORTED_OPERATION;
-        goto end;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
     TRACE_INFO("Reading from AIO port %s (handle %u)", used_port->port_name, handle);
@@ -42,24 +38,20 @@ hal_error_t hal_aio_set(hal_env_t* env, hal_handle_t handle, hal_aio_value_t val
 
     pthread_mutex_lock(&env->mutex);
 
-    hal_error_t status;
+    hal_error_t status = HAL_SUCCESS;
 
     hal_used_port_t* used_port;
-    size_t index;
-    if (hal_find_port_from_handle(env, handle, &used_port, &index)) {
-        status = HAL_ERROR_BAD_HANDLE;
-        goto end;
+    if (hal_find_port_from_handle(env, handle, &used_port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
     if (used_port->type != HAL_TYPE_ANALOG_OUTPUT) {
-        status = HAL_ERROR_UNSUPPORTED_OPERATION;
-        goto end;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
     }
 
     if (env->backend.aio_set == NULL) {
         TRACE_ERROR("BACKEND does not support AIO SET");
-        status = HAL_ERROR_UNSUPPORTED_OPERATION;
-        goto end;
+        HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
     TRACE_INFO("Writing %d to AIO port %s (handle %u)", value, used_port->port_name, handle);
