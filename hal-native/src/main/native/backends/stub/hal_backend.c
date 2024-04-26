@@ -7,32 +7,32 @@
 #include <hal.h>
 
 
-static hal_error_t port_iter_struct_size(hal_backend_t* env) {
+static hal_error_t port_iter_struct_size(hal_env_t* env) {
     return HAL_ERROR_UNSUPPORTED_OPERATION;
 }
 
-static hal_error_t port_iter_start(hal_backend_t* env, hal_port_iter_t* iter) {
+static hal_error_t port_iter_start(hal_env_t* env, hal_port_iter_t* iter) {
     return HAL_ERROR_UNSUPPORTED_OPERATION;
 }
 
-static hal_error_t port_iter_next(hal_backend_t* env, hal_port_iter_t* iter) {
+static hal_error_t port_iter_next(hal_env_t* env, hal_port_iter_t* iter) {
     return HAL_ERROR_UNSUPPORTED_OPERATION;
 }
 
-static uint32_t probe(hal_backend_t* env, const char* port_name) {
+static uint32_t probe(hal_env_t* env, const char* port_name) {
     return HAL_TYPE_PWM_OUTPUT | HAL_TYPE_ANALOG_INPUT | HAL_TYPE_ANALOG_OUTPUT | HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT;
 }
 
-static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data) {
+static hal_error_t open(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data) {
     return HAL_SUCCESS;
 }
 
-static hal_error_t close(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data) {
+static hal_error_t close(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data) {
     return HAL_SUCCESS;
 }
 
-hal_error_t port_probe_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, hal_config_flags_t* flags) {
-    hal_config_flags_t _flags;
+static hal_error_t port_probe_prop(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, uint32_t* flags) {
+    uint32_t _flags;
     switch (key) {
         case HAL_CONFIG_GPIO_POLL_EDGE: {
             _flags |= HAL_CONFIG_FLAG_READABLE | HAL_CONFIG_FLAG_WRITABLE;
@@ -66,7 +66,7 @@ hal_error_t port_probe_prop(hal_backend_t* env, const char* port_name, hal_port_
     return HAL_SUCCESS;
 }
 
-hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
+static hal_error_t port_get_prop(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data,
                           hal_prop_key_t key, hal_prop_value_t* value) {
     switch (key) {
         case HAL_CONFIG_GPIO_POLL_EDGE: {
@@ -98,7 +98,7 @@ hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_ty
     }
 }
 
-hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
+static hal_error_t port_set_prop(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data,
                           hal_prop_key_t key, hal_prop_value_t value) {
     switch (key) {
         case HAL_CONFIG_GPIO_POLL_EDGE: {
@@ -115,30 +115,32 @@ hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_ty
     }
 }
 
-static hal_error_t dio_get(hal_backend_t* env, const char* port_name, void* data, hal_dio_value_t* value) {
+static hal_error_t dio_get(hal_env_t* env, const char* port_name, void* data, hal_dio_value_t* value) {
     *value = HAL_DIO_LOW;
     return HAL_SUCCESS;
 }
 
-static hal_error_t dio_set(hal_backend_t* env, const char* port_name, void* data, hal_dio_value_t value) {
+static hal_error_t dio_set(hal_env_t* env, const char* port_name, void* data, hal_dio_value_t value) {
     return HAL_SUCCESS;
 }
 
-static hal_error_t aio_get(hal_backend_t* env, const char* port_name, void* data, hal_aio_value_t* value) {
+static hal_error_t aio_get(hal_env_t* env, const char* port_name, void* data, hal_aio_value_t* value) {
     *value = 0;
     return HAL_SUCCESS;
 }
 
-static hal_error_t pwm_getduty(hal_backend_t* env, const char* port_name, void* data, uint32_t* value) {
+static hal_error_t pwm_getduty(hal_env_t* env, const char* port_name, void* data, uint32_t* value) {
     *value = 0;
     return HAL_SUCCESS;
 }
 
-static hal_error_t pwm_setduty(hal_backend_t* env, const char* port_name, void* data, uint32_t value) {
+static hal_error_t pwm_setduty(hal_env_t* env, const char* port_name, void* data, uint32_t value) {
     return HAL_SUCCESS;
 }
 
-hal_error_t hal_backend_init(hal_backend_t* backend) {
+hal_error_t hal_backend_init(hal_env_t* env) {
+    hal_backend_t* backend = hal_get_backend(env);
+
     backend->name = "stub";
     backend->port_iter_struct_size = port_iter_struct_size;
     backend->port_iter_start = port_iter_start;

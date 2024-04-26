@@ -77,7 +77,7 @@ hal_error_t pwm_disable(pwm_t* pwm) {
 }
 
 hal_error_t pwm_set_duty_cycle(pwm_t* pwm, uint32_t duty) {
-    uint32_t duty_ns = (uint32_t)(duty * 10e3);
+    uint32_t duty_ns = duty * 1000;
     if (duty_ns > pwm->period_ns) {
         return HAL_ERROR_BAD_ARGUMENT;
     }
@@ -92,7 +92,7 @@ hal_error_t pwm_set_frequency(pwm_t* pwm, uint32_t frequency) {
     pwm_disable(pwm);
 
     hal_error_t status;
-    uint32_t duty = pwm->duty_ns * 10e-3;
+    uint32_t duty = pwm->duty_ns / 1000;
 
     uint32_t period_ns = (uint32_t)(frequency * 10e3);
     status = write_pwm_file_i(pwm->pin, FILE_FREQUENCY, period_ns);

@@ -3,9 +3,10 @@
 #include <syslog.h>
 #include <string.h>
 
-#include "hal.h"
-#include "hal_internal.h"
+#include <hal.h>
+
 #include "hal_backend.h"
+#include "hal_internal.h"
 
 
 static hal_error_t check_backend(const hal_backend_t* backend) {
@@ -76,6 +77,10 @@ static int hal_find_port_index(hal_env_t* env, const char* port_name, size_t* in
     return 1;
 }
 
+hal_backend_t* hal_get_backend(hal_env_t* env) {
+    return &env->backend;
+}
+
 int hal_find_port_from_handle(hal_env_t* env, hal_handle_t handle, hal_used_port_t** port_out, size_t* index_out) {
     if(handle == HAL_EMPTY_HANDLE) {
         return 1;
@@ -108,7 +113,7 @@ hal_error_t hal_init(hal_env_t** env) {
     TRACE_INFO("Initializing HAL");
 
     hal_env_t* _env = (hal_env_t*) malloc(sizeof(hal_env_t));
-    HAL_CHECK_ALLOCATED(_env);
+    HAL_CHECK_ALLOCATED(_env, error);
 
     memset(_env, 0, sizeof(hal_env_t));
 
@@ -129,7 +134,7 @@ hal_error_t hal_init(hal_env_t** env) {
     _env->backend.name = "N/A";
 
     TRACE_INFO("Initializing BACKEND");
-    status = hal_backend_init(&_env->backend);
+    status = hal_backend_init(_env);
     HAL_JUMP_IF_ERROR(status, error);
     backend_initialized = 1;
 
@@ -144,7 +149,7 @@ hal_error_t hal_init(hal_env_t** env) {
 error:
     *env = NULL;
     if (backend_initialized) {
-        hal_backend_shutdown(&_env->backend);
+        hal_backend_shutdown(_env);
     }
     if (table_initialized) {
         hal_descriptor_table_free(&_env->ports_table);
@@ -173,7 +178,7 @@ void hal_shutdown(hal_env_t* env) {
         hal_used_port_t* used_port;
         if (!hal_descriptor_table_get(&env->ports_table, i, (void**) &used_port)) {
             // has such port
-            env->backend.close(&env->backend, used_port->port_name, used_port->type, used_port->native_data);
+            env->backend.close(env, used_port->port_name, used_port->type, used_port->native_data);
             hal_descriptor_table_remove(&env->ports_table, i);
         }
     }
@@ -182,7 +187,7 @@ void hal_shutdown(hal_env_t* env) {
 
     pthread_mutex_unlock(&env->mutex);
 
-    hal_backend_shutdown(&env->backend);
+    hal_backend_shutdown(env);
     pthread_mutex_destroy(&env->mutex);
     free(env);
     closelog();
@@ -202,7 +207,7 @@ hal_error_t hal_probe(hal_env_t* env, const char* port_name, hal_port_type_t typ
 
     TRACE_INFO("Probing port %s for type %d", port_name, type);
 
-    uint32_t flags = env->backend.probe(&env->backend, port_name);
+    uint32_t flags = env->backend.probe(env, port_name);
     if ((flags & type) != type) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_TYPE_NOT_SUPPORTED, end);
     }
@@ -231,7 +236,7 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, error);
     }
 
-    uint32_t flags = env->backend.probe(&env->backend, port_name);
+    uint32_t flags = env->backend.probe(env, port_name);
     if ((flags & type) != type) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_TYPE_NOT_SUPPORTED, error);
     }
@@ -240,7 +245,7 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
 
     size_t extra_allocation_size = 0;
     if (env->backend.native_data_size_for_port != NULL) {
-        extra_allocation_size = env->backend.native_data_size_for_port(&env->backend, type);
+        extra_allocation_size = env->backend.native_data_size_for_port(env, type);
     }
 
     size_t total_allocation_size = sizeof(hal_used_port_t) + extra_allocation_size;
@@ -256,7 +261,7 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, error);
     }
 
-    status = env->backend.open(&env->backend, port_name, type, used_port->native_data);
+    status = env->backend.open(env, port_name, type, used_port->native_data);
     HAL_JUMP_IF_ERROR(status, error);
     opened = 1;
 
@@ -271,7 +276,7 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
     return HAL_SUCCESS;
 error:
     if (opened) {
-        env->backend.close(&env->backend, port_name, type, used_port->native_data);
+        env->backend.close(env, port_name, type, used_port->native_data);
     }
     if (NULL != used_port) {
         free(used_port);
@@ -300,7 +305,7 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
 
     TRACE_INFO("closing port %s of type %d (handle %u)", used_port->port_name, used_port->type, handle);
 
-    env->backend.close(&env->backend, used_port->port_name, used_port->type, used_port->native_data);
+    env->backend.close(env, used_port->port_name, used_port->type, used_port->native_data);
     hal_descriptor_table_remove(&env->ports_table, index);
 
 end:
@@ -339,8 +344,8 @@ hal_error_t hal_iter_port_start(hal_env_t* env, hal_port_iter_t** iter) {
     }
 
     size_t extra_allocation_size = 0;
-    if (env->backend.port_iter_struct_size == NULL) {
-        extra_allocation_size = env->backend.port_iter_struct_size(&env->backend);
+    if (env->backend.port_iter_struct_size != NULL) {
+        extra_allocation_size = env->backend.port_iter_struct_size(env);
     }
 
     if (env->backend.port_iter_start == NULL || env->backend.port_iter_next == NULL) {
@@ -354,7 +359,7 @@ hal_error_t hal_iter_port_start(hal_env_t* env, hal_port_iter_t** iter) {
 
     memset(_iter, 0, total_allocation_size);
 
-    status = env->backend.port_iter_start(&env->backend, _iter);
+    status = env->backend.port_iter_start(env, _iter);
     if (HAL_IS_SUCCESS(status)) {
         *iter = _iter;
     }
@@ -383,7 +388,9 @@ hal_error_t hal_iter_port_next(hal_env_t* env, hal_port_iter_t* iter) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    status = env->backend.port_iter_next(&env->backend, iter);
+    memset(iter->name, 0, sizeof(iter->name));
+
+    status = env->backend.port_iter_next(env, iter);
 end:
     pthread_mutex_unlock(&env->mutex);
     return status;
@@ -453,7 +460,7 @@ end:
     return status;
 }
 
-hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, hal_config_flags_t* flags) {
+hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, uint32_t* flags) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -472,14 +479,14 @@ hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_p
     TRACE_INFO("Probing port configuration for %s with type %d for key %d",
                port_name, type, key);
 
-    status = env->backend.port_probe_prop(&env->backend, port_name, type, key, flags);
+    status = env->backend.port_probe_prop(env, port_name, type, key, flags);
 
 end:
     pthread_mutex_unlock(&env->mutex);
     return status;
 }
 
-hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_config_flags_t* flags) {
+hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t* flags) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -503,7 +510,7 @@ hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, 
     TRACE_INFO("Probing port configuration for port %s with type %d (handle %u) for key %d",
                used_port->port_name, used_port->type, handle, key);
 
-    status = env->backend.port_probe_prop(&env->backend, used_port->port_name, used_port->type, key, flags);
+    status = env->backend.port_probe_prop(env, used_port->port_name, used_port->type, key, flags);
 
 end:
     pthread_mutex_unlock(&env->mutex);
@@ -535,7 +542,7 @@ hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_
                used_port->port_name, used_port->type, handle,
                key);
 
-    status = env->backend.port_get_prop(&env->backend,
+    status = env->backend.port_get_prop(env,
                                         used_port->port_name,
                                         used_port->type,
                                         used_port->native_data,
@@ -570,7 +577,7 @@ hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_
                used_port->port_name, used_port->type, handle,
                key, value);
 
-    status = env->backend.port_set_prop(&env->backend,
+    status = env->backend.port_set_prop(env,
                                           used_port->port_name,
                                           used_port->type,
                                           used_port->native_data,

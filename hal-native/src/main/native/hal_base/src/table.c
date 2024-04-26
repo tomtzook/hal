@@ -77,3 +77,16 @@ int hal_descriptor_table_get(const hal_descriptor_table_t* table, size_t index, 
     *ptr = _ptr;
     return 0;
 }
+
+int hal_descriptor_table_find_next(const hal_descriptor_table_t* table, size_t start_index, size_t* index) {
+    for (int i = start_index; i < table->capacity; ++i) {
+        void* ptr;
+        if (!hal_descriptor_table_get(table, i, &ptr)) {
+            // found
+            *index = i;
+            return 0;
+        }
+    }
+
+    return 1;
+}

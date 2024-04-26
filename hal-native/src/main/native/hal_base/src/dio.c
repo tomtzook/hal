@@ -1,6 +1,6 @@
 
+#include <hal_dio.h>
 #include "hal_internal.h"
-#include "hal_dio.h"
 
 
 hal_error_t hal_dio_get(hal_env_t* env, hal_handle_t handle, hal_dio_value_t* value) {
@@ -26,7 +26,7 @@ hal_error_t hal_dio_get(hal_env_t* env, hal_handle_t handle, hal_dio_value_t* va
 
     TRACE_INFO("Reading from DIO port %s (handle %u)", used_port->port_name, handle);
 
-    status = env->backend.dio_get(&env->backend, used_port->port_name, used_port->native_data, value);
+    status = env->backend.dio_get(env, used_port->port_name, used_port->native_data, value);
 
 end:
     pthread_mutex_unlock(&env->mutex);
@@ -56,7 +56,7 @@ hal_error_t hal_dio_set(hal_env_t* env, hal_handle_t handle, hal_dio_value_t val
 
     TRACE_INFO("Writing %d to DIO port %s (handle %u)", value, used_port->port_name, handle);
 
-    status = env->backend.dio_set(&env->backend, used_port->port_name, used_port->native_data, value);
+    status = env->backend.dio_set(env, used_port->port_name, used_port->native_data, value);
 
 end:
     pthread_mutex_unlock(&env->mutex);

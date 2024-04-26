@@ -4,6 +4,7 @@
 #include <syslog.h>
 #include <hal_error.h>
 
+// TODO: MAKE TRACE CALL ABSTRACT HAL METHOD
 #define TRACE(level, format, ...) syslog(level, "(%s:%d): " format, __FILE__, __LINE__, ##__VA_ARGS__)
 #define TRACE_DEBUG(format, ...) TRACE(LOG_DEBUG, format, ##__VA_ARGS__)
 #define TRACE_INFO(format, ...) TRACE(LOG_INFO, format, ##__VA_ARGS__)

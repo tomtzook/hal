@@ -2,8 +2,9 @@
 #include <pthread.h>
 
 #include <hal_error_handling.h>
-#include <hal_internal.h>
 #include <hal_pwm.h>
+
+#include "hal_internal.h"
 
 
 
@@ -30,7 +31,7 @@ hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
 
     TRACE_INFO("Reading from PWM port %s (handle %u)", used_port->port_name, handle);
 
-    status = env->backend.pwm_get_duty(&env->backend, used_port->port_name, used_port->native_data, value);
+    status = env->backend.pwm_get_duty(env, used_port->port_name, used_port->native_data, value);
 
 end:
     pthread_mutex_unlock(&env->mutex);
@@ -60,7 +61,7 @@ hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
 
     TRACE_INFO("Writing %u to PWM port %s (handle %u)", value, used_port->port_name, handle);
 
-    status = env->backend.pwm_set_duty(&env->backend, used_port->port_name, used_port->native_data, value);
+    status = env->backend.pwm_set_duty(env, used_port->port_name, used_port->native_data, value);
 
 end:
     pthread_mutex_unlock(&env->mutex);

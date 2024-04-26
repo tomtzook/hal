@@ -7,18 +7,22 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 add_library(hal_base OBJECT
-        include/hal_internal.h
+        internal/hal_internal.h
         include/hal_backend.h
         include/hal_list.h
+        include/hal_error_handling.h
 
         src/hal.c
         src/hal_error.c
         src/list.c
         src/dio.c
-        include/hal_error_handling.h src/aio.c src/pwm.c include/hal_table.h src/table.c)
+         src/aio.c
+        src/pwm.c
+        include/hal_table.h
+        src/table.c)
 target_include_directories(hal_base
         PUBLIC ${HAL_INCLUDES}
-        PRIVATE ${HAL_NATIVE_INCLUDES}
+        PRIVATE ${HAL_NATIVE_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/internal
         )
 target_link_libraries(hal_base PRIVATE Threads::Threads)
 

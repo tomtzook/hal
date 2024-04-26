@@ -5,6 +5,7 @@ if(NOT DEFINED HAL_INTERFACE)
     message(STATUS "Interface implementation not given, adding all")
     add_subdirectory(bbb-usermode-sysfs)
     add_subdirectory(stub)
+    add_subdirectory(sim)
 else()
     message(STATUS "Interface implementation given, adding it")
 

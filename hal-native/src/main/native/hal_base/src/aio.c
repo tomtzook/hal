@@ -1,6 +1,6 @@
 
+#include <hal_aio.h>
 #include "hal_internal.h"
-#include "hal_aio.h"
 
 
 hal_error_t hal_aio_get(hal_env_t* env, hal_handle_t handle, hal_aio_value_t* value) {
@@ -26,7 +26,7 @@ hal_error_t hal_aio_get(hal_env_t* env, hal_handle_t handle, hal_aio_value_t* va
 
     TRACE_INFO("Reading from AIO port %s (handle %u)", used_port->port_name, handle);
 
-    status = env->backend.aio_get(&env->backend, used_port->port_name, used_port->native_data, value);
+    status = env->backend.aio_get(env, used_port->port_name, used_port->native_data, value);
 
 end:
     pthread_mutex_unlock(&env->mutex);
@@ -56,7 +56,7 @@ hal_error_t hal_aio_set(hal_env_t* env, hal_handle_t handle, hal_aio_value_t val
 
     TRACE_INFO("Writing %d to AIO port %s (handle %u)", value, used_port->port_name, handle);
 
-    status = env->backend.aio_set(&env->backend, used_port->port_name, used_port->native_data, value);
+    status = env->backend.aio_set(env, used_port->port_name, used_port->native_data, value);
 
 end:
     pthread_mutex_unlock(&env->mutex);

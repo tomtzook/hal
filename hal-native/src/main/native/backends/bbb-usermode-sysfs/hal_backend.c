@@ -12,11 +12,11 @@
 #include "sysfs/pwm.h"
 
 
-static hal_error_t port_iter_struct_size(hal_backend_t* env) {
+static hal_error_t port_iter_struct_size(hal_env_t* env) {
     return sizeof(size_t);
 }
 
-static hal_error_t port_iter_start(hal_backend_t* env, hal_port_iter_t* iter) {
+static hal_error_t port_iter_start(hal_env_t* env, hal_port_iter_t* iter) {
     size_t* index = (size_t*)(iter->_iter_data);
     *index = 0;
 
@@ -27,9 +27,9 @@ static hal_error_t port_iter_start(hal_backend_t* env, hal_port_iter_t* iter) {
     return HAL_SUCCESS;
 }
 
-static hal_error_t port_iter_next(hal_backend_t* env, hal_port_iter_t* iter) {
+static hal_error_t port_iter_next(hal_env_t* env, hal_port_iter_t* iter) {
     size_t* index = (size_t*)(iter->_iter_data);
-    index++;
+    (*index)++;
 
     pin_t* pin = find_pin_def_for_index(*index);
     if (pin == NULL) {
@@ -42,15 +42,17 @@ static hal_error_t port_iter_next(hal_backend_t* env, hal_port_iter_t* iter) {
     return HAL_SUCCESS;
 }
 
-static size_t native_data_size_for_port(hal_backend_t* env, hal_port_type_t type) {
+static size_t native_data_size_for_port(hal_env_t* env, hal_port_type_t type) {
     if (type == HAL_TYPE_PWM_OUTPUT) {
         return sizeof(pwm_t);
+    } else if (type == HAL_TYPE_DIGITAL_INPUT || type == HAL_TYPE_DIGITAL_OUTPUT || type == HAL_TYPE_ANALOG_INPUT) {
+        return sizeof(pin_t*);
     }
 
     return 0;
 }
 
-static uint32_t probe(hal_backend_t* env, const char* port_name) {
+static uint32_t probe(hal_env_t* env, const char* port_name) {
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
@@ -59,7 +61,7 @@ static uint32_t probe(hal_backend_t* env, const char* port_name) {
     return pin->supported_types;
 }
 
-static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data) {
+static hal_error_t open(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data) {
     // TODO: BETTER TEARDOWN ON FAILURES
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
@@ -71,14 +73,23 @@ static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type
     }
 
     if (type == HAL_TYPE_DIGITAL_INPUT) {
+        pin_t* pin_out = (pin_t*) data;
+        pin_out = pin;
+
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
         HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_INPUT));
         HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_GPIO_CONFIG_RESISTOR_PULLDOWN));
         HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_GPIO_CONFIG_EDGE_RISING));
     } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
+        pin_t* pin_out = (pin_t*) data;
+        pin_out = pin;
+
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
         HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_OUTPUT));
     } else if (type == HAL_TYPE_ANALOG_INPUT) {
+        pin_t* pin_out = (pin_t*) data;
+        pin_out = pin;
+
         // no action needed
     } else if (type == HAL_TYPE_PWM_OUTPUT) {
         const char* module_name = get_pwm_module_name_for_pin(pin);
@@ -86,14 +97,16 @@ static hal_error_t open(hal_backend_t* env, const char* port_name, hal_port_type
             return HAL_ERROR_BAD_ARGUMENT;
         }
 
+        hal_error_t status;
+
         pwm_pin_t* pwm_pin = get_pwm_pin_for_module(module_name);
         pwm_t* pwm = (pwm_t*) data;
-        HAL_CHECK_ALLOCATED(pwm);
+        HAL_CHECK_ALLOCATED(pwm, pwm_error);
+
         pwm->pin = pwm_pin;
         pwm->duty_ns = 0;
         pwm->period_ns = 0;
 
-        hal_error_t status;
         status = set_pin_mode(pin, "pwm");
         HAL_JUMP_IF_ERROR(status, pwm_error);
 
@@ -113,15 +126,13 @@ pwm_error:
     return HAL_SUCCESS;
 }
 
-static hal_error_t close(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data) {
+static hal_error_t close(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data) {
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
     }
 
-    if (type == HAL_TYPE_DIGITAL_INPUT) {
-        gpio_unexport_pin(pin);
-    } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
+    if (type == HAL_TYPE_DIGITAL_INPUT || type == HAL_TYPE_DIGITAL_OUTPUT) {
         gpio_unexport_pin(pin);
     } else if (type == HAL_TYPE_ANALOG_INPUT) {
         // no action needed
@@ -137,13 +148,13 @@ static hal_error_t close(hal_backend_t* env, const char* port_name, hal_port_typ
     return HAL_SUCCESS;
 }
 
-hal_error_t port_probe_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, hal_config_flags_t* flags) {
+static hal_error_t port_probe_prop(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, uint32_t* flags) {
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
     }
 
-    hal_config_flags_t _flags;
+    uint32_t _flags;
     switch (key) {
         case HAL_CONFIG_GPIO_POLL_EDGE: {
             if (type != HAL_TYPE_DIGITAL_INPUT) {
@@ -195,7 +206,7 @@ hal_error_t port_probe_prop(hal_backend_t* env, const char* port_name, hal_port_
     return HAL_SUCCESS;
 }
 
-hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
+static hal_error_t port_get_prop(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data,
                           hal_prop_key_t key, hal_prop_value_t* value) {
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
@@ -247,7 +258,7 @@ hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_ty
             }
 
             pwm_t* pwm = (pwm_t*) data;
-            *value = pwm->period_ns * 10e-3;
+            *value = pwm->period_ns / 1000;
             return HAL_SUCCESS;
         }
         default:
@@ -255,7 +266,7 @@ hal_error_t port_get_prop(hal_backend_t* env, const char* port_name, hal_port_ty
     }
 }
 
-hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_type_t type, void* data,
+static hal_error_t port_set_prop(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data,
                           hal_prop_key_t key, hal_prop_value_t value) {
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
@@ -290,8 +301,8 @@ hal_error_t port_set_prop(hal_backend_t* env, const char* port_name, hal_port_ty
     }
 }
 
-static hal_error_t dio_get(hal_backend_t* env, const char* port_name, void* data, hal_dio_value_t* value) {
-    pin_t* pin = find_pin_def_for_name(port_name);
+static hal_error_t dio_get(hal_env_t* env, const char* port_name, void* data, hal_dio_value_t* value) {
+    pin_t* pin = (pin_t*) data;
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
     }
@@ -300,8 +311,8 @@ static hal_error_t dio_get(hal_backend_t* env, const char* port_name, void* data
     return HAL_SUCCESS;
 }
 
-static hal_error_t dio_set(hal_backend_t* env, const char* port_name, void* data, hal_dio_value_t value) {
-    pin_t* pin = find_pin_def_for_name(port_name);
+static hal_error_t dio_set(hal_env_t* env, const char* port_name, void* data, hal_dio_value_t value) {
+    pin_t* pin = (pin_t*) data;
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
     }
@@ -310,8 +321,8 @@ static hal_error_t dio_set(hal_backend_t* env, const char* port_name, void* data
     return HAL_SUCCESS;
 }
 
-static hal_error_t aio_get(hal_backend_t* env, const char* port_name, void* data, hal_aio_value_t* value) {
-    pin_t* pin = find_pin_def_for_name(port_name);
+static hal_error_t aio_get(hal_env_t* env, const char* port_name, void* data, hal_aio_value_t* value) {
+    pin_t* pin = (pin_t*) data;
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
     }
@@ -320,19 +331,21 @@ static hal_error_t aio_get(hal_backend_t* env, const char* port_name, void* data
     return HAL_SUCCESS;
 }
 
-static hal_error_t pwm_getduty(hal_backend_t* env, const char* port_name, void* data, uint32_t* value) {
+static hal_error_t pwm_getduty(hal_env_t* env, const char* port_name, void* data, uint32_t* value) {
     pwm_t* pwm = (pwm_t*) data;
-    *value = pwm->duty_ns * 10e-3;
+    *value = pwm->duty_ns / 1000;
 
     return HAL_SUCCESS;
 }
 
-static hal_error_t pwm_setduty(hal_backend_t* env, const char* port_name, void* data, uint32_t value) {
+static hal_error_t pwm_setduty(hal_env_t* env, const char* port_name, void* data, uint32_t value) {
     pwm_t* pwm = (pwm_t*) data;
     return pwm_set_duty_cycle(pwm, value);
 }
 
-hal_error_t hal_backend_init(hal_backend_t* backend) {
+hal_error_t hal_backend_init(hal_env_t* env) {
+    hal_backend_t* backend = hal_get_backend(env);
+
     backend->name = "bbb-usermode-sysfs";
     backend->port_iter_struct_size = port_iter_struct_size;
     backend->port_iter_start = port_iter_start;
@@ -354,6 +367,6 @@ hal_error_t hal_backend_init(hal_backend_t* backend) {
     return HAL_SUCCESS;
 }
 
-void hal_backend_shutdown(hal_backend_t* backend) {
-
+void hal_backend_shutdown(hal_env_t* env) {
+    
 }
