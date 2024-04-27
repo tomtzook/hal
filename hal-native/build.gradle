@@ -1,12 +1,10 @@
 plugins {
     id "io.github.tomtzook.gradle-cmake" version "1.2.1"
-    id 'java-library'
     id 'maven-publish'
     id 'signing'
 }
 
 apply from: rootProject.file('extras.gradle')
-sourceCompatibility = JavaVersion.VERSION_1_8
 
 machines.customMachines.register("linux-gnueabihf-arm") {
     it.toolchainFile.set(rootProject.file('cmake-toolchain-files/arm-linux-gnueabihf-gcc.cmake'))
@@ -65,24 +63,6 @@ publishing {
 
 backends.forEach { backend, arches ->
     arches.forEach { archName ->
-        def jarTask = tasks.register("jarNative_${backend}_${archName}", Jar) {
-            dependsOn(tasks.cmakeBuild)
-
-            def outputDir = cmake.outputDir.dir("hal_${backend}/${archName}")
-            from (outputDir.map {
-                return it.asFileTree.matching {
-                    include '**/*hal_jni.dll'
-                    include '**/libhal_jni.so'
-                    exclude '**/CMakeFiles/**'
-                }.files
-            }) {
-                into("/")
-            }
-
-            archiveBaseName.set("${project.name}-jni")
-            archiveClassifier.set("${backend}_${archName}")
-        }
-
         def zipTask = tasks.register("zipNative_${backend}_${archName}", Zip) {
             dependsOn(tasks.cmakeBuild)
 
@@ -108,67 +88,12 @@ backends.forEach { backend, arches ->
             archiveClassifier.set("${backend}_${archName}")
         }
 
-        tasks.build.dependsOn(jarTask, zipTask)
+        tasks.build.dependsOn(zipTask)
     }
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveBaseName.set(project.name)
-    archiveClassifier.set('sources')
-
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveBaseName.set(project.name)
-    archiveClassifier.set('javadoc')
-
-    from javadoc.destinationDir
 }
 
 publishing {
     publications {
-        mavenJni(MavenPublication) {
-            artifactId = "hal-jni"
-
-            from components.java
-
-            artifact sourcesJar
-            artifact javadocJar
-
-            backends.forEach { backend, arches ->
-                arches.forEach { archName ->
-                    artifact tasks."jarNative_${backend}_${archName}"
-                }
-            }
-
-            pom {
-                name = "hal-jni"
-                description = 'Java Bindings for HAL (JNI)'
-                url = 'https://github.com/tomtzook/hal'
-
-                licenses {
-                    license {
-                        name = 'Apache License 2.0'
-                        url = ' http://www.apache.org/licenses/LICENSE-2.0'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = 'tomtzook'
-                        name = 'Tom Tzook'
-                        email = 'tomtzook@gmail.com'
-                    }
-                }
-
-                scm {
-                    connection = 'scm:git:git://github.com/tomtzook/hal.git'
-                    developerConnection = 'scm:git:ssh://github.com/tomtzook/hal.git'
-                    url = 'https://github.com/tomtzook/hal'
-                }
-            }
-        }
         mavenNative(MavenPublication) {
             artifactId = "hal-native"
 
