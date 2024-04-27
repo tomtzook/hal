@@ -1,6 +1,3 @@
 [submodule "cmake-toolchain-files"]
 	path = cmake-toolchain-files
 	url = https://github.com/tomtzook/cmake-toolchain-files.git
-[submodule "hal-native/src/main/jnikit"]
-	path = hal-native/src/main/jnikit
-	url = https://github.com/tomtzook/jnikit.git
