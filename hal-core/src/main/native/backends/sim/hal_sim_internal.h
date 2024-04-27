@@ -23,7 +23,7 @@ typedef struct {
 } halsim_port_prop_config_t;
 
 typedef struct {
-    char name[PORT_NAME_MAX];
+    char name[HAL_PORT_NAME_MAX];
     uint32_t supported_types;
     halsim_port_handle_t handle;
     halsim_port_prop_config_t props_config[HAL_CONFIG_KEY_MAX];

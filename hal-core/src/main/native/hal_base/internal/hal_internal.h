@@ -17,10 +17,9 @@ extern "C" {
 #define HAL_DESCRIPTOR_TABLE_SIZE 256
 
 typedef struct {
-    char port_name[PORT_NAME_MAX];
-    hal_port_type_t type;
+    hal_open_port_t open_port;
     uint8_t native_data[];
-} hal_used_port_t;
+} hal_open_port_node_t;
 
 struct _hal_env {
     int initialized;
@@ -29,7 +28,7 @@ struct _hal_env {
     pthread_mutex_t mutex;
 };
 
-int hal_find_port_from_handle(hal_env_t* env, hal_handle_t handle, hal_used_port_t** port_out, size_t* index_out);
+int hal_find_port_from_handle(hal_env_t* env, hal_handle_t handle, hal_open_port_node_t** port_out, size_t* index_out);
 
 #ifdef __cplusplus
 }

@@ -15,12 +15,12 @@ hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
 
     hal_error_t status = HAL_SUCCESS;
 
-    hal_used_port_t* used_port;
-    if (hal_find_port_from_handle(env, handle, &used_port, NULL)) {
+    hal_open_port_node_t* port_node;
+    if (hal_find_port_from_handle(env, handle, &port_node, NULL)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    if (used_port->type != HAL_TYPE_PWM_OUTPUT) {
+    if (port_node->open_port.type != HAL_TYPE_PWM_OUTPUT) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
     }
 
@@ -29,9 +29,9 @@ hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Reading from PWM port %s (handle %u)", used_port->port_name, handle);
+    TRACE_INFO("Reading from PWM port %s (handle %u)", port_node->open_port.name, handle);
 
-    status = env->backend.pwm_get_duty(env, used_port->port_name, used_port->native_data, value);
+    status = env->backend.pwm_get_duty(env, &port_node->open_port, value);
 
 end:
     pthread_mutex_unlock(&env->mutex);
@@ -45,12 +45,12 @@ hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
 
     hal_error_t status = HAL_SUCCESS;
 
-    hal_used_port_t* used_port;
-    if (hal_find_port_from_handle(env, handle, &used_port, NULL)) {
+    hal_open_port_node_t* port_node;
+    if (hal_find_port_from_handle(env, handle, &port_node, NULL)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    if (used_port->type != HAL_TYPE_PWM_OUTPUT) {
+    if (port_node->open_port.type != HAL_TYPE_PWM_OUTPUT) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
     }
 
@@ -59,9 +59,9 @@ hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Writing %u to PWM port %s (handle %u)", value, used_port->port_name, handle);
+    TRACE_INFO("Writing %u to PWM port %s (handle %u)", value, port_node->open_port.name, handle);
 
-    status = env->backend.pwm_set_duty(env, used_port->port_name, used_port->native_data, value);
+    status = env->backend.pwm_set_duty(env, &port_node->open_port, value);
 
 end:
     pthread_mutex_unlock(&env->mutex);

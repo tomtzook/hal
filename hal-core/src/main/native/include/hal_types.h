@@ -11,7 +11,7 @@ extern "C" {
 typedef uint32_t hal_handle_t;
 
 #define HAL_EMPTY_HANDLE ((hal_handle_t)-1)
-#define PORT_NAME_MAX 32
+#define HAL_PORT_NAME_MAX 32
 
 typedef enum {
     HAL_TYPE_DIGITAL_INPUT = (0x1 << 0),
@@ -25,7 +25,7 @@ typedef struct _hal_backend hal_backend_t;
 typedef struct _hal_env hal_env_t;
 
 typedef struct {
-    char name[PORT_NAME_MAX];
+    char name[HAL_PORT_NAME_MAX];
     uint32_t supported_types;
 
     uint8_t _iter_data[];
@@ -33,7 +33,7 @@ typedef struct {
 
 typedef struct {
     hal_handle_t handle;
-    char name[PORT_NAME_MAX];
+    char name[HAL_PORT_NAME_MAX];
     hal_port_type_t type;
 } hal_open_port_info_t;
 
