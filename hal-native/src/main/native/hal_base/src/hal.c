@@ -207,7 +207,9 @@ hal_error_t hal_probe(hal_env_t* env, const char* port_name, hal_port_type_t typ
 
     TRACE_INFO("Probing port %s for type %d", port_name, type);
 
-    uint32_t flags = env->backend.probe(env, port_name);
+    uint32_t flags;
+    status = env->backend.probe(env, port_name, &flags);
+    HAL_JUMP_IF_ERROR(status, end);
     if ((flags & type) != type) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_TYPE_NOT_SUPPORTED, end);
     }
@@ -236,7 +238,9 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, error);
     }
 
-    uint32_t flags = env->backend.probe(env, port_name);
+    uint32_t flags;
+    status = env->backend.probe(env, port_name, &flags);
+    HAL_JUMP_IF_ERROR(status, error);
     if ((flags & type) != type) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_TYPE_NOT_SUPPORTED, error);
     }
@@ -538,6 +542,16 @@ hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
+    if (env->backend.port_probe_prop != NULL) {
+        uint32_t flags;
+        status = env->backend.port_probe_prop(env, used_port->port_name, used_port->type, key, &flags);
+        HAL_JUMP_IF_ERROR(status, end);
+
+        if ((flags & HAL_CONFIG_FLAG_READABLE) == 0) {
+            HAL_JUMP_IF_ERROR(HAL_ERROR_CONFIG_KEY_NOT_READABLE, end);
+        }
+    }
+
     TRACE_INFO("Reading configuration of port %s of type %d (handle %u): key=%d",
                used_port->port_name, used_port->type, handle,
                key);
@@ -571,6 +585,16 @@ hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_
     if (env->backend.port_set_prop == NULL) {
         TRACE_ERROR("BACKEND does not support SET PROP");
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
+    }
+
+    if (env->backend.port_probe_prop != NULL) {
+        uint32_t flags;
+        status = env->backend.port_probe_prop(env, used_port->port_name, used_port->type, key, &flags);
+        HAL_JUMP_IF_ERROR(status, end);
+
+        if ((flags & HAL_CONFIG_FLAG_WRITABLE) == 0) {
+            HAL_JUMP_IF_ERROR(HAL_ERROR_CONFIG_KEY_NOT_WRITABLE, end);
+        }
     }
 
     TRACE_INFO("Configuring port %s of type %d (handle %u): key=%d value=0x%x",

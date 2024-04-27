@@ -46,16 +46,88 @@ static hal_error_t port_iter_next(hal_env_t* env, hal_port_iter_t* iter) {
     return HAL_SUCCESS;
 }
 
-static uint32_t probe(hal_env_t* env, const char* port_name) {
-    return HAL_TYPE_PWM_OUTPUT | HAL_TYPE_ANALOG_INPUT | HAL_TYPE_ANALOG_OUTPUT | HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT;
+static hal_error_t probe(hal_env_t* env, const char* port_name, uint32_t* types) {
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    *types = port->supported_types;
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
 }
 
 static hal_error_t open(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data) {
-    return HAL_SUCCESS;
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    if (port->open_callback != NULL) {
+        status = port->open_callback(env, (halsim_port_handle_t)index, type);
+        HAL_JUMP_IF_ERROR(status, end);
+    }
+
+    port->is_open = 1;
+    port->open_type = type;
+    memset(&port->value, 0, sizeof(port->value));
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
 }
 
 static hal_error_t close(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data) {
-    return HAL_SUCCESS;
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    if (port->close_callback != NULL) {
+        status = port->close_callback(env, (halsim_port_handle_t)index, type);
+        HAL_JUMP_IF_ERROR(status, end);
+    }
+
+    port->is_open = 0;
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
 }
 
 static hal_error_t port_probe_prop(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, uint32_t* flags) {
@@ -179,26 +251,177 @@ end:
 }
 
 static hal_error_t dio_get(hal_env_t* env, const char* port_name, void* data, hal_dio_value_t* value) {
-    *value = HAL_DIO_LOW;
-    return HAL_SUCCESS;
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    if (port->dio_callbacks.get_value != NULL) {
+        status = port->dio_callbacks.get_value(env, (halsim_port_handle_t)index, value);
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        *value = port->value.dio_value;
+    }
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
 }
 
 static hal_error_t dio_set(hal_env_t* env, const char* port_name, void* data, hal_dio_value_t value) {
-    return HAL_SUCCESS;
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    if (port->dio_callbacks.set_value != NULL) {
+        status = port->dio_callbacks.set_value(env, (halsim_port_handle_t)index, value);
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        port->value.dio_value = value;
+    }
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
 }
 
-static hal_error_t aio_get(hal_env_t* env, const char* port_name, void* data, hal_aio_value_t* value) {
-    *value = 0;
-    return HAL_SUCCESS;
+static hal_error_t aio_get(hal_env_t* env, const char* port_name, void* data, uint32_t* value) {
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    if (port->aio_callbacks.get_value != NULL) {
+        status = port->aio_callbacks.get_value(env, (halsim_port_handle_t)index, value);
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        *value = port->value.aio_value;
+    }
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
+static hal_error_t aio_set(hal_env_t* env, const char* port_name, void* data, uint32_t value) {
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    if (port->aio_callbacks.set_value != NULL) {
+        status = port->aio_callbacks.set_value(env, (halsim_port_handle_t)index, value);
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        port->value.aio_value = value;
+    }
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
 }
 
 static hal_error_t pwm_getduty(hal_env_t* env, const char* port_name, void* data, uint32_t* value) {
-    *value = 0;
-    return HAL_SUCCESS;
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    if (port->pwm_callbacks.get_value != NULL) {
+        status = port->pwm_callbacks.get_value(env, (halsim_port_handle_t)index, value);
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        *value = port->value.pwm_value;
+    }
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
 }
 
 static hal_error_t pwm_setduty(hal_env_t* env, const char* port_name, void* data, uint32_t value) {
-    return HAL_SUCCESS;
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    if (port->pwm_callbacks.set_value != NULL) {
+        status = port->pwm_callbacks.set_value(env, (halsim_port_handle_t)index, value);
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        port->value.pwm_value = value;
+    }
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
 }
 
 halsim_data_t* get_global_data(hal_backend_t* env) {
@@ -279,6 +502,7 @@ hal_error_t hal_backend_init(hal_env_t* env) {
     backend->dio_get = dio_get;
     backend->dio_set = dio_set;
     backend->aio_get = aio_get;
+    backend->aio_set = aio_set;
     backend->pwm_get_duty = pwm_getduty;
     backend->pwm_set_duty = pwm_setduty;
 

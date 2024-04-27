@@ -52,13 +52,14 @@ static size_t native_data_size_for_port(hal_env_t* env, hal_port_type_t type) {
     return 0;
 }
 
-static uint32_t probe(hal_env_t* env, const char* port_name) {
+static hal_error_t probe(hal_env_t* env, const char* port_name, uint32_t* types) {
     pin_t* pin = find_pin_def_for_name(port_name);
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;
     }
 
-    return pin->supported_types;
+    *types = pin->supported_types;
+    return HAL_SUCCESS;
 }
 
 static hal_error_t open(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data) {
@@ -321,7 +322,7 @@ static hal_error_t dio_set(hal_env_t* env, const char* port_name, void* data, ha
     return HAL_SUCCESS;
 }
 
-static hal_error_t aio_get(hal_env_t* env, const char* port_name, void* data, hal_aio_value_t* value) {
+static hal_error_t aio_get(hal_env_t* env, const char* port_name, void* data, uint32_t* value) {
     pin_t* pin = (pin_t*) data;
     if (NULL == pin) {
         return HAL_ERROR_BAD_ARGUMENT;

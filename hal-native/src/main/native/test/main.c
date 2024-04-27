@@ -5,6 +5,19 @@
 #include <hal_error.h>
 #include <hal_sim.h>
 
+static hal_error_t open_callback(hal_env_t* env, halsim_port_handle_t handle, hal_port_type_t type) {
+    printf("port open, handle %u\n", handle);
+    return HAL_SUCCESS;
+}
+
+static hal_error_t get_prop_callback(hal_env_t* env,
+                                     halsim_port_handle_t port_handle,
+                                     hal_prop_key_t key,
+                                     hal_prop_value_t* value) {
+    *value = 10;
+    return HAL_SUCCESS;
+}
+
 int main() {
     hal_env_t* env = NULL;
     if (HAL_IS_ERROR(hal_init(&env))) {
@@ -15,6 +28,9 @@ int main() {
     halsim_create_port(env, "PORT1", &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT);
     halsim_config_port_prop(env, sim_handle, HAL_CONFIG_GPIO_RESISTOR, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE);
+    halsim_config_port_callbacks(env, sim_handle, open_callback, NULL);
+    halsim_port_set_prop(env, sim_handle, HAL_CONFIG_GPIO_RESISTOR, HAL_GPIO_CONFIG_RESISTOR_PULLUP);
+    halsim_config_port_prop_callbacks(env, sim_handle, HAL_CONFIG_GPIO_RESISTOR, get_prop_callback, NULL);
 
     halsim_create_port(env, "PORT2", &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT);
@@ -27,6 +43,12 @@ int main() {
         printf("PORT: name=%s, types=%d\n", iter->name, iter->supported_types);
         iter_status = hal_iter_port_next(env, iter);
     } while (HAL_IS_SUCCESS(iter_status));
+
+    hal_handle_t handle;
+    hal_open(env, "PORT1", HAL_TYPE_DIGITAL_OUTPUT, &handle);
+    uint32_t value;
+    hal_get_port_property(env, handle, HAL_CONFIG_GPIO_RESISTOR, &value);
+    printf("%u\n", value);
 
     /*hal_handle_t handle;
     if (HAL_IS_ERROR(hal_open(env, "NAME", HAL_TYPE_DIGITAL_OUTPUT, &handle))) {

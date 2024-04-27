@@ -26,10 +26,33 @@ typedef struct {
     char name[PORT_NAME_MAX];
     uint32_t supported_types;
     halsim_port_prop_config_t props_config[HAL_CONFIG_KEY_MAX];
+    halsim_open_callback_t open_callback;
+    halsim_close_callback_t close_callback;
 
     int is_open;
     hal_port_type_t open_type;
     hal_prop_value_t props_values[HAL_CONFIG_KEY_MAX];
+
+    union {
+        hal_dio_value_t dio_value;
+        uint32_t aio_value;
+        uint32_t pwm_value;
+    } value;
+
+    struct {
+        halsim_dio_get_value_callback_t get_value;
+        halsim_dio_set_value_callback_t set_value;
+    } dio_callbacks;
+
+    struct {
+        halsim_aio_get_value_callback_t get_value;
+        halsim_aio_set_value_callback_t set_value;
+    } aio_callbacks;
+
+    struct {
+        halsim_pwm_get_value_callback_t get_value;
+        halsim_pwm_set_value_callback_t set_value;
+    } pwm_callbacks;
 } halsim_port_t;
 
 typedef struct {
