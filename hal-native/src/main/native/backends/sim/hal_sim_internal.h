@@ -25,6 +25,7 @@ typedef struct {
 typedef struct {
     char name[PORT_NAME_MAX];
     uint32_t supported_types;
+    halsim_port_handle_t handle;
     halsim_port_prop_config_t props_config[HAL_CONFIG_KEY_MAX];
     halsim_open_callback_t open_callback;
     halsim_close_callback_t close_callback;

@@ -46,7 +46,7 @@ static size_t native_data_size_for_port(hal_env_t* env, hal_port_type_t type) {
     if (type == HAL_TYPE_PWM_OUTPUT) {
         return sizeof(pwm_t);
     } else if (type == HAL_TYPE_DIGITAL_INPUT || type == HAL_TYPE_DIGITAL_OUTPUT || type == HAL_TYPE_ANALOG_INPUT) {
-        return sizeof(pin_t*);
+        return sizeof(pin_t**);
     }
 
     return 0;
@@ -74,22 +74,22 @@ static hal_error_t open(hal_env_t* env, const char* port_name, hal_port_type_t t
     }
 
     if (type == HAL_TYPE_DIGITAL_INPUT) {
-        pin_t* pin_out = (pin_t*) data;
-        pin_out = pin;
+        pin_t** pin_out = (pin_t**) data;
+        *pin_out = pin;
 
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
         HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_INPUT));
         HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_GPIO_CONFIG_RESISTOR_PULLDOWN));
         HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_GPIO_CONFIG_EDGE_RISING));
     } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
-        pin_t* pin_out = (pin_t*) data;
-        pin_out = pin;
+        pin_t** pin_out = (pin_t**) data;
+        *pin_out = pin;
 
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
         HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_OUTPUT));
     } else if (type == HAL_TYPE_ANALOG_INPUT) {
-        pin_t* pin_out = (pin_t*) data;
-        pin_out = pin;
+        pin_t** pin_out = (pin_t**) data;
+        *pin_out = pin;
 
         // no action needed
     } else if (type == HAL_TYPE_PWM_OUTPUT) {

@@ -11,7 +11,7 @@ extern "C" {
 
 typedef uint32_t hal_error_t;
 
-typedef enum _hal_error_value {
+typedef enum {
     HAL_SUCCESS = 0,
     HAL_ERROR_NOT_INITIALIZED,
     HAL_ERROR_ALLOCATION_FAILED,

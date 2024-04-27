@@ -30,7 +30,9 @@ hal_error_t halsim_create_port(hal_env_t* env, const char* name, halsim_port_han
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, end);
     }
 
-    *port_handle = (halsim_port_handle_t) index;
+    halsim_port_handle_t handle = (halsim_port_handle_t) index;
+    port->handle = handle;
+    *port_handle = handle;
     TRACE_INFO("Created new port %s with handle %u", port->name, *port_handle);
 end:
     if (port != NULL && HAL_IS_ERROR(status)) {
@@ -56,7 +58,6 @@ hal_error_t halsim_get_handle(hal_env_t* env, const char* name, halsim_port_hand
 end:
     pthread_mutex_unlock(&sim_data->mutex);
     return status;
-}
 }
 
 hal_error_t halsim_config_port_types(hal_env_t* env, halsim_port_handle_t port_handle, uint32_t types) {

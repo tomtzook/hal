@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-typedef enum _hal_dio_value {
+typedef enum {
     HAL_DIO_LOW,
     HAL_DIO_HIGH
 } hal_dio_value_t;
