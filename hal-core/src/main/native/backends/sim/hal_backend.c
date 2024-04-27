@@ -165,7 +165,7 @@ end:
 }
 
 static hal_error_t port_get_prop(hal_env_t* env, const hal_open_port_t* port,
-                          hal_prop_key_t key, hal_prop_value_t* value) {
+                          hal_prop_key_t key, uint32_t* value) {
     hal_backend_t* backend = hal_get_backend(env);
     halsim_data_t* sim_data = get_global_data(backend);
 
@@ -186,13 +186,13 @@ static hal_error_t port_get_prop(hal_env_t* env, const hal_open_port_t* port,
     }
 
     if (config->get_callback != NULL) {
-        hal_prop_value_t _value;
+        uint32_t _value;
         status = config->get_callback(env, sim_port->handle, key, &_value);
         if (HAL_IS_SUCCESS(status)) {
             *value = _value;
         }
     } else {
-        hal_prop_value_t* prop_value = sim_port->props_values + key;
+        uint32_t* prop_value = sim_port->props_values + key;
         *value = *prop_value;
     }
 
@@ -202,7 +202,7 @@ end:
 }
 
 static hal_error_t port_set_prop(hal_env_t* env, const hal_open_port_t* port,
-                          hal_prop_key_t key, hal_prop_value_t value) {
+                          hal_prop_key_t key, uint32_t value) {
     hal_backend_t* backend = hal_get_backend(env);
     halsim_data_t* sim_data = get_global_data(backend);
 
@@ -225,7 +225,7 @@ static hal_error_t port_set_prop(hal_env_t* env, const hal_open_port_t* port,
     if (config->set_callback != NULL) {
         status = config->set_callback(env, sim_port->handle, key, value);
     } else {
-        hal_prop_value_t* prop_value = sim_port->props_values + key;
+        uint32_t* prop_value = sim_port->props_values + key;
         *prop_value = value;
     }
 

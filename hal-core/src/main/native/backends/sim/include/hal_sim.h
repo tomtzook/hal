@@ -21,12 +21,12 @@ typedef hal_error_t(*halsim_get_prop_callback_t)(
         hal_env_t* env,
         halsim_port_handle_t port_handle,
         hal_prop_key_t key,
-        hal_prop_value_t* value);
+        uint32_t* value);
 typedef hal_error_t(*halsim_set_prop_callback_t)(
         hal_env_t* env,
         halsim_port_handle_t port_handle,
         hal_prop_key_t key,
-        hal_prop_value_t value);
+        uint32_t value);
 typedef hal_error_t(*halsim_dio_get_value_callback_t)(
         hal_env_t* env,
         halsim_port_handle_t port_handle,
@@ -64,8 +64,8 @@ hal_error_t halsim_config_port_prop_callbacks(hal_env_t* env, halsim_port_handle
                                               halsim_get_prop_callback_t get_callback,
                                               halsim_set_prop_callback_t set_callback);
 
-hal_error_t halsim_port_get_prop(hal_env_t* env, halsim_port_handle_t port_handle, hal_prop_key_t key, hal_prop_value_t* value);
-hal_error_t halsim_port_set_prop(hal_env_t* env, halsim_port_handle_t port_handle, hal_prop_key_t key, hal_prop_value_t value);
+hal_error_t halsim_port_get_prop(hal_env_t* env, halsim_port_handle_t port_handle, hal_prop_key_t key, uint32_t* value);
+hal_error_t halsim_port_set_prop(hal_env_t* env, halsim_port_handle_t port_handle, hal_prop_key_t key, uint32_t value);
 
 hal_error_t halsim_dio_config_callbacks(hal_env_t* env, halsim_port_handle_t port_handle,
                                         halsim_dio_get_value_callback_t get_value_callback,

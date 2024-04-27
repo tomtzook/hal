@@ -26,10 +26,10 @@ struct _hal_backend {
     hal_error_t (*port_probe_prop)(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, uint32_t* flags);
     hal_error_t (*port_get_prop)(hal_env_t* env, const hal_open_port_t* port,
                                  hal_prop_key_t key,
-                                 hal_prop_value_t* value);
+                                 uint32_t* value);
     hal_error_t (*port_set_prop)(hal_env_t* env, const hal_open_port_t* port,
                                  hal_prop_key_t key,
-                                 hal_prop_value_t value);
+                                 uint32_t value);
 
     hal_error_t (*dio_get)(hal_env_t* env, const hal_open_port_t* port, hal_dio_value_t* value);
     hal_error_t (*dio_set)(hal_env_t* env, const hal_open_port_t* port, hal_dio_value_t value);

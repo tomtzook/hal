@@ -23,7 +23,7 @@ typedef struct {
 
 struct _hal_env {
     int initialized;
-    hal_descriptor_table_t ports_table;
+    hal_descriptor_table_t handle_table;
     hal_backend_t backend;
     pthread_mutex_t mutex;
 };

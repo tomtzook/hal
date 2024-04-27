@@ -32,7 +32,7 @@ typedef struct {
 
     int is_open;
     hal_port_type_t open_type;
-    hal_prop_value_t props_values[HAL_CONFIG_KEY_MAX];
+    uint32_t props_values[HAL_CONFIG_KEY_MAX];
 
     union {
         hal_dio_value_t dio_value;

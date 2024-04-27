@@ -25,8 +25,8 @@ static hal_error_t check_backend(const hal_backend_t* backend) {
 
 static int is_port_config_supported_for_type(hal_config_keys_t key, hal_port_type_t type) {
     switch (key) {
-        case HAL_CONFIG_GPIO_POLL_EDGE:
-        case HAL_CONFIG_GPIO_RESISTOR:
+        case HAL_CONFIG_DIO_POLL_EDGE:
+        case HAL_CONFIG_DIO_RESISTOR:
             if ((type & (HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_DIGITAL_INPUT)) == 0) {
                 return 1;
             }
@@ -51,9 +51,9 @@ static int is_port_config_supported_for_type(hal_config_keys_t key, hal_port_typ
 }
 
 static int find_next_port_index(hal_env_t* env, size_t start, size_t* index) {
-    for (size_t i = start; i < env->ports_table.capacity; ++i) {
+    for (size_t i = start; i < env->handle_table.capacity; ++i) {
         hal_open_port_node_t* used_port;
-        if (!hal_descriptor_table_get(&env->ports_table, i, (void**) &used_port)) {
+        if (!hal_descriptor_table_get(&env->handle_table, i, (void**) &used_port)) {
             *index = i;
             return 0;
         }
@@ -63,9 +63,9 @@ static int find_next_port_index(hal_env_t* env, size_t start, size_t* index) {
 }
 
 static int hal_find_port_index(hal_env_t* env, const char* port_name, size_t* index) {
-    for (size_t i = 0; i < env->ports_table.capacity; ++i) {
+    for (size_t i = 0; i < env->handle_table.capacity; ++i) {
         hal_open_port_node_t* used_port;
-        if (!hal_descriptor_table_get(&env->ports_table, i, (void**) &used_port)) {
+        if (!hal_descriptor_table_get(&env->handle_table, i, (void**) &used_port)) {
             // has such port
             if (0 == strcmp(used_port->open_port.name, port_name)) {
                 *index = i;
@@ -88,7 +88,7 @@ int hal_find_port_from_handle(hal_env_t* env, hal_handle_t handle, hal_open_port
 
     size_t index = (size_t) handle;
     hal_open_port_node_t* used_port;
-    if (hal_descriptor_table_get(&env->ports_table, index, (void**)&used_port)) {
+    if (hal_descriptor_table_get(&env->handle_table, index, (void**)&used_port)) {
         return 1;
     }
 
@@ -124,7 +124,7 @@ hal_error_t hal_init(hal_env_t** env) {
 
     mutex_initialized = 1;
 
-    if (hal_descriptor_table_init(&_env->ports_table, HAL_DESCRIPTOR_TABLE_SIZE)) {
+    if (hal_descriptor_table_init(&_env->handle_table, HAL_DESCRIPTOR_TABLE_SIZE)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, error);
     }
 
@@ -152,7 +152,7 @@ error:
         hal_backend_shutdown(_env);
     }
     if (table_initialized) {
-        hal_descriptor_table_free(&_env->ports_table);
+        hal_descriptor_table_free(&_env->handle_table);
     }
     if (mutex_initialized) {
         pthread_mutex_destroy(&_env->mutex);
@@ -174,12 +174,12 @@ void hal_shutdown(hal_env_t* env) {
 
     pthread_mutex_lock(&env->mutex);
 
-    for (size_t i = 0; i < env->ports_table.capacity; ++i) {
+    for (size_t i = 0; i < env->handle_table.capacity; ++i) {
         hal_open_port_node_t* port_node;
-        if (!hal_descriptor_table_get(&env->ports_table, i, (void**) &port_node)) {
+        if (!hal_descriptor_table_get(&env->handle_table, i, (void**) &port_node)) {
             // has such port
             env->backend.close(env, &port_node->open_port);
-            hal_descriptor_table_remove(&env->ports_table, i);
+            hal_descriptor_table_remove(&env->handle_table, i);
         }
     }
 
@@ -270,7 +270,7 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
     HAL_JUMP_IF_ERROR(status, error);
     opened = 1;
 
-    if (hal_descriptor_table_add(&env->ports_table, port_node, &index)) {
+    if (hal_descriptor_table_add(&env->handle_table, port_node, &index)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, error);
     }
 
@@ -311,7 +311,7 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
     TRACE_INFO("closing port %s of type %d (handle %u)", port_node->open_port.name, port_node->open_port.type, handle);
 
     env->backend.close(env, &port_node->open_port);
-    hal_descriptor_table_remove(&env->ports_table, index);
+    hal_descriptor_table_remove(&env->handle_table, index);
 
 end:
     pthread_mutex_unlock(&env->mutex);
@@ -522,7 +522,7 @@ end:
     return status;
 }
 
-hal_error_t hal_get_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_prop_value_t* value) {
+hal_error_t hal_port_get_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t* value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -565,7 +565,7 @@ end:
     return status;
 }
 
-hal_error_t hal_set_port_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, hal_prop_value_t value) {
+hal_error_t hal_port_set_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);

@@ -21,6 +21,7 @@ const char* hal_strerror(hal_error_t error) {
         case HAL_ERROR_ITER_END: return "HAL iteration reached its end";
         case HAL_ERROR_CONFIG_KEY_NOT_READABLE: return "HAL config key is not readable";
         case HAL_ERROR_CONFIG_KEY_NOT_WRITABLE: return "HAL config key is not writable";
+        case HAL_ERROR_OPERATION_BAD_STATE: return "HAL operation not possible for current state";
         default: return "N/A";
     }
 }

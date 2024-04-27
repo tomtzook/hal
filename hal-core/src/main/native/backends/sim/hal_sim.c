@@ -71,6 +71,10 @@ hal_error_t halsim_config_port_types(hal_env_t* env, halsim_port_handle_t port_h
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
+    if (port->is_open) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_BAD_STATE, end);
+    }
+
     TRACE_INFO("Configuring types for port %s (handle %u)", port->name, port_handle);
 
     port->supported_types = types;
@@ -168,7 +172,7 @@ end:
     return status;
 }
 
-hal_error_t halsim_port_get_prop(hal_env_t* env, halsim_port_handle_t port_handle, hal_prop_key_t key, hal_prop_value_t* value) {
+hal_error_t halsim_port_get_prop(hal_env_t* env, halsim_port_handle_t port_handle, hal_prop_key_t key, uint32_t* value) {
     halsim_data_t* sim_data = get_global_data_from_env(env);
 
     pthread_mutex_lock(&sim_data->mutex);
@@ -191,7 +195,7 @@ hal_error_t halsim_port_get_prop(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
     }
 
-    hal_prop_value_t* prop_value = port->props_values + key;
+    uint32_t* prop_value = port->props_values + key;
     *value = *prop_value;
 
 end:
@@ -199,7 +203,7 @@ end:
     return status;
 }
 
-hal_error_t halsim_port_set_prop(hal_env_t* env, halsim_port_handle_t port_handle, hal_prop_key_t key, hal_prop_value_t value) {
+hal_error_t halsim_port_set_prop(hal_env_t* env, halsim_port_handle_t port_handle, hal_prop_key_t key, uint32_t value) {
     halsim_data_t* sim_data = get_global_data_from_env(env);
 
     pthread_mutex_lock(&sim_data->mutex);
@@ -222,7 +226,7 @@ hal_error_t halsim_port_set_prop(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
     }
 
-    hal_prop_value_t* prop_value = port->props_values + key;
+    uint32_t* prop_value = port->props_values + key;
     *prop_value = value;
 
 end:

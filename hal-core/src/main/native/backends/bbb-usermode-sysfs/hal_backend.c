@@ -84,8 +84,8 @@ static hal_error_t open(hal_env_t* env, const char* port_name, hal_port_type_t t
 
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
         HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_INPUT));
-        HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_GPIO_CONFIG_RESISTOR_PULLDOWN));
-        HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_GPIO_CONFIG_EDGE_RISING));
+        HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_DIO_CONFIG_RESISTOR_PULLDOWN));
+        HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_DIO_CONFIG_EDGE_RISING));
     } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
         pin_t** pin_out = (pin_t**) data;
         *pin_out = pin;
@@ -162,14 +162,14 @@ static hal_error_t port_probe_prop(hal_env_t* env, const char* port_name, hal_po
 
     uint32_t _flags;
     switch (key) {
-        case HAL_CONFIG_GPIO_POLL_EDGE: {
+        case HAL_CONFIG_DIO_POLL_EDGE: {
             if (type != HAL_TYPE_DIGITAL_INPUT) {
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
             _flags |= HAL_CONFIG_FLAG_READABLE | HAL_CONFIG_FLAG_WRITABLE;
             break;
         }
-        case HAL_CONFIG_GPIO_RESISTOR: {
+        case HAL_CONFIG_DIO_RESISTOR: {
             if (type != HAL_TYPE_DIGITAL_INPUT) {
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
@@ -213,9 +213,9 @@ static hal_error_t port_probe_prop(hal_env_t* env, const char* port_name, hal_po
 }
 
 static hal_error_t port_get_prop(hal_env_t* env, const hal_open_port_t* port,
-                          hal_prop_key_t key, hal_prop_value_t* value) {
+                          hal_prop_key_t key, uint32_t* value) {
     switch (key) {
-        case HAL_CONFIG_GPIO_POLL_EDGE: {
+        case HAL_CONFIG_DIO_POLL_EDGE: {
             if (port->type != HAL_TYPE_DIGITAL_INPUT) {
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
@@ -227,7 +227,7 @@ static hal_error_t port_get_prop(hal_env_t* env, const hal_open_port_t* port,
 
             return gpio_get_edge(pin, value);
         }
-        case HAL_CONFIG_GPIO_RESISTOR: {
+        case HAL_CONFIG_DIO_RESISTOR: {
             if (port->type != HAL_TYPE_DIGITAL_INPUT) {
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
@@ -278,9 +278,9 @@ static hal_error_t port_get_prop(hal_env_t* env, const hal_open_port_t* port,
 }
 
 static hal_error_t port_set_prop(hal_env_t* env, const hal_open_port_t* port,
-                          hal_prop_key_t key, hal_prop_value_t value) {
+                          hal_prop_key_t key, uint32_t value) {
     switch (key) {
-        case HAL_CONFIG_GPIO_POLL_EDGE: {
+        case HAL_CONFIG_DIO_POLL_EDGE: {
             if (port->type != HAL_TYPE_DIGITAL_INPUT) {
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
@@ -292,7 +292,7 @@ static hal_error_t port_set_prop(hal_env_t* env, const hal_open_port_t* port,
 
             return gpio_set_edge(pin, value);
         }
-        case HAL_CONFIG_GPIO_RESISTOR: {
+        case HAL_CONFIG_DIO_RESISTOR: {
             if (port->type != HAL_TYPE_DIGITAL_INPUT) {
                 return HAL_ERROR_UNSUPPORTED_OPERATION;
             }
