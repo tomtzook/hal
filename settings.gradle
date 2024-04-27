@@ -1,1 +1,1 @@
-include ':hal-native'
+include ':hal-core'
