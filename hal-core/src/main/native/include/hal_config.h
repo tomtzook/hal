@@ -27,21 +27,20 @@ typedef enum {
 
 // only for DIO PORTS, for HAL_CONFIG_DIO_POLL_EDGE
 typedef enum {
-    HAL_DIO_CONFIG_EDGE_NONE,
-    HAL_DIO_CONFIG_EDGE_RISING,
-    HAL_DIO_CONFIG_EDGE_FALLING,
-    HAL_DIO_CONFIG_EDGE_BOTH
+    HAL_CONFIG_DIO_EDGE_NONE,
+    HAL_CONFIG_DIO_EDGE_RISING,
+    HAL_CONFIG_DIO_EDGE_FALLING,
+    HAL_CONFIG_DIO_EDGE_BOTH
 } hal_dio_config_poll_edge_t;
 
 // only for DIO ports, for HAL_CONFIG_DIO_RESISTOR
 typedef enum {
-    HAL_DIO_CONFIG_RESISTOR_NONE,
-    HAL_DIO_CONFIG_RESISTOR_PULLUP,
-    HAL_DIO_CONFIG_RESISTOR_PULLDOWN
+    HAL_CONFIG_DIO_RESISTOR_NONE,
+    HAL_CONFIG_DIO_RESISTOR_PULLUP,
+    HAL_CONFIG_DIO_RESISTOR_PULLDOWN
 } hal_dio_config_resistor_t;
 
-hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, uint32_t* flags);
-hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t* flags);
+hal_error_t hal_port_property_probe(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t* flags);
 
 hal_error_t hal_port_get_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t* value);
 hal_error_t hal_port_set_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t value);

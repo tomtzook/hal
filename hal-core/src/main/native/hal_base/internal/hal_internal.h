@@ -17,6 +17,7 @@ extern "C" {
 #define HAL_DESCRIPTOR_TABLE_SIZE 256
 
 typedef struct {
+    hal_handle_t handle;
     hal_open_port_t open_port;
     uint8_t native_data[];
 } hal_open_port_node_t;

@@ -29,7 +29,7 @@ int main() {
     halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT);
     halsim_config_port_prop(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE);
     halsim_config_port_callbacks(env, sim_handle, open_callback, NULL);
-    halsim_port_set_prop(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, HAL_DIO_CONFIG_RESISTOR_PULLUP);
+    halsim_port_set_prop(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, HAL_CONFIG_DIO_RESISTOR_PULLUP);
     halsim_config_port_prop_callbacks(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, get_prop_callback, NULL);
 
     halsim_create_port(env, "PORT2", &sim_handle);
@@ -56,7 +56,7 @@ int main() {
     }
 
     hal_config_flags_t flags;
-    hal_port_property_probe_handle(env, handle, HAL_CONFIG_DIO_RESISTOR, &flags);
+    hal_port_property_probe(env, handle, HAL_CONFIG_DIO_RESISTOR, &flags);
 
     hal_dio_set(env, handle, HAL_DIO_HIGH);*/
 

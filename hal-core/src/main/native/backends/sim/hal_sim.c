@@ -24,7 +24,7 @@ hal_error_t halsim_create_port(hal_env_t* env, const char* name, halsim_port_han
     HAL_CHECK_ALLOCATED(port, end);
 
     memset(port, 0, sizeof(halsim_port_t));
-    strcpy(port->name, name);
+    strncpy(port->name, name, HAL_PORT_NAME_MAX);
 
     if (hal_descriptor_table_add(&sim_data->ports, port, &index)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, end);

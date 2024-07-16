@@ -27,7 +27,7 @@ static hal_error_t port_iter_start(hal_env_t* env, hal_port_iter_t* iter) {
 
     pin_t* pin = find_pin_def_for_index(*index);
     iter->supported_types = pin->supported_types;
-    strcpy(iter->name, pin->name);
+    strncpy(iter->name, pin->name, HAL_PORT_NAME_MAX);
 
     return HAL_SUCCESS;
 }
@@ -42,7 +42,7 @@ static hal_error_t port_iter_next(hal_env_t* env, hal_port_iter_t* iter) {
     }
 
     iter->supported_types = pin->supported_types;
-    strcpy(iter->name, pin->name);
+    strncpy(iter->name, pin->name, HAL_PORT_NAME_MAX);
 
     return HAL_SUCCESS;
 }
@@ -84,8 +84,8 @@ static hal_error_t open(hal_env_t* env, const char* port_name, hal_port_type_t t
 
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
         HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_INPUT));
-        HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_DIO_CONFIG_RESISTOR_PULLDOWN));
-        HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_DIO_CONFIG_EDGE_RISING));
+        HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_CONFIG_DIO_RESISTOR_PULLDOWN));
+        HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_CONFIG_DIO_EDGE_RISING));
     } else if (type == HAL_TYPE_DIGITAL_OUTPUT){
         pin_t** pin_out = (pin_t**) data;
         *pin_out = pin;
@@ -154,56 +154,19 @@ static hal_error_t close(hal_env_t* env, const hal_open_port_t* port) {
     return HAL_SUCCESS;
 }
 
-static hal_error_t port_probe_prop(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, uint32_t* flags) {
-    pin_t* pin = find_pin_def_for_name(port_name);
-    if (NULL == pin) {
-        return HAL_ERROR_BAD_ARGUMENT;
-    }
-
+static hal_error_t port_probe_prop(hal_env_t* env, hal_open_port_t* port, hal_prop_key_t key, uint32_t* flags) {
     uint32_t _flags;
     switch (key) {
-        case HAL_CONFIG_DIO_POLL_EDGE: {
-            if (type != HAL_TYPE_DIGITAL_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
+        case HAL_CONFIG_DIO_POLL_EDGE:
+        case HAL_CONFIG_DIO_RESISTOR:
+        case HAL_CONFIG_PWM_FREQUENCY:
             _flags |= HAL_CONFIG_FLAG_READABLE | HAL_CONFIG_FLAG_WRITABLE;
             break;
-        }
-        case HAL_CONFIG_DIO_RESISTOR: {
-            if (type != HAL_TYPE_DIGITAL_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-            _flags |= HAL_CONFIG_FLAG_READABLE | HAL_CONFIG_FLAG_WRITABLE;
-            break;
-        }
-        case HAL_CONFIG_ANALOG_MAX_VALUE: {
-            if (type != HAL_TYPE_ANALOG_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
+        case HAL_CONFIG_ANALOG_MAX_VALUE:
+        case HAL_CONFIG_ANALOG_MAX_VOLTAGE:
+        case HAL_CONFIG_ANALOG_SAMPLE_RATE:
             _flags |= HAL_CONFIG_FLAG_READABLE;
             break;
-        }
-        case HAL_CONFIG_ANALOG_MAX_VOLTAGE: {
-            if (type != HAL_TYPE_ANALOG_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-            _flags |= HAL_CONFIG_FLAG_READABLE;
-            break;
-        }
-        case HAL_CONFIG_ANALOG_SAMPLE_RATE: {
-            if (type != HAL_TYPE_ANALOG_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-            _flags |= HAL_CONFIG_FLAG_READABLE;
-            break;
-        }
-        case HAL_CONFIG_PWM_FREQUENCY: {
-            if (type != HAL_TYPE_PWM_OUTPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-            _flags |= HAL_CONFIG_FLAG_READABLE | HAL_CONFIG_FLAG_WRITABLE;
-            break;
-        }
         default:
             return HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED;
     }
@@ -216,10 +179,6 @@ static hal_error_t port_get_prop(hal_env_t* env, const hal_open_port_t* port,
                           hal_prop_key_t key, uint32_t* value) {
     switch (key) {
         case HAL_CONFIG_DIO_POLL_EDGE: {
-            if (port->type != HAL_TYPE_DIGITAL_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-
             pin_t* pin = get_pin_from_data(port->data);
             if (NULL == pin) {
                 return HAL_ERROR_BAD_ARGUMENT;
@@ -228,10 +187,6 @@ static hal_error_t port_get_prop(hal_env_t* env, const hal_open_port_t* port,
             return gpio_get_edge(pin, value);
         }
         case HAL_CONFIG_DIO_RESISTOR: {
-            if (port->type != HAL_TYPE_DIGITAL_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-
             pin_t* pin = get_pin_from_data(port->data);
             if (NULL == pin) {
                 return HAL_ERROR_BAD_ARGUMENT;
@@ -240,34 +195,18 @@ static hal_error_t port_get_prop(hal_env_t* env, const hal_open_port_t* port,
             return gpio_get_pinmux(pin, value);
         }
         case HAL_CONFIG_ANALOG_MAX_VALUE: {
-            if (port->type != HAL_TYPE_ANALOG_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-
             *value = ANALOG_MAX_VALUE;
             return HAL_SUCCESS;
         }
         case HAL_CONFIG_ANALOG_MAX_VOLTAGE: {
-            if (port->type != HAL_TYPE_ANALOG_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-
             *value = ANALOG_MAX_VOLTAGE_MV;
             return HAL_SUCCESS;
         }
         case HAL_CONFIG_ANALOG_SAMPLE_RATE: {
-            if (port->type != HAL_TYPE_ANALOG_INPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-
             *value = ANALOG_SAMPLE_RATE_PERIOD_US;
             return HAL_SUCCESS;
         }
         case HAL_CONFIG_PWM_FREQUENCY: {
-            if (port->type != HAL_TYPE_PWM_OUTPUT) {
-                return HAL_ERROR_UNSUPPORTED_OPERATION;
-            }
-
             pwm_t* pwm = (pwm_t*) port->data;
             *value = pwm->period_ns / 1000;
             return HAL_SUCCESS;

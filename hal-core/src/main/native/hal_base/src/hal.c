@@ -77,6 +77,18 @@ static int hal_find_port_index(hal_env_t* env, const char* port_name, size_t* in
     return 1;
 }
 
+static void close_port(hal_env_t* env, hal_open_port_node_t* port_node, size_t index) {
+    if (env->backend.close == NULL) {
+        TRACE_ERROR("BACKEND does not support CLOSE");
+        return;
+    }
+
+    TRACE_INFO("closing port %s of type %d (handle %u)", port_node->open_port.name, port_node->open_port.type, port_node->handle);
+
+    env->backend.close(env, &port_node->open_port);
+    hal_descriptor_table_remove(&env->handle_table, index);
+}
+
 hal_backend_t* hal_get_backend(hal_env_t* env) {
     return &env->backend;
 }
@@ -178,8 +190,7 @@ void hal_shutdown(hal_env_t* env) {
         hal_open_port_node_t* port_node;
         if (!hal_descriptor_table_get(&env->handle_table, i, (void**) &port_node)) {
             // has such port
-            env->backend.close(env, &port_node->open_port);
-            hal_descriptor_table_remove(&env->handle_table, i);
+            close_port(env, port_node, i);
         }
     }
 
@@ -238,6 +249,11 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, error);
     }
 
+    if (env->backend.open == NULL) {
+        TRACE_ERROR("BACKEND does not support OPEN");
+        HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, error);
+    }
+
     uint32_t flags;
     status = env->backend.probe(env, port_name, &flags);
     HAL_JUMP_IF_ERROR(status, error);
@@ -261,12 +277,7 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
     port_node->open_port.type = type;
     port_node->open_port.data = port_node->native_data;
 
-    if (env->backend.open == NULL) {
-        TRACE_ERROR("BACKEND does not support OPEN");
-        HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, error);
-    }
-
-    status = env->backend.open(env, port_name, type, port_node->native_data);
+    status = env->backend.open(env, port_name, type, port_node->open_port.data);
     HAL_JUMP_IF_ERROR(status, error);
     opened = 1;
 
@@ -274,8 +285,10 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, error);
     }
 
-    *handle = ((hal_handle_t) index);
-    TRACE_INFO("New port %s assigned handle %u", port_name, *handle);
+    hal_handle_t new_handle = (hal_handle_t) index;
+    port_node->handle = new_handle;
+    *handle = new_handle;
+    TRACE_INFO("New port %s assigned handle %u", port_name, new_handle);
 
     pthread_mutex_unlock(&env->mutex);
     return HAL_SUCCESS;
@@ -303,15 +316,7 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
         goto end;
     }
 
-    if (env->backend.close == NULL) {
-        TRACE_ERROR("BACKEND does not support CLOSE");
-        goto end;
-    }
-
-    TRACE_INFO("closing port %s of type %d (handle %u)", port_node->open_port.name, port_node->open_port.type, handle);
-
-    env->backend.close(env, &port_node->open_port);
-    hal_descriptor_table_remove(&env->handle_table, index);
+    close_port(env, port_node, index);
 
 end:
     pthread_mutex_unlock(&env->mutex);
@@ -432,7 +437,7 @@ hal_error_t hal_open_port_get_info(hal_env_t* env, hal_handle_t handle, hal_open
 
     info->handle = handle;
     info->type = used_port->open_port.type;
-    strcpy(info->name, used_port->open_port.name);
+    strncpy(info->name, used_port->open_port.name, HAL_PORT_NAME_MAX);
 
 end:
     pthread_mutex_unlock(&env->mutex);
@@ -465,33 +470,7 @@ end:
     return status;
 }
 
-hal_error_t hal_port_property_probe(hal_env_t* env, const char* port_name, hal_port_type_t type, hal_prop_key_t key, uint32_t* flags) {
-    HAL_CHECK_INITIALIZED(env);
-
-    pthread_mutex_lock(&env->mutex);
-
-    hal_error_t status = HAL_SUCCESS;
-
-    if (is_port_config_supported_for_type(key, type)) {
-        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
-    }
-
-    if (env->backend.port_probe_prop == NULL) {
-        TRACE_ERROR("BACKEND does not support PROBE PROP");
-        HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
-    }
-
-    TRACE_INFO("Probing port configuration for %s with type %d for key %d",
-               port_name, type, key);
-
-    status = env->backend.port_probe_prop(env, port_name, type, key, flags);
-
-end:
-    pthread_mutex_unlock(&env->mutex);
-    return status;
-}
-
-hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t* flags) {
+hal_error_t hal_port_property_probe(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t* flags) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -515,7 +494,7 @@ hal_error_t hal_port_property_probe_handle(hal_env_t* env, hal_handle_t handle, 
     TRACE_INFO("Probing port configuration for port %s with type %d (handle %u) for key %d",
                port_node->open_port.name, port_node->open_port.type, handle, key);
 
-    status = env->backend.port_probe_prop(env, port_node->open_port.name, port_node->open_port.type, key, flags);
+    status = env->backend.port_probe_prop(env, &port_node->open_port, key, flags);
 
 end:
     pthread_mutex_unlock(&env->mutex);
@@ -545,7 +524,7 @@ hal_error_t hal_port_get_property(hal_env_t* env, hal_handle_t handle, hal_prop_
 
     if (env->backend.port_probe_prop != NULL) {
         uint32_t flags;
-        status = env->backend.port_probe_prop(env, port_node->open_port.name, port_node->open_port.type, key, &flags);
+        status = env->backend.port_probe_prop(env, &port_node->open_port, key, &flags);
         HAL_JUMP_IF_ERROR(status, end);
 
         if ((flags & HAL_CONFIG_FLAG_READABLE) == 0) {
@@ -588,7 +567,7 @@ hal_error_t hal_port_set_property(hal_env_t* env, hal_handle_t handle, hal_prop_
 
     if (env->backend.port_probe_prop != NULL) {
         uint32_t flags;
-        status = env->backend.port_probe_prop(env, port_node->open_port.name, port_node->open_port.type, key, &flags);
+        status = env->backend.port_probe_prop(env, &port_node->open_port, key, &flags);
         HAL_JUMP_IF_ERROR(status, end);
 
         if ((flags & HAL_CONFIG_FLAG_WRITABLE) == 0) {
