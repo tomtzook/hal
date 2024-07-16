@@ -19,6 +19,9 @@ typedef enum {
     HAL_TYPE_ANALOG_INPUT = (0x1 << 2),
     HAL_TYPE_ANALOG_OUTPUT = (0x1 << 3),
     HAL_TYPE_PWM_OUTPUT = (0x1 << 4),
+    HAL_TYPE_QUADRATURE = (0x1 << 5),
+
+    HAL_TYPE_BLOCKED = 0xffff
 } hal_port_type_t;
 
 typedef struct _hal_backend hal_backend_t;

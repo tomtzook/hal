@@ -51,6 +51,44 @@ static hal_error_t port_iter_next(hal_env_t* env, hal_port_iter_t* iter) {
     return HAL_SUCCESS;
 }
 
+static hal_error_t get_conflicting_ports(hal_env_t* env, const char* port_name,
+                                         char* out_port_names, size_t out_port_len, size_t* out_ports_count) {
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    size_t index;
+    if (find_sim_port_index(backend, port_name, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    halsim_port_t* port;
+    if (hal_descriptor_table_get(&sim_data->ports, index, (void**)&port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    if (out_port_len < HAL_PORT_NAME_MAX * port->current_conflicting_index) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NO_SPACE, end);
+    }
+
+    size_t out_offset = 0;
+    for (int i = 0; i < port->current_conflicting_index; ++i) {
+        const char* ptr = port->conflicting_ports + (i * HAL_PORT_NAME_MAX);
+        size_t len = strlen(ptr);
+        memcpy(out_port_names + out_offset, ptr, len + 1);
+
+        out_offset += len + 1;
+    }
+
+    *out_ports_count = port->current_conflicting_index;
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
 static hal_error_t probe(hal_env_t* env, const char* port_name, uint32_t* types) {
     hal_backend_t* backend = hal_get_backend(env);
     halsim_data_t* sim_data = get_global_data(backend);
@@ -351,6 +389,69 @@ end:
     return status;
 }
 
+static hal_error_t quadrature_get_pos(hal_env_t* env, const hal_open_port_t* port, uint32_t* value) {
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    halsim_port_t* sim_port = get_sim_port_from_data(port->data);
+
+    if (sim_port->quadrature_callbacks.get_position != NULL) {
+        status = sim_port->quadrature_callbacks.get_position(env, sim_port->handle, value);
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        *value = sim_port->value.quadrature.position;
+    }
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
+static hal_error_t quadrature_set_pos(hal_env_t* env, const hal_open_port_t* port, uint32_t value) {
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    halsim_port_t* sim_port = get_sim_port_from_data(port->data);
+
+    if (sim_port->quadrature_callbacks.set_position != NULL) {
+        status = sim_port->quadrature_callbacks.set_position(env, sim_port->handle, value);
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        sim_port->value.quadrature.position = value;
+    }
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
+static hal_error_t quadrature_get_period(hal_env_t* env, const hal_open_port_t* port, uint32_t* value) {
+    hal_backend_t* backend = hal_get_backend(env);
+    halsim_data_t* sim_data = get_global_data(backend);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    halsim_port_t* sim_port = get_sim_port_from_data(port->data);
+
+    if (sim_port->quadrature_callbacks.get_period != NULL) {
+        status = sim_port->quadrature_callbacks.get_period(env, sim_port->handle, value);
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        *value = sim_port->value.quadrature.period;
+    }
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
 halsim_data_t* get_global_data(hal_backend_t* env) {
     return (halsim_data_t*) env->data;
 }
@@ -420,6 +521,7 @@ hal_error_t hal_backend_init(hal_env_t* env) {
     backend->port_iter_struct_size = port_iter_struct_size;
     backend->port_iter_start = port_iter_start;
     backend->port_iter_next = port_iter_next;
+    backend->get_conflicting_ports = get_conflicting_ports;
     backend->probe = probe;
     backend->native_data_size_for_port = native_data_size_for_port;
     backend->open = open;
@@ -433,6 +535,9 @@ hal_error_t hal_backend_init(hal_env_t* env) {
     backend->aio_set = aio_set;
     backend->pwm_get_duty = pwm_getduty;
     backend->pwm_set_duty = pwm_setduty;
+    backend->quadrature_get_pos = quadrature_get_pos;
+    backend->quadrature_set_pos = quadrature_set_pos;
+    backend->quadrature_get_period = quadrature_get_period;
 
     hal_error_t status = HAL_SUCCESS;
     int table_initialized = 0;

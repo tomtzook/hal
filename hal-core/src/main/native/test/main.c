@@ -26,15 +26,15 @@ int main() {
 
     halsim_port_handle_t sim_handle;
     halsim_create_port(env, "PORT1", &sim_handle);
-    halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT);
-    halsim_config_port_prop(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE);
-    halsim_config_port_callbacks(env, sim_handle, open_callback, NULL);
-    halsim_port_set_prop(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, HAL_CONFIG_DIO_RESISTOR_PULLUP);
-    halsim_config_port_prop_callbacks(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, get_prop_callback, NULL);
+    halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_DIGITAL_INPUT);
 
     halsim_create_port(env, "PORT2", &sim_handle);
-    halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT);
-    halsim_config_port_prop(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE);
+    halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_DIGITAL_INPUT);
+
+    halsim_create_port(env, "QEP1", &sim_handle);
+    halsim_config_port_types(env, sim_handle, HAL_TYPE_QUADRATURE);
+    halsim_config_add_conflicting_port(env, sim_handle, "PORT1");
+    halsim_config_add_conflicting_port(env, sim_handle, "PORT2");
 
     hal_port_iter_t* iter;
     hal_error_t iter_status;
@@ -43,12 +43,26 @@ int main() {
         printf("PORT: name=%s, types=%d\n", iter->name, iter->supported_types);
         iter_status = hal_iter_port_next(env, iter);
     } while (HAL_IS_SUCCESS(iter_status));
+    hal_iter_port_end(env, iter);
 
     hal_handle_t handle;
-    hal_open(env, "PORT1", HAL_TYPE_DIGITAL_OUTPUT, &handle);
+    hal_open(env, "QEP1", HAL_TYPE_QUADRATURE, &handle);
+    halsim_get_handle(env, "QEP1", &sim_handle);
+
+    hal_handle_t iter_handle = HAL_EMPTY_HANDLE;
+    hal_iter_open_port_next(env, &iter_handle);
+    while (iter_handle != HAL_EMPTY_HANDLE) {
+        hal_open_port_info_t info;
+        hal_open_port_get_info(env, iter_handle, &info);
+        printf("OPEN PORT: handle=%u, name=%s, type=%d\n", iter_handle, info.name, info.type);
+        hal_iter_open_port_next(env, &iter_handle);
+    }
+
+    halsim_quadrature_set_position(env, sim_handle, 50);
+
     uint32_t value;
-    hal_port_get_property(env, handle, HAL_CONFIG_DIO_RESISTOR, &value);
-    printf("%u\n", value);
+    hal_quadrature_get_position(env, handle, &value);
+    printf("POS: %u\n", value);
 
     /*hal_handle_t handle;
     if (HAL_IS_ERROR(hal_open(env, "NAME", HAL_TYPE_DIGITAL_OUTPUT, &handle))) {

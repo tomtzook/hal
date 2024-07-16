@@ -6,6 +6,7 @@
 #include "hal_dio.h"
 #include "hal_aio.h"
 #include "hal_pwm.h"
+#include "hal_quadrature.h"
 
 
 #ifdef __cplusplus

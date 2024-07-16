@@ -34,10 +34,18 @@ typedef struct {
     hal_port_type_t open_type;
     uint32_t props_values[HAL_CONFIG_KEY_MAX];
 
+    size_t current_conflicting_index;
+    size_t max_conflicting;
+    char conflicting_ports[HAL_PORT_NAME_MAX * 4];
+
     union {
         hal_dio_value_t dio_value;
         uint32_t aio_value;
         uint32_t pwm_value;
+        struct {
+            uint32_t position;
+            uint32_t period;
+        } quadrature;
     } value;
 
     struct {
@@ -54,6 +62,12 @@ typedef struct {
         halsim_pwm_get_value_callback_t get_value;
         halsim_pwm_set_value_callback_t set_value;
     } pwm_callbacks;
+
+    struct {
+        halsim_quadrature_get_position_callback_t get_position;
+        halsim_quadrature_set_position_callback_t set_position;
+        halsim_quadrature_get_period_callback_t get_period;
+    } quadrature_callbacks;
 } halsim_port_t;
 
 typedef struct {

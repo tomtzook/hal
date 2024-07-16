@@ -25,6 +25,7 @@ hal_error_t halsim_create_port(hal_env_t* env, const char* name, halsim_port_han
 
     memset(port, 0, sizeof(halsim_port_t));
     strncpy(port->name, name, HAL_PORT_NAME_MAX);
+    port->max_conflicting = CONFLICTING_MAX_SIZE;
 
     if (hal_descriptor_table_add(&sim_data->ports, port, &index)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, end);
@@ -78,6 +79,42 @@ hal_error_t halsim_config_port_types(hal_env_t* env, halsim_port_handle_t port_h
     TRACE_INFO("Configuring types for port %s (handle %u)", port->name, port_handle);
 
     port->supported_types = types;
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
+hal_error_t halsim_config_add_conflicting_port(hal_env_t* env, halsim_port_handle_t port_handle, const char* port_name) {
+    halsim_data_t* sim_data = get_global_data_from_env(env);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    halsim_port_t* port;
+    if (find_sim_port_from_handle(hal_get_backend(env), port_handle, &port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
+    }
+
+    if (port->is_open) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_BAD_STATE, end);
+    }
+
+    if (port->current_conflicting_index >= port->max_conflicting) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NO_SPACE, end);
+    }
+
+    size_t length = strlen(port_name);
+    if (length >= HAL_PORT_NAME_MAX) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_ARGUMENT, end);
+    }
+
+    TRACE_INFO("adding new conflict port for %s (handle %u): %s", port->name, port_handle, port_name);
+
+    memcpy(port->conflicting_ports + (port->current_conflicting_index * HAL_PORT_NAME_MAX),
+           port_name,
+           length);
+    port->current_conflicting_index++;
 
 end:
     pthread_mutex_unlock(&sim_data->mutex);
@@ -417,6 +454,91 @@ hal_error_t halsim_pwm_set_value(hal_env_t* env, halsim_port_handle_t port_handl
     TRACE_INFO("Setting PWM value for port %s (handle %u)", port->name, port_handle);
 
     port->value.pwm_value = value;
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
+hal_error_t halsim_quadrature_config_callbacks(hal_env_t* env, halsim_port_handle_t port_handle,
+                                               halsim_quadrature_get_position_callback_t get_position_callback,
+                                               halsim_quadrature_set_position_callback_t set_position_callback,
+                                               halsim_quadrature_get_period_callback_t get_period_callback) {
+    halsim_data_t* sim_data = get_global_data_from_env(env);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    halsim_port_t* port;
+    if (find_sim_port_from_handle(hal_get_backend(env), port_handle, &port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
+    }
+
+    TRACE_INFO("Setting PWM callbacks for port %s (handle %u)", port->name, port_handle);
+
+    port->quadrature_callbacks.get_position = get_position_callback;
+    port->quadrature_callbacks.set_position = set_position_callback;
+    port->quadrature_callbacks.get_period = get_period_callback;
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
+hal_error_t halsim_quadrature_get_position(hal_env_t* env, halsim_port_handle_t port_handle, uint32_t* value) {
+    halsim_data_t* sim_data = get_global_data_from_env(env);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    halsim_port_t* port;
+    if (find_sim_port_from_handle(hal_get_backend(env), port_handle, &port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
+    }
+
+    TRACE_INFO("Getting QUADRATURE position for port %s (handle %u)", port->name, port_handle);
+
+    *value = port->value.quadrature.position;
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
+hal_error_t halsim_quadrature_set_position(hal_env_t* env, halsim_port_handle_t port_handle, uint32_t value) {
+    halsim_data_t* sim_data = get_global_data_from_env(env);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    halsim_port_t* port;
+    if (find_sim_port_from_handle(hal_get_backend(env), port_handle, &port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
+    }
+
+    TRACE_INFO("Setting QUADRATURE position for port %s (handle %u)", port->name, port_handle);
+
+    port->value.quadrature.position = value;
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
+hal_error_t halsim_quadrature_get_period(hal_env_t* env, halsim_port_handle_t port_handle, uint32_t* value) {
+    halsim_data_t* sim_data = get_global_data_from_env(env);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    halsim_port_t* port;
+    if (find_sim_port_from_handle(hal_get_backend(env), port_handle, &port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
+    }
+
+    TRACE_INFO("Getting QUADRATURE period for port %s (handle %u)", port->name, port_handle);
+
+    *value = port->value.quadrature.period;
 
 end:
     pthread_mutex_unlock(&sim_data->mutex);

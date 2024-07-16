@@ -77,6 +77,104 @@ static int hal_find_port_index(hal_env_t* env, const char* port_name, size_t* in
     return 1;
 }
 
+static hal_error_t allocate_port(hal_env_t* env,
+                                 size_t total_allocation_size,
+                                 const char* port_name,
+                                 hal_port_type_t type,
+                                 hal_open_port_node_t** node_out) {
+    hal_error_t status = HAL_SUCCESS;
+
+    hal_open_port_node_t* port_node = (hal_open_port_node_t*) malloc(total_allocation_size);
+    HAL_CHECK_ALLOCATED(port_node, end);
+
+    memset(port_node, 0, sizeof(total_allocation_size));
+    strncpy(port_node->open_port.name, port_name, HAL_PORT_NAME_MAX);
+    port_node->open_port.type = type;
+    port_node->open_port.conflicting_count = 0;
+
+    *node_out = port_node;
+
+end:
+    return status;
+}
+
+static hal_error_t block_port_usage(hal_env_t* env, const char* port_name, hal_handle_t* handle) {
+    hal_error_t status = HAL_SUCCESS;
+    hal_open_port_node_t* port_node = NULL;
+
+    size_t total_allocation_size = sizeof(hal_open_port_node_t);
+    HAL_RETURN_IF_ERROR(allocate_port(env, total_allocation_size, port_name, HAL_TYPE_BLOCKED, &port_node));
+
+    size_t index;
+    if (hal_descriptor_table_add(&env->handle_table, port_node, &index)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, error);
+    }
+
+    *handle = (hal_handle_t) index;
+
+    TRACE_INFO("blocked port %s (handle %u)", port_name, *handle);
+
+    return HAL_SUCCESS;
+error:
+    if (port_node != NULL) {
+        free(port_node);
+    }
+
+    return status;
+}
+
+static void unblock_port(hal_env_t* env, hal_handle_t handle) {
+    hal_open_port_node_t* port_node;
+    size_t index;
+    if (hal_find_port_from_handle(env, handle, &port_node, &index)) {
+        return;
+    }
+
+    TRACE_INFO("unblocking port %s (handle %u)", port_node->open_port.name, handle);
+
+    hal_descriptor_table_remove(&env->handle_table, index);
+}
+
+static hal_error_t block_conflicting_ports(hal_env_t* env, hal_open_port_t* open_port) {
+    open_port->conflicting_count = 0;
+    memset(open_port->conflicting, HAL_EMPTY_HANDLE, sizeof(open_port->conflicting));
+
+    if (env->backend.get_conflicting_ports == NULL) {
+        return HAL_SUCCESS;
+    }
+
+    char port_names[HAL_PORT_NAME_MAX * CONFLICTING_MAX_SIZE] = {0};
+    size_t ports_count = 0;
+    hal_error_t status = env->backend.get_conflicting_ports(env,
+                                                            open_port->name,
+                                                            port_names,
+                                                            sizeof(port_names),
+                                                            &ports_count);
+    HAL_RETURN_IF_ERROR(status);
+
+    size_t port_name_index = 0;
+    for (int i = 0; i < ports_count; ++i) {
+        const char* ptr = port_names + port_name_index;
+        size_t len = strlen(ptr);
+
+        hal_handle_t handle;
+        status = block_port_usage(env, ptr, &handle);
+        HAL_JUMP_IF_ERROR(status, error);
+
+        open_port->conflicting[i] = handle;
+        open_port->conflicting_count++;
+        port_name_index += len + 1;
+    }
+
+    return HAL_SUCCESS;
+error:
+    for (int i = 0; i < open_port->conflicting_count; ++i) {
+        unblock_port(env, open_port->conflicting[i]);
+    }
+
+    return status;
+}
+
 static void close_port(hal_env_t* env, hal_open_port_node_t* port_node, size_t index) {
     if (env->backend.close == NULL) {
         TRACE_ERROR("BACKEND does not support CLOSE");
@@ -87,6 +185,12 @@ static void close_port(hal_env_t* env, hal_open_port_node_t* port_node, size_t i
 
     env->backend.close(env, &port_node->open_port);
     hal_descriptor_table_remove(&env->handle_table, index);
+
+    for (int i = 0; i < port_node->open_port.conflicting_count; ++i) {
+        unblock_port(env, port_node->open_port.conflicting[i]);
+    }
+
+    free(port_node);
 }
 
 hal_backend_t* hal_get_backend(hal_env_t* env) {
@@ -189,8 +293,11 @@ void hal_shutdown(hal_env_t* env) {
     for (size_t i = 0; i < env->handle_table.capacity; ++i) {
         hal_open_port_node_t* port_node;
         if (!hal_descriptor_table_get(&env->handle_table, i, (void**) &port_node)) {
-            // has such port
-            close_port(env, port_node, i);
+            if (port_node->open_port.type != HAL_TYPE_BLOCKED) {
+                // has such port, and it is not blocked,
+                // blocked will be released automatically by their holder.
+                close_port(env, port_node, i);
+            }
         }
     }
 
@@ -239,6 +346,10 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
     int opened = 0;
     hal_open_port_node_t* port_node = NULL;
 
+    if (type != HAL_TYPE_BLOCKED) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, error);
+    }
+
     size_t index;
     if (!hal_find_port_index(env, port_name, &index)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_TAKEN, error);
@@ -269,13 +380,13 @@ hal_error_t hal_open(hal_env_t* env, const char* port_name, hal_port_type_t type
     }
 
     size_t total_allocation_size = sizeof(hal_open_port_node_t) + extra_allocation_size;
-    port_node = (hal_open_port_node_t*) malloc(total_allocation_size);
-    HAL_CHECK_ALLOCATED(port_node, error);
+    status = allocate_port(env, total_allocation_size, port_name, type, &port_node);
+    HAL_JUMP_IF_ERROR(status, error);
 
-    memset(port_node, 0, sizeof(total_allocation_size));
-    strncpy(port_node->open_port.name, port_name, HAL_PORT_NAME_MAX);
-    port_node->open_port.type = type;
     port_node->open_port.data = port_node->native_data;
+
+    status = block_conflicting_ports(env, &port_node->open_port);
+    HAL_JUMP_IF_ERROR(status, error);
 
     status = env->backend.open(env, port_name, type, port_node->open_port.data);
     HAL_JUMP_IF_ERROR(status, error);
@@ -313,6 +424,10 @@ void hal_close(hal_env_t* env, hal_handle_t handle) {
     hal_open_port_node_t* port_node;
     size_t index;
     if (hal_find_port_from_handle(env, handle, &port_node, &index)) {
+        goto end;
+    }
+
+    if (port_node->open_port.type != HAL_TYPE_BLOCKED) {
         goto end;
     }
 
@@ -482,6 +597,10 @@ hal_error_t hal_port_property_probe(hal_env_t* env, hal_handle_t handle, hal_pro
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
+    if (port_node->open_port.type != HAL_TYPE_BLOCKED) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
+    }
+
     if (is_port_config_supported_for_type(key, port_node->open_port.type)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
     }
@@ -511,6 +630,10 @@ hal_error_t hal_port_get_property(hal_env_t* env, hal_handle_t handle, hal_prop_
     hal_open_port_node_t* port_node;
     if (hal_find_port_from_handle(env, handle, &port_node, NULL)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
+    }
+
+    if (port_node->open_port.type != HAL_TYPE_BLOCKED) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
     }
 
     if (is_port_config_supported_for_type(key, port_node->open_port.type)) {
@@ -554,6 +677,10 @@ hal_error_t hal_port_set_property(hal_env_t* env, hal_handle_t handle, hal_prop_
     hal_open_port_node_t* port_node;
     if (hal_find_port_from_handle(env, handle, &port_node, NULL)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
+    }
+
+    if (port_node->open_port.type != HAL_TYPE_BLOCKED) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_NOT_SUPPORTED_FOR_TYPE, end);
     }
 
     if (is_port_config_supported_for_type(key, port_node->open_port.type)) {
