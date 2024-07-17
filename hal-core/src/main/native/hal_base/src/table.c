@@ -55,6 +55,20 @@ int hal_descriptor_table_add(hal_descriptor_table_t* table, void* ptr, size_t* i
     return 0;
 }
 
+int hal_descriptor_table_insert(hal_descriptor_table_t* table, void* ptr, size_t index) {
+    if (ptr == NULL) {
+        return 1;
+    }
+
+    if (table->elements[index].ptr != NULL) {
+        return 1;
+    }
+
+    table->elements[index].ptr = ptr;
+
+    return 0;
+}
+
 int hal_descriptor_table_remove(hal_descriptor_table_t* table, size_t index) {
     if (index >= table->capacity) {
         return 1;

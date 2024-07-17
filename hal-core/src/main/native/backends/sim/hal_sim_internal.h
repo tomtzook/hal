@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #define MAX_PORTS 256
+#define MAX_CONFLICTING 6
 
 typedef struct {
     int configured;
@@ -23,20 +24,22 @@ typedef struct {
 } halsim_port_prop_config_t;
 
 typedef struct {
-    char name[HAL_PORT_NAME_MAX];
+    hal_id_t identifier;
     uint32_t supported_types;
     halsim_port_handle_t handle;
-    halsim_port_prop_config_t props_config[HAL_CONFIG_KEY_MAX];
+    halsim_port_prop_config_t props_config[HAL_CONFIG_KEY_MAX_COUNT];
     halsim_open_callback_t open_callback;
     halsim_close_callback_t close_callback;
 
     int is_open;
     hal_port_type_t open_type;
-    uint32_t props_values[HAL_CONFIG_KEY_MAX];
+    uint32_t props_values[HAL_CONFIG_KEY_MAX_COUNT];
 
-    size_t current_conflicting_index;
-    size_t max_conflicting;
-    char conflicting_ports[HAL_PORT_NAME_MAX * 4];
+    struct {
+        size_t next_index;
+        size_t max_index;
+        hal_id_t list[MAX_CONFLICTING];
+    } conflicting;
 
     union {
         hal_dio_value_t dio_value;
@@ -79,8 +82,7 @@ typedef struct {
 halsim_data_t* get_global_data(hal_backend_t* env);
 halsim_data_t* get_global_data_from_env(hal_env_t* env);
 
-int find_sim_port_index(hal_backend_t* env, const char* port_name, size_t* index);
-int find_next_sim_port_from_index(hal_backend_t* env, size_t start_index, halsim_port_t** port_out, size_t* index);
+int find_sim_port_index(hal_backend_t* env, hal_id_t id, size_t* index);
 int find_sim_port_from_handle(hal_backend_t* env, halsim_port_handle_t handle, halsim_port_t** port_out, size_t* index_out);
 
 #ifdef __cplusplus

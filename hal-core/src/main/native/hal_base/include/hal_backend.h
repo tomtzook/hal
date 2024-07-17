@@ -7,51 +7,41 @@
 extern "C" {
 #endif
 
-#define CONFLICTING_MAX_SIZE 4
-
 typedef struct {
-    char name[HAL_PORT_NAME_MAX];
+    hal_id_t identifier;
     hal_port_type_t type;
+
     void* data;
+} hal_backend_port_t;
 
-    size_t conflicting_count;
-    hal_handle_t conflicting[CONFLICTING_MAX_SIZE];
-} hal_open_port_t;
+struct hal__backend {
+    struct {
+        size_t (*native_data_size_for_port)(hal_env_t* env, hal_port_type_t type);
 
-struct _hal_backend {
-    hal_error_t (*port_iter_struct_size)(hal_env_t* env);
-    hal_error_t (*port_iter_start)(hal_env_t* env, hal_port_iter_t* iter);
-    hal_error_t (*port_iter_next)(hal_env_t* env, hal_port_iter_t* iter);
+        hal_error_t (*open)(hal_env_t* env, const hal_backend_port_t* port);
+        hal_error_t (*close)(hal_env_t* env, const hal_backend_port_t* port);
 
-    size_t (*native_data_size_for_port)(hal_env_t* env, hal_port_type_t type);
+        hal_error_t (*port_probe_prop)(hal_env_t* env, const hal_backend_port_t* port, hal_prop_key_t key, uint32_t* flags);
+        hal_error_t (*port_get_prop)(hal_env_t* env, const hal_backend_port_t* port,
+                                     hal_prop_key_t key,
+                                     uint32_t* value);
+        hal_error_t (*port_set_prop)(hal_env_t* env, const hal_backend_port_t* port,
+                                     hal_prop_key_t key,
+                                     uint32_t value);
 
-    hal_error_t  (*get_conflicting_ports)(hal_env_t* env, const char* port_name,
-            char* out_port_names, size_t out_port_len, size_t* out_ports_count);
+        hal_error_t (*dio_get)(hal_env_t* env, const hal_backend_port_t* port, hal_dio_value_t* value);
+        hal_error_t (*dio_set)(hal_env_t* env, const hal_backend_port_t* port, hal_dio_value_t value);
 
-    hal_error_t (*probe)(hal_env_t* env, const char* port_name, uint32_t* types);
-    hal_error_t (*open)(hal_env_t* env, const char* port_name, hal_port_type_t type, void* data);
-    hal_error_t (*close)(hal_env_t* env, const hal_open_port_t* port);
+        hal_error_t (*aio_get)(hal_env_t* env, const hal_backend_port_t* port, uint32_t* value);
+        hal_error_t (*aio_set)(hal_env_t* env, const hal_backend_port_t* port, uint32_t value);
 
-    hal_error_t (*port_probe_prop)(hal_env_t* env, const hal_open_port_t* port, hal_prop_key_t key, uint32_t* flags);
-    hal_error_t (*port_get_prop)(hal_env_t* env, const hal_open_port_t* port,
-                                 hal_prop_key_t key,
-                                 uint32_t* value);
-    hal_error_t (*port_set_prop)(hal_env_t* env, const hal_open_port_t* port,
-                                 hal_prop_key_t key,
-                                 uint32_t value);
+        hal_error_t (*pwm_get_duty)(hal_env_t* env, const hal_backend_port_t* port, uint32_t* value);
+        hal_error_t (*pwm_set_duty)(hal_env_t* env, const hal_backend_port_t* port, uint32_t value);
 
-    hal_error_t (*dio_get)(hal_env_t* env, const hal_open_port_t* port, hal_dio_value_t* value);
-    hal_error_t (*dio_set)(hal_env_t* env, const hal_open_port_t* port, hal_dio_value_t value);
-
-    hal_error_t (*aio_get)(hal_env_t* env, const hal_open_port_t* port, uint32_t* value);
-    hal_error_t (*aio_set)(hal_env_t* env, const hal_open_port_t* port, uint32_t value);
-
-    hal_error_t (*pwm_get_duty)(hal_env_t* env, const hal_open_port_t* port, uint32_t* value);
-    hal_error_t (*pwm_set_duty)(hal_env_t* env, const hal_open_port_t* port, uint32_t value);
-
-    hal_error_t (*quadrature_get_pos)(hal_env_t* env, const hal_open_port_t* port, uint32_t* value);
-    hal_error_t (*quadrature_set_pos)(hal_env_t* env, const hal_open_port_t* port, uint32_t value);
-    hal_error_t (*quadrature_get_period)(hal_env_t* env, const hal_open_port_t* port, uint32_t* value);
+        hal_error_t (*quadrature_get_pos)(hal_env_t* env, const hal_backend_port_t* port, uint32_t* value);
+        hal_error_t (*quadrature_set_pos)(hal_env_t* env, const hal_backend_port_t* port, uint32_t value);
+        hal_error_t (*quadrature_get_period)(hal_env_t* env, const hal_backend_port_t* port, uint32_t* value);
+    } funcs;
 
     void* data;
     char* name;

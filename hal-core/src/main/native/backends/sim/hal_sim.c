@@ -3,11 +3,12 @@
 
 #include <hal_error_handling.h>
 #include <hal_backend.h>
+#include <hal_control.h>
 
 #include "hal_sim_internal.h"
 
 
-hal_error_t halsim_create_port(hal_env_t* env, const char* name, halsim_port_handle_t* port_handle) {
+hal_error_t halsim_create_port(hal_env_t* env, hal_id_t id, halsim_port_handle_t* port_handle) {
     halsim_data_t* sim_data = get_global_data_from_env(env);
 
     pthread_mutex_lock(&sim_data->mutex);
@@ -16,16 +17,18 @@ hal_error_t halsim_create_port(hal_env_t* env, const char* name, halsim_port_han
     halsim_port_t* port = NULL;
     size_t index;
 
-    if (!find_sim_port_index(hal_get_backend(env), name, &index)) {
+    if (!find_sim_port_index(hal_get_backend(env), id, &index)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_TAKEN, end);
     }
+
+    HAL_JUMP_IF_ERROR(halcontrol_register_port(env, id), end);
 
     port = (halsim_port_t*) malloc(sizeof(halsim_port_t));
     HAL_CHECK_ALLOCATED(port, end);
 
     memset(port, 0, sizeof(halsim_port_t));
-    strncpy(port->name, name, HAL_PORT_NAME_MAX);
-    port->max_conflicting = CONFLICTING_MAX_SIZE;
+    port->identifier = id;
+    port->conflicting.max_index = MAX_CONFLICTING;
 
     if (hal_descriptor_table_add(&sim_data->ports, port, &index)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, end);
@@ -34,7 +37,8 @@ hal_error_t halsim_create_port(hal_env_t* env, const char* name, halsim_port_han
     halsim_port_handle_t handle = (halsim_port_handle_t) index;
     port->handle = handle;
     *port_handle = handle;
-    TRACE_INFO("Created new port %s with handle %u", port->name, *port_handle);
+
+    TRACE_INFO("Created new port %u with handle %u", id, *port_handle);
 end:
     if (port != NULL && HAL_IS_ERROR(status)) {
         free(port);
@@ -44,14 +48,14 @@ end:
     return status;
 }
 
-hal_error_t halsim_get_handle(hal_env_t* env, const char* name, halsim_port_handle_t* port_handle) {
+hal_error_t halsim_get_handle(hal_env_t* env, hal_id_t id, halsim_port_handle_t* port_handle) {
     halsim_data_t* sim_data = get_global_data_from_env(env);
 
     pthread_mutex_lock(&sim_data->mutex);
 
     hal_error_t status = HAL_SUCCESS;
     size_t index;
-    if (find_sim_port_index(hal_get_backend(env), name, &index)) {
+    if (find_sim_port_index(hal_get_backend(env), id, &index)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
     }
 
@@ -76,7 +80,9 @@ hal_error_t halsim_config_port_types(hal_env_t* env, halsim_port_handle_t port_h
         HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_BAD_STATE, end);
     }
 
-    TRACE_INFO("Configuring types for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Configuring types for port %u (handle %u)", port->identifier, port_handle);
+
+    HAL_JUMP_IF_ERROR(halcontrol_config_port(env, port->identifier, types, HAL_OPT_UINT64), end);
 
     port->supported_types = types;
 
@@ -85,7 +91,7 @@ end:
     return status;
 }
 
-hal_error_t halsim_config_add_conflicting_port(hal_env_t* env, halsim_port_handle_t port_handle, const char* port_name) {
+hal_error_t halsim_config_add_conflicting_port(hal_env_t* env, halsim_port_handle_t port_handle, hal_id_t conflicting_id) {
     halsim_data_t* sim_data = get_global_data_from_env(env);
 
     pthread_mutex_lock(&sim_data->mutex);
@@ -100,21 +106,14 @@ hal_error_t halsim_config_add_conflicting_port(hal_env_t* env, halsim_port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_BAD_STATE, end);
     }
 
-    if (port->current_conflicting_index >= port->max_conflicting) {
+    if (port->conflicting.next_index >= port->conflicting.max_index) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_NO_SPACE, end);
     }
 
-    size_t length = strlen(port_name);
-    if (length >= HAL_PORT_NAME_MAX) {
-        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_ARGUMENT, end);
-    }
+    TRACE_INFO("Adding new conflict port for %u (handle %u): %u", port->identifier, port_handle, conflicting_id);
 
-    TRACE_INFO("adding new conflict port for %s (handle %u): %s", port->name, port_handle, port_name);
-
-    memcpy(port->conflicting_ports + (port->current_conflicting_index * HAL_PORT_NAME_MAX),
-           port_name,
-           length);
-    port->current_conflicting_index++;
+    port->conflicting.list[port->conflicting.next_index] = conflicting_id;
+    port->conflicting.next_index++;
 
 end:
     pthread_mutex_unlock(&sim_data->mutex);
@@ -134,7 +133,7 @@ hal_error_t halsim_config_port_callbacks(hal_env_t* env, halsim_port_handle_t po
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Configuring callbacks for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Configuring callbacks for port %u (handle %u)", port->identifier, port_handle);
 
     port->open_callback = open_callback;
     port->close_callback = close_callback;
@@ -159,8 +158,10 @@ hal_error_t halsim_config_port_prop(hal_env_t* env, halsim_port_handle_t port_ha
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
     }
 
-    TRACE_INFO("Configuring prop %d for port %s (handle %u)",
-               key, port->name, port_handle);
+    TRACE_INFO("Configuring prop %d for port %u (handle %u)",
+               key, port->identifier, port_handle);
+
+    HAL_JUMP_IF_ERROR(halcontrol_config_port_append(env, port->identifier, HAL_OPT_UINT32, key), end);
 
     halsim_port_prop_config_t* config = port->props_config + key;
     if (config->configured) {
@@ -193,8 +194,8 @@ hal_error_t halsim_config_port_prop_callbacks(hal_env_t* env, halsim_port_handle
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
     }
 
-    TRACE_INFO("Configuring callbacks for prop %d for port %s (handle %u)",
-               key, port->name, port_handle);
+    TRACE_INFO("Configuring callbacks for prop %d for port %u (handle %u)",
+               key, port->identifier, port_handle);
 
     halsim_port_prop_config_t* config = port->props_config + key;
     if (!config->configured) {
@@ -224,8 +225,8 @@ hal_error_t halsim_port_get_prop(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
     }
 
-    TRACE_INFO("Getting value for prop %d for port %s (handle %u)",
-               key, port->name, port_handle);
+    TRACE_INFO("Getting value for prop %d for port %u (handle %u)",
+               key, port->identifier, port_handle);
 
     halsim_port_prop_config_t* config = port->props_config + key;
     if (!config->configured) {
@@ -255,8 +256,8 @@ hal_error_t halsim_port_set_prop(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
     }
 
-    TRACE_INFO("Setting value for prop %d for port %s (handle %u)",
-               key, port->name, port_handle);
+    TRACE_INFO("Setting value for prop %d for port %u (handle %u)",
+               key, port->identifier, port_handle);
 
     halsim_port_prop_config_t* config = port->props_config + key;
     if (!config->configured) {
@@ -284,7 +285,7 @@ hal_error_t halsim_dio_config_callbacks(hal_env_t* env, halsim_port_handle_t por
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Setting DIO callbacks for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Setting DIO callbacks for port %u (handle %u)", port->identifier, port_handle);
 
     port->dio_callbacks.get_value = get_value_callback;
     port->dio_callbacks.set_value = set_value_callback;
@@ -305,7 +306,7 @@ hal_error_t halsim_dio_get_value(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Getting DIO value for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Getting DIO value for port %u (handle %u)", port->identifier, port_handle);
 
     *value = port->value.dio_value;
 
@@ -325,7 +326,7 @@ hal_error_t halsim_dio_set_value(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Setting DIO value for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Setting DIO value for port %u (handle %u)", port->identifier, port_handle);
 
     port->value.dio_value = value;
 
@@ -347,7 +348,7 @@ hal_error_t halsim_aio_config_callbacks(hal_env_t* env, halsim_port_handle_t por
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Setting AIO callbacks for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Setting AIO callbacks for port %u (handle %u)", port->identifier, port_handle);
 
     port->aio_callbacks.get_value = get_value_callback;
     port->aio_callbacks.set_value = set_value_callback;
@@ -368,7 +369,7 @@ hal_error_t halsim_aio_get_value(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Getting AIO value for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Getting AIO value for port %u (handle %u)", port->identifier, port_handle);
 
     *value = port->value.aio_value;
 
@@ -388,7 +389,7 @@ hal_error_t halsim_aio_set_value(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Setting AIO value for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Setting AIO value for port %u (handle %u)", port->identifier, port_handle);
 
     port->value.aio_value = value;
 
@@ -410,7 +411,7 @@ hal_error_t halsim_pwm_config_callbacks(hal_env_t* env, halsim_port_handle_t por
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Setting PWM callbacks for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Setting PWM callbacks for port %u (handle %u)", port->identifier, port_handle);
 
     port->pwm_callbacks.get_value = get_value_callback;
     port->pwm_callbacks.set_value = set_value_callback;
@@ -431,7 +432,7 @@ hal_error_t halsim_pwm_get_value(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Getting PWM value for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Getting PWM value for port %u (handle %u)", port->identifier, port_handle);
 
     *value = port->value.pwm_value;
 
@@ -451,7 +452,7 @@ hal_error_t halsim_pwm_set_value(hal_env_t* env, halsim_port_handle_t port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Setting PWM value for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Setting PWM value for port %u (handle %u)", port->identifier, port_handle);
 
     port->value.pwm_value = value;
 
@@ -474,7 +475,7 @@ hal_error_t halsim_quadrature_config_callbacks(hal_env_t* env, halsim_port_handl
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Setting PWM callbacks for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Setting PWM callbacks for port %u (handle %u)", port->identifier, port_handle);
 
     port->quadrature_callbacks.get_position = get_position_callback;
     port->quadrature_callbacks.set_position = set_position_callback;
@@ -496,7 +497,7 @@ hal_error_t halsim_quadrature_get_position(hal_env_t* env, halsim_port_handle_t 
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Getting QUADRATURE position for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Getting QUADRATURE position for port %u (handle %u)", port->identifier, port_handle);
 
     *value = port->value.quadrature.position;
 
@@ -516,7 +517,7 @@ hal_error_t halsim_quadrature_set_position(hal_env_t* env, halsim_port_handle_t 
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Setting QUADRATURE position for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Setting QUADRATURE position for port %u (handle %u)", port->identifier, port_handle);
 
     port->value.quadrature.position = value;
 
@@ -536,7 +537,7 @@ hal_error_t halsim_quadrature_get_period(hal_env_t* env, halsim_port_handle_t po
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
     }
 
-    TRACE_INFO("Getting QUADRATURE period for port %s (handle %u)", port->name, port_handle);
+    TRACE_INFO("Getting QUADRATURE period for port %u (handle %u)", port->identifier, port_handle);
 
     *value = port->value.quadrature.period;
 

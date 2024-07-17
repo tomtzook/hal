@@ -131,12 +131,27 @@ pin_t* find_pin_def_for_name(const char* port_name) {
     return NULL;
 }
 
-pin_t* find_pin_def_for_index(size_t index) {
+pin_t* find_pin_def_for_id(hal_id_t id) {
+    for (int i = 0; i < sizeof(PINS) / sizeof(pin_t); ++i) {
+        pin_t* pin = PINS + i;
+        if (id == pin->pin_number) {
+            return pin;
+        }
+    }
+
+    return NULL;
+}
+
+pin_t* get_pin_def_for_index(size_t index) {
     if (index >= sizeof(PINS) / sizeof(pin_t)) {
         return NULL;
     }
 
     return PINS + index;
+}
+
+size_t get_pin_def_count() {
+    return sizeof(PINS) / sizeof(pin_t);
 }
 
 hal_error_t set_pin_mode(pin_t* pin, const char* mode) {

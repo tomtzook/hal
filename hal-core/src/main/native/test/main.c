@@ -18,6 +18,19 @@ static hal_error_t get_prop_callback(hal_env_t* env,
     return HAL_SUCCESS;
 }
 
+static void iterports(hal_env_t* env) {
+    hal_port_iter_t* iter;
+    hal_error_t iter_status;
+    hal_iter_port_start(env, &iter);
+    do {
+        hal_port_info_t info;
+        hal_get_info(env, iter->identifier, &info);
+        printf("PORT: id=%u, types=%u, props=%lu, flags=%u, handle=%u\n", info.identifier, info.supported_types, info.supported_props, info.flags, info.open_handle);
+        iter_status = hal_iter_port_next(env, iter);
+    } while (HAL_IS_SUCCESS(iter_status));
+    hal_iter_port_end(env, iter);
+}
+
 int main() {
     hal_env_t* env = NULL;
     if (HAL_IS_ERROR(hal_init(&env))) {
@@ -25,38 +38,24 @@ int main() {
     }
 
     halsim_port_handle_t sim_handle;
-    halsim_create_port(env, "PORT1", &sim_handle);
+    halsim_create_port(env, 1, &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_DIGITAL_INPUT);
 
-    halsim_create_port(env, "PORT2", &sim_handle);
+    halsim_create_port(env, 2, &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_DIGITAL_INPUT);
 
-    halsim_create_port(env, "QEP1", &sim_handle);
+    halsim_create_port(env, 3, &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_QUADRATURE);
-    halsim_config_add_conflicting_port(env, sim_handle, "PORT1");
-    halsim_config_add_conflicting_port(env, sim_handle, "PORT2");
+    halsim_config_add_conflicting_port(env, sim_handle, 1);
+    halsim_config_add_conflicting_port(env, sim_handle, 2);
 
-    hal_port_iter_t* iter;
-    hal_error_t iter_status;
-    hal_iter_port_start(env, &iter);
-    do {
-        printf("PORT: name=%s, types=%d\n", iter->name, iter->supported_types);
-        iter_status = hal_iter_port_next(env, iter);
-    } while (HAL_IS_SUCCESS(iter_status));
-    hal_iter_port_end(env, iter);
+    iterports(env);
 
     hal_handle_t handle;
-    hal_open(env, "QEP1", HAL_TYPE_QUADRATURE, &handle);
-    halsim_get_handle(env, "QEP1", &sim_handle);
+    hal_open(env, 3, HAL_TYPE_QUADRATURE, &handle);
+    halsim_get_handle(env, 3, &sim_handle);
 
-    hal_handle_t iter_handle = HAL_EMPTY_HANDLE;
-    hal_iter_open_port_next(env, &iter_handle);
-    while (iter_handle != HAL_EMPTY_HANDLE) {
-        hal_open_port_info_t info;
-        hal_open_port_get_info(env, iter_handle, &info);
-        printf("OPEN PORT: handle=%u, name=%s, type=%d\n", iter_handle, info.name, info.type);
-        hal_iter_open_port_next(env, &iter_handle);
-    }
+    iterports(env);
 
     halsim_quadrature_set_position(env, sim_handle, 50);
 
@@ -69,7 +68,7 @@ int main() {
         goto end;
     }
 
-    hal_config_flags_t flags;
+    hal_config_flag_t flags;
     hal_port_property_probe(env, handle, HAL_CONFIG_DIO_RESISTOR, &flags);
 
     hal_dio_set(env, handle, HAL_DIO_HIGH);*/

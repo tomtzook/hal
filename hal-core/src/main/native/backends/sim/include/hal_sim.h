@@ -64,11 +64,11 @@ typedef hal_error_t(*halsim_quadrature_get_period_callback_t)(
         halsim_port_handle_t port_handle,
         uint32_t* value);
 
-hal_error_t halsim_create_port(hal_env_t* env, const char* name, halsim_port_handle_t* port_handle);
-hal_error_t halsim_get_handle(hal_env_t* env, const char* name, halsim_port_handle_t* port_handle);
+hal_error_t halsim_create_port(hal_env_t* env, hal_id_t id, halsim_port_handle_t* port_handle);
+hal_error_t halsim_get_handle(hal_env_t* env, hal_id_t id, halsim_port_handle_t* port_handle);
 
 hal_error_t halsim_config_port_types(hal_env_t* env, halsim_port_handle_t port_handle, uint32_t types);
-hal_error_t halsim_config_add_conflicting_port(hal_env_t* env, halsim_port_handle_t port_handle, const char* port_name);
+hal_error_t halsim_config_add_conflicting_port(hal_env_t* env, halsim_port_handle_t port_handle, hal_id_t conflicting_id);
 hal_error_t halsim_config_port_callbacks(hal_env_t* env, halsim_port_handle_t port_handle,
                                          halsim_open_callback_t open_callback,
                                          halsim_close_callback_t close_callback);

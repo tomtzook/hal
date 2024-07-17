@@ -9,21 +9,21 @@ extern "C" {
 
 typedef uint32_t hal_prop_key_t;
 
-typedef enum {
-    HAL_CONFIG_DIO_POLL_EDGE = 1, // for DIO ports, hal_dio_config_poll_edge_t
-    HAL_CONFIG_DIO_RESISTOR = 2, // for DIO ports, hal_dio_config_resistor_t
-    HAL_CONFIG_ANALOG_MAX_VALUE = 3, // in ADC units, for AIO ports
-    HAL_CONFIG_ANALOG_MAX_VOLTAGE = 4, // in milli-volts (integer), for AIO ports
-    HAL_CONFIG_ANALOG_SAMPLE_RATE = 5, // in microsecond period (integer), for AIO ports
-    HAL_CONFIG_PWM_FREQUENCY = 6, // in microsecond period (integer), for PWM ports
+#define HAL_CONFIG_KEY_MAX_COUNT 32
 
-    HAL_CONFIG_KEY_MAX = 32
-} hal_config_keys_t;
+typedef enum {
+    HAL_CONFIG_DIO_POLL_EDGE = (0x1 << 0), // for DIO ports, hal_dio_config_poll_edge_t
+    HAL_CONFIG_DIO_RESISTOR = (0x1 << 1), // for DIO ports, hal_dio_config_resistor_t
+    HAL_CONFIG_ANALOG_MAX_VALUE = (0x1 << 2), // in ADC units, for AIO ports
+    HAL_CONFIG_ANALOG_MAX_VOLTAGE = (0x1 << 3), // in milli-volts (integer), for AIO ports
+    HAL_CONFIG_ANALOG_SAMPLE_RATE = (0x1 << 4), // in microsecond period (integer), for AIO ports
+    HAL_CONFIG_PWM_FREQUENCY = (0x1 << 5), // in microsecond period (integer), for PWM ports
+} hal_config_key_t;
 
 typedef enum {
     HAL_CONFIG_FLAG_READABLE = (1 << 0),
     HAL_CONFIG_FLAG_WRITABLE = (1 << 1)
-} hal_config_flags_t;
+} hal_config_flag_t;
 
 // only for DIO PORTS, for HAL_CONFIG_DIO_POLL_EDGE
 typedef enum {

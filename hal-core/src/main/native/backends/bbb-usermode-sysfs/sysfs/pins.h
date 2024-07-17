@@ -36,7 +36,9 @@ extern pwm_port_t PWM_PORTS[];
 
 
 pin_t* find_pin_def_for_name(const char* port_name);
-pin_t* find_pin_def_for_index(size_t index);
+pin_t* find_pin_def_for_id(hal_id_t id);
+pin_t* get_pin_def_for_index(size_t index);
+size_t get_pin_def_count();
 
 hal_error_t set_pin_mode(pin_t* pin, const char* mode);
 hal_error_t get_pin_mode(pin_t* pin, char* buffer);
