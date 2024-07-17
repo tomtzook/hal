@@ -18,7 +18,7 @@ typedef enum {
     HAL_CONFIG_ANALOG_MAX_VOLTAGE = (0x1 << 3), // in milli-volts (integer), for AIO ports
     HAL_CONFIG_ANALOG_SAMPLE_RATE = (0x1 << 4), // in microsecond period (integer), for AIO ports
     HAL_CONFIG_PWM_FREQUENCY = (0x1 << 5), // in microsecond period (integer), for PWM ports
-} hal_config_key_t;
+} hal_config_known_key_t;
 
 typedef enum {
     HAL_CONFIG_FLAG_READABLE = (1 << 0),

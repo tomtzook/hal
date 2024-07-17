@@ -1,5 +1,7 @@
 #pragma once
 
+#include <hal_types.h>
+#include "bbb_port_ids.h"
 
 #define PIN_NUMBER(module, index) ((module) * 32 + (index))
 #define ANALOG_MAX_VALUE 4095
@@ -11,6 +13,7 @@
 
 typedef struct {
     const char* name;
+    hal_id_t id;
     unsigned pin_number;
     uint32_t supported_types;
 } pin_t;

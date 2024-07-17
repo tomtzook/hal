@@ -278,7 +278,7 @@ hal_error_t hal_backend_init(hal_env_t* env) {
 
     for (int i = 0; i < get_pin_def_count(); ++i) {
         pin_t* pin = get_pin_def_for_index(i);
-        HAL_RETURN_IF_ERROR(halcontrol_register_port(env, pin->pin_number));
+        HAL_RETURN_IF_ERROR(halcontrol_register_port(env, pin->id));
     }
 
     return HAL_SUCCESS;

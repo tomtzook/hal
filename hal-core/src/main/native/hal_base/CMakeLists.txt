@@ -10,16 +10,18 @@ add_library(hal_base OBJECT
         internal/hal_internal.h
         include/hal_backend.h
         include/hal_list.h
+        include/hal_table.h
         include/hal_error_handling.h
-
+        include/hal_control.h
         src/hal.c
         src/hal_error.c
         src/list.c
         src/dio.c
-         src/aio.c
+        src/aio.c
         src/pwm.c
-        include/hal_table.h
-        src/table.c src/quadrature.c include/hal_control.h src/hal_control.c)
+        src/table.c
+        src/quadrature.c
+        src/hal_control.c)
 target_include_directories(hal_base
         PUBLIC ${HAL_INCLUDES}
         PRIVATE ${HAL_NATIVE_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/internal

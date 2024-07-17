@@ -5,6 +5,11 @@
 #include <hal_error.h>
 #include <hal_sim.h>
 
+#define P8 (0x1 << 6)
+#define P9 (0x1 << 7)
+#define USR (0x3 << 6)
+#define GPIO_ID(header, number) (header | number)
+
 static hal_error_t open_callback(hal_env_t* env, halsim_port_handle_t handle, hal_port_type_t type) {
     printf("port open, handle %u\n", handle);
     return HAL_SUCCESS;
@@ -19,15 +24,27 @@ static hal_error_t get_prop_callback(hal_env_t* env,
 }
 
 static void iterports(hal_env_t* env) {
+    hal_error_t status;
+
     hal_port_iter_t* iter;
-    hal_error_t iter_status;
-    hal_iter_port_start(env, &iter);
+    status = hal_iter_port_start(env, &iter);
+    if (HAL_IS_ERROR(status)) {
+        return;
+    }
+
+    printf("Listing all ports:\n");
     do {
         hal_port_info_t info;
-        hal_get_info(env, iter->identifier, &info);
-        printf("PORT: id=%u, types=%u, props=%lu, flags=%u, handle=%u\n", info.identifier, info.supported_types, info.supported_props, info.flags, info.open_handle);
-        iter_status = hal_iter_port_next(env, iter);
-    } while (HAL_IS_SUCCESS(iter_status));
+        status = hal_get_info(env, iter->identifier, &info);
+        if (HAL_IS_SUCCESS(status)) {
+            printf("\tPORT: id=%u, types=%u, props=%lu, flags=%u, handle=%u\n", info.identifier, info.supported_types, info.supported_props, info.flags, info.open_handle);
+        } else {
+            printf("\tPORT: id=%u (failed to get more info)\n", iter->identifier);
+        }
+
+        status = hal_iter_port_next(env, iter);
+    } while (HAL_IS_SUCCESS(status));
+
     hal_iter_port_end(env, iter);
 }
 
@@ -38,21 +55,25 @@ int main() {
     }
 
     halsim_port_handle_t sim_handle;
-    halsim_create_port(env, 1, &sim_handle);
+    halsim_create_port(env, GPIO_ID(USR, 0), &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_DIGITAL_INPUT);
+    halsim_config_port_prop(env, sim_handle, HAL_CONFIG_DIO_POLL_EDGE, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE);
+    halsim_config_port_prop(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE);
 
-    halsim_create_port(env, 2, &sim_handle);
+    halsim_create_port(env, GPIO_ID(P8, 1), &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_DIGITAL_INPUT);
+    halsim_config_port_prop(env, sim_handle, HAL_CONFIG_DIO_POLL_EDGE, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE);
+    halsim_config_port_prop(env, sim_handle, HAL_CONFIG_DIO_RESISTOR, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE);
 
-    halsim_create_port(env, 3, &sim_handle);
+    halsim_create_port(env, GPIO_ID(P8, 3), &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_QUADRATURE);
-    halsim_config_add_conflicting_port(env, sim_handle, 1);
-    halsim_config_add_conflicting_port(env, sim_handle, 2);
+    halsim_config_add_conflicting_port(env, sim_handle, GPIO_ID(USR, 0));
+    halsim_config_add_conflicting_port(env, sim_handle, GPIO_ID(P8, 1));
 
     iterports(env);
 
     hal_handle_t handle;
-    hal_open(env, 3, HAL_TYPE_QUADRATURE, &handle);
+    hal_open(env, GPIO_ID(P8, 3), HAL_TYPE_QUADRATURE, &handle);
     halsim_get_handle(env, 3, &sim_handle);
 
     iterports(env);
