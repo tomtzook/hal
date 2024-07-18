@@ -24,7 +24,7 @@ hal_error_t hal_dio_get(hal_env_t* env, hal_handle_t handle, hal_dio_value_t* va
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Reading from DIO port %u (handle %u)", port_node->port->identifier, handle);
+    TRACE_INFO("Reading from DIO port 0x%x (handle 0x%x)", port_node->port->identifier, handle);
 
     status = env->backend.funcs.dio_get(env, &port_node->backend_port, value);
 
@@ -54,7 +54,7 @@ hal_error_t hal_dio_set(hal_env_t* env, hal_handle_t handle, hal_dio_value_t val
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Writing %d to DIO port %u (handle %u)", value, port_node->port->identifier, handle);
+    TRACE_INFO("Writing %d to DIO port 0x%x (handle 0x%x)", value, port_node->port->identifier, handle);
 
     status = env->backend.funcs.dio_set(env, &port_node->backend_port, value);
 

@@ -24,7 +24,7 @@ hal_error_t hal_aio_get(hal_env_t* env, hal_handle_t handle, uint32_t* value) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Reading from AIO port %u (handle %u)", port_node->port->identifier, handle);
+    TRACE_INFO("Reading from AIO port 0x%x (handle 0x%x)", port_node->port->identifier, handle);
 
     status = env->backend.funcs.aio_get(env, &port_node->backend_port, value);
 
@@ -54,7 +54,7 @@ hal_error_t hal_aio_set(hal_env_t* env, hal_handle_t handle, uint32_t value) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Writing %d to AIO port %u (handle %u)", value, port_node->port->identifier, handle);
+    TRACE_INFO("Writing %d to AIO port 0x%x (handle 0x%x)", value, port_node->port->identifier, handle);
 
     status = env->backend.funcs.aio_set(env, &port_node->backend_port, value);
 

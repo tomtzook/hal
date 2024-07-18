@@ -13,19 +13,12 @@
 #include "sysfs/pwm.h"
 
 
+#define max(a,b) (((a)>(b)) ? (a) : (b))
+
+
 static pin_t* get_pin_from_data(void* data) {
     pin_t** pin_out = (pin_t**) data;
     return *pin_out;
-}
-
-static size_t native_data_size_for_port(hal_env_t* env, hal_port_type_t type) {
-    if (type == HAL_TYPE_PWM_OUTPUT) {
-        return sizeof(pwm_t);
-    } else if (type == HAL_TYPE_DIGITAL_INPUT || type == HAL_TYPE_DIGITAL_OUTPUT || type == HAL_TYPE_ANALOG_INPUT) {
-        return sizeof(pin_t**);
-    }
-
-    return 0;
 }
 
 static hal_error_t open(hal_env_t* env, const hal_backend_port_t* port) {
@@ -263,7 +256,6 @@ hal_error_t hal_backend_init(hal_env_t* env) {
     hal_backend_t* backend = hal_get_backend(env);
 
     backend->name = "bbb-usermode-sysfs";
-    backend->funcs.native_data_size_for_port = native_data_size_for_port;
     backend->funcs.open = open;
     backend->funcs.close = close;
     backend->funcs.port_probe_prop = port_probe_prop;
@@ -276,9 +268,12 @@ hal_error_t hal_backend_init(hal_env_t* env) {
     backend->funcs.pwm_set_duty = pwm_setduty;
     backend->data = NULL;
 
+    const size_t allocation_size = max(sizeof(pin_t**), sizeof(pwm_t));
+
     for (int i = 0; i < get_pin_def_count(); ++i) {
         pin_t* pin = get_pin_def_for_index(i);
         HAL_RETURN_IF_ERROR(halcontrol_register_port(env, pin->id));
+        HAL_RETURN_IF_ERROR(halcontrol_config_backend_allocation_size(env, pin->id, allocation_size));
     }
 
     return HAL_SUCCESS;

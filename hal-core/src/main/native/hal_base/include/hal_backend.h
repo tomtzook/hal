@@ -16,8 +16,6 @@ typedef struct {
 
 struct hal__backend {
     struct {
-        size_t (*native_data_size_for_port)(hal_env_t* env, hal_port_type_t type);
-
         hal_error_t (*open)(hal_env_t* env, const hal_backend_port_t* port);
         hal_error_t (*close)(hal_env_t* env, const hal_backend_port_t* port);
 

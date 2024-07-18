@@ -1,5 +1,6 @@
 #include <stddef.h>
 
+#include "hal_internal.h"
 #include "hal_list.h"
 
 
@@ -12,7 +13,7 @@ int hal_list_add(hal_list_t* list, hal_list_node_t* node) {
     node->prev = NULL;
     list->head = node;
 
-    return 0;
+    return HAL_BASIC_SUCCESS;
 }
 
 int hal_list_remove(hal_list_t* list, hal_list_node_t* node) {
@@ -27,5 +28,5 @@ int hal_list_remove(hal_list_t* list, hal_list_node_t* node) {
         list->head = node->next;
     }
 
-    return 0;
+    return HAL_BASIC_SUCCESS;
 }

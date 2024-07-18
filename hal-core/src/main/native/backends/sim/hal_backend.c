@@ -15,10 +15,6 @@ static halsim_port_t* get_sim_port_from_data(void* data) {
     return *port_ptr;
 }
 
-static size_t native_data_size_for_port(hal_env_t* env, hal_port_type_t type) {
-    return sizeof(halsim_port_t**);
-}
-
 static hal_error_t open(hal_env_t* env, const hal_backend_port_t* port) {
     hal_backend_t* backend = hal_get_backend(env);
     halsim_data_t* sim_data = get_global_data(backend);
@@ -39,11 +35,6 @@ static hal_error_t open(hal_env_t* env, const hal_backend_port_t* port) {
     sim_port->is_open = 1;
     sim_port->open_type = port->type;
     memset(&sim_port->value, 0, sizeof(sim_port->value));
-
-    for (int i = 0; i < sim_port->conflicting.next_index; ++i) {
-        status = halcontrol_block_port(env, sim_port->conflicting.list[i], port->identifier);
-        HAL_JUMP_IF_ERROR(status, end);
-    }
 
     if (sim_port->open_callback != NULL) {
         status = sim_port->open_callback(env, (halsim_port_handle_t)index, port->type);
@@ -70,15 +61,7 @@ static hal_error_t close(hal_env_t* env, const hal_backend_port_t* port) {
     if (sim_port->close_callback != NULL) {
         status = sim_port->close_callback(env, sim_port->handle, port->type);
         if (HAL_IS_ERROR(status)) {
-            TRACE_ERROR("Failed to close callback for %u", sim_port->identifier);
-        }
-    }
-
-    for (int i = 0; i < sim_port->conflicting.next_index; ++i) {
-        hal_id_t c_id = sim_port->conflicting.list[i];
-        status = halcontrol_unblock_port(env, c_id);
-        if (HAL_IS_ERROR(status)) {
-            TRACE_ERROR("Failed to unblock port %u blocked by %u", c_id, sim_port->identifier);
+            TRACE_ERROR("Failed to close callback for 0x%x", sim_port->identifier);
         }
     }
 
@@ -416,7 +399,6 @@ hal_error_t hal_backend_init(hal_env_t* env) {
     hal_backend_t* backend = hal_get_backend(env);
 
     backend->name = "sim";
-    backend->funcs.native_data_size_for_port = native_data_size_for_port;
     backend->funcs.open = open;
     backend->funcs.close = close;
     backend->funcs.port_probe_prop = port_probe_prop;
@@ -466,14 +448,14 @@ hal_error_t hal_backend_init(hal_env_t* env) {
 
     return HAL_SUCCESS;
 error:
-    if (table_initialized) {
-        hal_descriptor_table_free(&data->ports);
+    if (mutex_initialized) {
+        pthread_mutex_destroy(&data->mutex);
     }
     if (mutexattr_initialized) {
         pthread_mutexattr_destroy(&data->mutex_attr);
     }
-    if (mutex_initialized) {
-        pthread_mutex_destroy(&data->mutex);
+    if (table_initialized) {
+        hal_descriptor_table_free(&data->ports);
     }
     if(data != NULL) {
         free(data);

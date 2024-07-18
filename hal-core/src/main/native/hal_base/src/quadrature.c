@@ -24,7 +24,7 @@ hal_error_t hal_quadrature_get_position(hal_env_t* env, hal_handle_t handle, uin
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Reading position from QUADRATURE port %u (handle %u)", port_node->port->identifier, handle);
+    TRACE_INFO("Reading position from QUADRATURE port 0x%x (handle 0x%x)", port_node->port->identifier, handle);
 
     status = env->backend.funcs.quadrature_get_pos(env, &port_node->backend_port, value);
 
@@ -54,7 +54,7 @@ hal_error_t hal_quadrature_set_position(hal_env_t* env, hal_handle_t handle, uin
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Writing position to QUADRATURE port %u (handle %u)", port_node->port->identifier, handle);
+    TRACE_INFO("Writing position to QUADRATURE port 0x%x (handle 0x%x)", port_node->port->identifier, handle);
 
     status = env->backend.funcs.quadrature_set_pos(env, &port_node->backend_port, value);
 
@@ -84,7 +84,7 @@ hal_error_t hal_quadrature_get_period(hal_env_t* env, hal_handle_t handle, uint3
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Reading period from QUADRATURE port %u (handle %u)", port_node->port->identifier, handle);
+    TRACE_INFO("Reading period from QUADRATURE port 0x%x (handle 0x%x)", port_node->port->identifier, handle);
 
     status = env->backend.funcs.quadrature_get_period(env, &port_node->backend_port, value);
 

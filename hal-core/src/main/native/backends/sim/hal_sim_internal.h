@@ -13,7 +13,6 @@ extern "C" {
 #endif
 
 #define MAX_PORTS 256
-#define MAX_CONFLICTING 6
 
 typedef struct {
     int configured;
@@ -34,12 +33,6 @@ typedef struct {
     int is_open;
     hal_port_type_t open_type;
     uint32_t props_values[HAL_CONFIG_KEY_MAX_COUNT];
-
-    struct {
-        size_t next_index;
-        size_t max_index;
-        hal_id_t list[MAX_CONFLICTING];
-    } conflicting;
 
     union {
         hal_dio_value_t dio_value;

@@ -29,7 +29,7 @@ hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Reading from PWM port %u (handle %u)", port_node->port->identifier, handle);
+    TRACE_INFO("Reading from PWM port 0x%x (handle 0x%x)", port_node->port->identifier, handle);
 
     status = env->backend.funcs.pwm_get_duty(env, &port_node->backend_port, value);
 
@@ -59,7 +59,7 @@ hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Writing %u to PWM port %u (handle %u)", value, port_node->port->identifier, handle);
+    TRACE_INFO("Writing 0x%x to PWM port 0x%x (handle 0x%x)", value, port_node->port->identifier, handle);
 
     status = env->backend.funcs.pwm_set_duty(env, &port_node->backend_port, value);
 
