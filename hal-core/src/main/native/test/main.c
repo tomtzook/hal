@@ -44,7 +44,10 @@ static void iterports(hal_env_t* env) {
         }
 
         status = hal_iter_port_next(env, iter);
-    } while (HAL_IS_SUCCESS(status));
+        if (HAL_IS_ERROR(status)) {
+            break;
+        }
+    } while (iter->identifier != HAL_INVALID_IDENTIFIER);
 
     hal_iter_port_end(env, iter);
 }
@@ -83,7 +86,7 @@ int main() {
 
     hal_handle_t handle;
     hal_open(env, EQEP_1, HAL_TYPE_QUADRATURE, &handle);
-    halsim_get_handle(env, 3, &sim_handle);
+    halsim_get_handle(env, EQEP_1, &sim_handle);
 
     iterports(env);
 

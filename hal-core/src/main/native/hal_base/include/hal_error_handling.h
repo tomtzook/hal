@@ -1,11 +1,11 @@
 #pragma once
 
-#include <errno.h>
 #include <syslog.h>
+#include <errno.h>
+
 #include <hal_error.h>
 
-// TODO: MAKE TRACE CALL ABSTRACT HAL METHOD
-#define TRACE(level, format, ...) syslog(level, "(%s:%d): " format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define TRACE(level, format, ...) hal__trace(level, "(%s:%d): " format, __FILE__, __LINE__, ##__VA_ARGS__)
 #define TRACE_DEBUG(format, ...) TRACE(LOG_DEBUG, format, ##__VA_ARGS__)
 #define TRACE_INFO(format, ...) TRACE(LOG_INFO, format, ##__VA_ARGS__)
 #define TRACE_ERROR(format, ...) TRACE(LOG_ERR, format, ##__VA_ARGS__)
@@ -56,3 +56,14 @@
             return; \
         } \
     } while(0)
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void hal__trace(int level, const char* format, ...);
+
+#ifdef __cplusplus
+}
+#endif

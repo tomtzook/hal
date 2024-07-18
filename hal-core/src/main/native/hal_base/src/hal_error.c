@@ -1,5 +1,8 @@
+#include <syslog.h>
+#include <stdarg.h>
 
 #include "hal_error.h"
+#include "hal_error_handling.h"
 
 
 const char* hal_strerror(hal_error_t error) {
@@ -24,4 +27,11 @@ const char* hal_strerror(hal_error_t error) {
         case HAL_ERROR_OPERATION_BAD_STATE: return "HAL operation not possible for current state";
         default: return "N/A";
     }
+}
+
+void hal__trace(int level, const char* format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    vsyslog(level, format, ap);
+    va_end(ap);
 }

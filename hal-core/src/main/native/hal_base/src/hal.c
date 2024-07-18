@@ -507,7 +507,7 @@ hal_error_t hal_iter_port_next(hal_env_t* env, hal_port_iter_t* iter) {
     }
 
     if (hal_find_next_id(env, &iter->identifier)) {
-        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_BAD_STATE, end);
+        iter->identifier = HAL_INVALID_IDENTIFIER;
     }
 
 end:
