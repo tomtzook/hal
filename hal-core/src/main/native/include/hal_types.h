@@ -49,7 +49,6 @@ typedef struct {
 } hal_port_iter_t;
 
 typedef uint32_t hal_prop_key_t;
-#define HAL_CONFIG_CUSTOM_KEY_START 0x10000
 
 typedef enum {
     HAL_CONFIG_DIO_POLL_EDGE = (0x1 << 0), // for DIO ports, hal_dio_config_poll_edge_t

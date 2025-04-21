@@ -24,10 +24,6 @@ static hal_error_t check_backend(const hal_backend_t* backend) {
 }
 
 static int is_port_config_supported_for_type(const hal_prop_key_t key, const hal_port_type_t type) {
-    if (key >= HAL_CONFIG_CUSTOM_KEY_START) {
-        return HAL_BASIC_SUCCESS;
-    }
-
     switch (key) {
         case HAL_CONFIG_DIO_POLL_EDGE:
         case HAL_CONFIG_DIO_RESISTOR:
