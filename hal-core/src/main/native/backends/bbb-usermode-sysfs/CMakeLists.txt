@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.10)
 
 set(HAL_IMPL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

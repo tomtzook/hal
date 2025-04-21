@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.10)
 
 
 set(HAL_NATIVE_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -21,7 +21,8 @@ add_library(hal_base OBJECT
         src/pwm.c
         src/table.c
         src/quadrature.c
-        src/hal_control.c)
+        src/hal_control.c
+        src/hal_types.c)
 target_include_directories(hal_base
         PUBLIC ${HAL_INCLUDES}
         PRIVATE ${HAL_NATIVE_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/internal

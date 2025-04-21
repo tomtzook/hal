@@ -17,7 +17,7 @@ typedef struct _hal_list {
 } hal_list_t;
 
 int hal_list_add(hal_list_t* list, hal_list_node_t* node);
-int hal_list_remove(hal_list_t* list, hal_list_node_t* node);
+int hal_list_remove(hal_list_t* list, const hal_list_node_t* node);
 
 #ifdef __cplusplus
 }

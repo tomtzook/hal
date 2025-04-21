@@ -7,7 +7,7 @@
 #include "hal_internal.h"
 
 
-hal_error_t halcontrol_register_port(hal_env_t* env, hal_id_t id) {
+hal_error_t halcontrol_register_port(hal_env_t* env, const hal_id_t id) {
     HAL_CHECK_INITIALIZED(env);
 
     if (id == HAL_INVALID_IDENTIFIER || id > env->port_table.capacity) {
@@ -18,7 +18,7 @@ hal_error_t halcontrol_register_port(hal_env_t* env, hal_id_t id) {
 
     pthread_mutex_lock(&env->mutex);
 
-    size_t index = (size_t) id;
+    const size_t index = (size_t) id;
     hal_port_t* port;
     if (!hal_descriptor_table_get(&env->port_table, index, (void**) &port)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_TAKEN, end);
@@ -52,14 +52,14 @@ end:
     return status;
 }
 
-hal_error_t halcontrol_config_port(hal_env_t* env, hal_id_t id, uint32_t supported_types, uint64_t supported_props) {
+hal_error_t halcontrol_config_port(hal_env_t* env, const hal_id_t id, const uint32_t supported_types, const uint64_t supported_props) {
     HAL_CHECK_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
     pthread_mutex_lock(&env->mutex);
 
-    size_t index = (size_t) id;
+    const size_t index = (size_t) id;
     hal_port_t* port;
     if (hal_descriptor_table_get(&env->port_table, index, (void**) &port)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
@@ -85,14 +85,14 @@ end:
     return status;
 }
 
-hal_error_t halcontrol_config_port_append(hal_env_t* env, hal_id_t id, uint32_t supported_types, uint64_t supported_props) {
+hal_error_t halcontrol_config_port_append(hal_env_t* env, const hal_id_t id, const uint32_t supported_types, const uint64_t supported_props) {
     HAL_CHECK_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
     pthread_mutex_lock(&env->mutex);
 
-    size_t index = (size_t) id;
+    const size_t index = (size_t) id;
     hal_port_t* port;
     if (hal_descriptor_table_get(&env->port_table, index, (void**) &port)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
@@ -118,14 +118,14 @@ end:
     return status;
 }
 
-hal_error_t halcontrol_config_add_conflicting_port(hal_env_t* env, hal_id_t id, hal_id_t conflicting_id) {
+hal_error_t halcontrol_config_add_conflicting_port(hal_env_t* env, const hal_id_t id, const hal_id_t conflicting_id) {
     HAL_CHECK_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
     pthread_mutex_lock(&env->mutex);
 
-    size_t index = (size_t) id;
+    const size_t index = (size_t) id;
     hal_port_t* port;
     if (hal_descriptor_table_get(&env->port_table, index, (void**) &port)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
@@ -150,14 +150,14 @@ end:
     return status;
 }
 
-hal_error_t halcontrol_config_backend_allocation_size(hal_env_t* env, hal_id_t id, size_t size) {
+hal_error_t halcontrol_config_backend_allocation_size(hal_env_t* env, const hal_id_t id, const size_t size) {
     HAL_CHECK_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
     pthread_mutex_lock(&env->mutex);
 
-    size_t index = (size_t) id;
+    const size_t index = (size_t) id;
     hal_port_t* port;
     if (hal_descriptor_table_get(&env->port_table, index, (void**) &port)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
@@ -177,7 +177,7 @@ end:
     return status;
 }
 
-hal_error_t halcontrol_unregister_port(hal_env_t* env, hal_id_t id) {
+hal_error_t halcontrol_unregister_port(hal_env_t* env, const hal_id_t id) {
     HAL_CHECK_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
@@ -186,7 +186,7 @@ hal_error_t halcontrol_unregister_port(hal_env_t* env, hal_id_t id) {
 
     TRACE_INFO("Unregister port 0x%x", id);
 
-    size_t index = (size_t) id;
+    const size_t index = (size_t) id;
     hal_port_t* port;
     if (hal_descriptor_table_get(&env->port_table, index, (void**) &port)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
@@ -205,7 +205,7 @@ end:
     return status;
 }
 
-hal_error_t halcontrol_block_port(hal_env_t* env, hal_id_t id, hal_id_t blocker_id) {
+hal_error_t halcontrol_block_port(hal_env_t* env, const hal_id_t id, const hal_id_t blocker_id) {
     HAL_CHECK_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
@@ -242,7 +242,7 @@ end:
     return status;
 }
 
-hal_error_t halcontrol_unblock_port(hal_env_t* env, hal_id_t id) {
+hal_error_t halcontrol_unblock_port(hal_env_t* env, const hal_id_t id) {
     HAL_CHECK_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;

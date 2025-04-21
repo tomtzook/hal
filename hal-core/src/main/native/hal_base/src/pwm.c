@@ -8,7 +8,7 @@
 
 
 
-hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t* value) {
+hal_error_t hal_pwm_get_duty_cycle(hal_env_t* env, const hal_handle_t handle, uint32_t* value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -38,7 +38,7 @@ end:
     return status;
 }
 
-hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, hal_handle_t handle, uint32_t value) {
+hal_error_t hal_pwm_set_duty_cycle(hal_env_t* env, const hal_handle_t handle, const uint32_t value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);

@@ -1,11 +1,20 @@
-#include <syslog.h>
 #include <stdarg.h>
+#include <syslog.h>
 
 #include "hal_error.h"
 #include "hal_error_handling.h"
 
 
-const char* hal_strerror(hal_error_t error) {
+static int level_to_syslog(const int level) {
+    switch (level) {
+        case LEVEL_DEBUG: return LOG_DEBUG;
+        case LEVEL_INFO: return LOG_INFO;
+        case LEVEL_ERROR: return LOG_ERR;
+        default: return LOG_DEBUG;
+    }
+}
+
+const char* hal_strerror(const hal_error_t error) {
     switch (error) {
         case HAL_SUCCESS: return "Success";
         case HAL_ERROR_NOT_INITIALIZED: return "HAL environment not initialized";
@@ -29,9 +38,9 @@ const char* hal_strerror(hal_error_t error) {
     }
 }
 
-void hal__trace(int level, const char* format, ...) {
+void hal__trace(const int level, const char* format, ...) {
     va_list ap;
     va_start(ap, format);
-    vsyslog(level, format, ap);
+    vsyslog(level_to_syslog(level), format, ap);
     va_end(ap);
 }

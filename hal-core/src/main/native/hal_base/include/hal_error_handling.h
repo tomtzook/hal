@@ -1,14 +1,17 @@
 #pragma once
 
-#include <syslog.h>
 #include <errno.h>
 
 #include <hal_error.h>
 
+#define LEVEL_DEBUG 0
+#define LEVEL_INFO 1
+#define LEVEL_ERROR 2
+
 #define TRACE(level, format, ...) hal__trace(level, "(%s:%d): " format, __FILE__, __LINE__, ##__VA_ARGS__)
-#define TRACE_DEBUG(format, ...) TRACE(LOG_DEBUG, format, ##__VA_ARGS__)
-#define TRACE_INFO(format, ...) TRACE(LOG_INFO, format, ##__VA_ARGS__)
-#define TRACE_ERROR(format, ...) TRACE(LOG_ERR, format, ##__VA_ARGS__)
+#define TRACE_DEBUG(format, ...) TRACE(LEVEL_DEBUG, format, ##__VA_ARGS__)
+#define TRACE_INFO(format, ...) TRACE(LEVEL_INFO, format, ##__VA_ARGS__)
+#define TRACE_ERROR(format, ...) TRACE(LEVEL_ERROR, format, ##__VA_ARGS__)
 #define TRACE_HAL_ERROR(error_code) TRACE_ERROR("HAL Error (%d) %s", error_code, hal_strerror(error_code))
 #define TRACE_SYSTEM_ERROR() TRACE_ERROR("System Error (%d) %s", errno, strerror(errno))
 

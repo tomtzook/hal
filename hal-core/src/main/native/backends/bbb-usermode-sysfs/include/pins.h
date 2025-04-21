@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hal_types.h>
-#include "bbb_port_ids.h"
 
 #define PIN_NUMBER(module, index) ((module) * 32 + (index))
 #define ANALOG_MAX_VALUE 4095
@@ -10,6 +9,7 @@
 #define ANALOG_SAMPLE_RATE 200000.0f // 200khz
 #define ANALOG_SAMPLE_RATE_PERIOD_US 5
 
+extern const char* PINMUX_FILE_FORMAT;
 
 typedef struct {
     const char* name;
@@ -38,13 +38,12 @@ extern pwm_pin_t PWM_PINS[];
 extern pwm_port_t PWM_PORTS[];
 
 
-pin_t* find_pin_def_for_name(const char* port_name);
-pin_t* find_pin_def_for_id(hal_id_t id);
-pin_t* get_pin_def_for_index(size_t index);
+const pin_t* find_pin_def_for_name(const char* port_name);
+const pin_t* find_pin_def_for_id(hal_id_t id);
+const pin_t* get_pin_def_for_index(size_t index);
 size_t get_pin_def_count();
 
-hal_error_t set_pin_mode(pin_t* pin, const char* mode);
-hal_error_t get_pin_mode(pin_t* pin, char* buffer);
+const char* get_pwm_module_name_for_pin(const pin_t* pin);
+const pwm_pin_t* get_pwm_pin_for_module(const char* module_name);
 
-const char* get_pwm_module_name_for_pin(pin_t* pin);
-pwm_pin_t* get_pwm_pin_for_module(const char* module_name);
+uint32_t get_supported_props(const pin_t* pin);

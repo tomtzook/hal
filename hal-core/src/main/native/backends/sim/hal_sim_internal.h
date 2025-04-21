@@ -3,7 +3,6 @@
 #include <pthread.h>
 
 #include <hal.h>
-#include <hal_config.h>
 #include <hal_table.h>
 
 #include "include/hal_sim.h"
@@ -72,7 +71,7 @@ typedef struct {
     pthread_mutexattr_t mutex_attr;
 } halsim_data_t;
 
-halsim_data_t* get_global_data(hal_backend_t* env);
+halsim_data_t* get_global_data(const hal_backend_t* env);
 halsim_data_t* get_global_data_from_env(hal_env_t* env);
 
 int find_sim_port_index(hal_backend_t* env, hal_id_t id, size_t* index);

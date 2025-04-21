@@ -1,16 +1,14 @@
 
 #include <string.h>
-#include <stdio.h>
-#include <linux/limits.h>
 
 #include <hal_types.h>
-#include <hal_error_handling.h>
 
+#include "bbb_port_ids.h"
 #include "common.h"
 #include "pins.h"
 
 
-static const char* PINMUX_FILE_FORMAT = "/sys/devices/platform/ocp/ocp:%s_pinmux/state";
+const char* PINMUX_FILE_FORMAT = "/sys/devices/platform/ocp/ocp:%s_pinmux/state";
 
 
 pin_t PINS[] = {
@@ -32,8 +30,8 @@ pin_t PINS[] = {
         {"P9_22", GPIO_ID(P9, 22), PIN_NUMBER(0, 2), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},   // UART2_RXD
         {"P9_24", GPIO_ID(P9, 24), PIN_NUMBER(0, 15), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // UART1_RXD
         {"P9_26", GPIO_ID(P9, 26), PIN_NUMBER(0, 14), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // UART1_RXD
-        {"P9_41A", GPIO_ID(P9, 41), PIN_NUMBER(0, 20), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
-        {"P9_42A", GPIO_ID(P9, 42), PIN_NUMBER(0, 7), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_41A", P9_41A, PIN_NUMBER(0, 20), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_42A", P9_42A, PIN_NUMBER(0, 7), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
         {"P8_03", GPIO_ID(P8, 3), PIN_NUMBER(1, 6), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
         {"P8_04", GPIO_ID(P8, 4), PIN_NUMBER(1, 7), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
         {"P8_05", GPIO_ID(P8, 5), PIN_NUMBER(1, 2), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
@@ -85,8 +83,8 @@ pin_t PINS[] = {
         {"P9_29", GPIO_ID(P9, 29), PIN_NUMBER(3, 15), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // SPI1_d0
         {"P9_30", GPIO_ID(P9, 30), PIN_NUMBER(3, 16), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // SPI1_D1
         {"P9_31", GPIO_ID(P9, 31), PIN_NUMBER(3, 14), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // SPI1_SCLK
-        {"P9_41B", GPIO_ID(P9, 41), PIN_NUMBER(3, 20), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
-        {"P9_42B", GPIO_ID(P9, 42), PIN_NUMBER(3, 18), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_41B", P9_41B, PIN_NUMBER(3, 20), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_42B", P9_42B, PIN_NUMBER(3, 18), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
         {"P9_33", GPIO_ID(P9, 33), 4, HAL_TYPE_ANALOG_INPUT},
         {"P9_35", GPIO_ID(P9, 35), 6, HAL_TYPE_ANALOG_INPUT},
         {"P9_36", GPIO_ID(P9, 36), 5, HAL_TYPE_ANALOG_INPUT},
@@ -118,7 +116,7 @@ pwm_port_t PWM_PORTS[] = {
         {"P9_22", "EHRPWM0A"},
 };
 
-pin_t* find_pin_def_for_name(const char* port_name) {
+const pin_t* find_pin_def_for_name(const char* port_name) {
     for (int i = 0; i < sizeof(PINS) / sizeof(pin_t); ++i) {
         pin_t* pin = PINS + i;
         if (0 == strcmp(pin->name, port_name)) {
@@ -129,7 +127,7 @@ pin_t* find_pin_def_for_name(const char* port_name) {
     return NULL;
 }
 
-pin_t* find_pin_def_for_id(hal_id_t id) {
+const pin_t* find_pin_def_for_id(hal_id_t id) {
     for (int i = 0; i < sizeof(PINS) / sizeof(pin_t); ++i) {
         pin_t* pin = PINS + i;
         if (id == pin->id) {
@@ -140,7 +138,7 @@ pin_t* find_pin_def_for_id(hal_id_t id) {
     return NULL;
 }
 
-pin_t* get_pin_def_for_index(size_t index) {
+const pin_t* get_pin_def_for_index(size_t index) {
     if (index >= sizeof(PINS) / sizeof(pin_t)) {
         return NULL;
     }
@@ -152,23 +150,7 @@ size_t get_pin_def_count() {
     return sizeof(PINS) / sizeof(pin_t);
 }
 
-hal_error_t set_pin_mode(pin_t* pin, const char* mode) {
-    char path[PATH_MAX];
-    sprintf(path, PINMUX_FILE_FORMAT, pin->name);
-
-    HAL_RETURN_IF_ERROR(write_file(path, mode));
-    return HAL_SUCCESS;
-}
-
-hal_error_t get_pin_mode(pin_t* pin, char* buffer) {
-    char path[PATH_MAX];
-    sprintf(path, PINMUX_FILE_FORMAT, pin->name);
-
-    HAL_RETURN_IF_ERROR(read_file(path, buffer, sizeof(buffer)));
-    return HAL_SUCCESS;
-}
-
-const char* get_pwm_module_name_for_pin(pin_t* pin) {
+const char* get_pwm_module_name_for_pin(const pin_t* pin) {
     for (int i = 0; i < sizeof(PWM_PORTS) / sizeof(pwm_port_t); ++i) {
         pwm_port_t* port = PWM_PORTS + i;
         if (0 == strcmp(pin->name, port->name)) {
@@ -179,7 +161,7 @@ const char* get_pwm_module_name_for_pin(pin_t* pin) {
     return NULL;
 }
 
-pwm_pin_t* get_pwm_pin_for_module(const char* module_name) {
+const pwm_pin_t* get_pwm_pin_for_module(const char* module_name) {
     for (int i = 0; i < sizeof(PWM_PINS) / sizeof(pwm_pin_t); ++i) {
         pwm_pin_t* port = PWM_PINS + i;
         if (0 == strcmp(module_name, port->module_name)) {
@@ -188,4 +170,20 @@ pwm_pin_t* get_pwm_pin_for_module(const char* module_name) {
     }
 
     return NULL;
+}
+
+uint32_t get_supported_props(const pin_t* pin) {
+    uint32_t props = 0;
+
+    if (pin->supported_types & (HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT)) {
+        props |= HAL_CONFIG_DIO_POLL_EDGE | HAL_CONFIG_DIO_RESISTOR;
+    }
+    if (pin->supported_types & (HAL_TYPE_ANALOG_INPUT | HAL_TYPE_ANALOG_OUTPUT)) {
+        props |= HAL_CONFIG_ANALOG_MAX_VALUE | HAL_CONFIG_ANALOG_MAX_VOLTAGE | HAL_CONFIG_ANALOG_SAMPLE_RATE;
+    }
+    if (pin->supported_types & HAL_TYPE_PWM_OUTPUT) {
+        props |= HAL_CONFIG_PWM_FREQUENCY;
+    }
+
+    return props;
 }

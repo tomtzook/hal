@@ -16,7 +16,7 @@ int hal_list_add(hal_list_t* list, hal_list_node_t* node) {
     return HAL_BASIC_SUCCESS;
 }
 
-int hal_list_remove(hal_list_t* list, hal_list_node_t* node) {
+int hal_list_remove(hal_list_t* list, const hal_list_node_t* node) {
     if (NULL != node->prev) {
         node->prev->next = node->next;
     }

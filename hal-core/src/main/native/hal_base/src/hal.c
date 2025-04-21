@@ -23,7 +23,11 @@ static hal_error_t check_backend(const hal_backend_t* backend) {
     return HAL_SUCCESS;
 }
 
-static int is_port_config_supported_for_type(hal_prop_key_t key, hal_port_type_t type) {
+static int is_port_config_supported_for_type(const hal_prop_key_t key, const hal_port_type_t type) {
+    if (key >= HAL_CONFIG_CUSTOM_KEY_START) {
+        return HAL_BASIC_SUCCESS;
+    }
+
     switch (key) {
         case HAL_CONFIG_DIO_POLL_EDGE:
         case HAL_CONFIG_DIO_RESISTOR:
@@ -50,7 +54,7 @@ static int is_port_config_supported_for_type(hal_prop_key_t key, hal_port_type_t
     return HAL_BASIC_SUCCESS;
 }
 
-static void close_port(hal_env_t* env, hal_open_port_node_t* port_node, size_t index) {
+static void close_port(hal_env_t* env, hal_open_port_node_t* port_node, const size_t index) {
     TRACE_INFO("closing port 0x%x of type %d (handle 0x%x)",
                port_node->backend_port.identifier, port_node->backend_port.type, port_node->handle);
 
@@ -69,7 +73,7 @@ static void close_port(hal_env_t* env, hal_open_port_node_t* port_node, size_t i
 }
 
 static hal_error_t block_conflicting_ports(hal_env_t* env, const hal_port_t* port) {
-    hal_error_t status;
+    hal_error_t status = HAL_SUCCESS;
 
     size_t conflicting_index;
     for (conflicting_index = 0; conflicting_index < port->conflicting.next_index; ++conflicting_index) {
@@ -93,12 +97,9 @@ end:
 }
 
 static void unblock_conflicting_ports(hal_env_t* env, const hal_port_t* port) {
-    hal_error_t status;
-
-    size_t conflicting_index;
-    for (conflicting_index = 0; conflicting_index < port->conflicting.next_index; ++conflicting_index) {
-        hal_id_t id = port->conflicting.list[conflicting_index];
-        status = halcontrol_unblock_port(env, id);
+    for (size_t conflicting_index = 0; conflicting_index < port->conflicting.next_index; ++conflicting_index) {
+        const hal_id_t id = port->conflicting.list[conflicting_index];
+        const hal_error_t status = halcontrol_unblock_port(env, id);
         if (HAL_IS_ERROR(status)) {
             TRACE_ERROR("failed to unblock port 0x%x", id);
         }
@@ -109,7 +110,7 @@ hal_backend_t* hal_get_backend(hal_env_t* env) {
     return &env->backend;
 }
 
-int hal_find_port_by_id(hal_env_t* env, hal_id_t id, hal_port_t** port_out) {
+int hal_find_port_by_id(const hal_env_t* env, const hal_id_t id, hal_port_t** port_out) {
     if(id == HAL_INVALID_IDENTIFIER) {
         return HAL_BASIC_ERROR;
     }
@@ -125,8 +126,8 @@ int hal_find_port_by_id(hal_env_t* env, hal_id_t id, hal_port_t** port_out) {
     return HAL_BASIC_SUCCESS;
 }
 
-int hal_find_next_id(hal_env_t* env, hal_id_t* id) {
-    hal_id_t _id = *id;
+int hal_find_next_id(const hal_env_t* env, hal_id_t* id) {
+    const hal_id_t _id = *id;
     size_t index;
     if (_id == HAL_INVALID_IDENTIFIER) {
         index = 0;
@@ -147,12 +148,12 @@ int hal_find_next_id(hal_env_t* env, hal_id_t* id) {
     return HAL_BASIC_ERROR;
 }
 
-int hal_find_port_from_handle(hal_env_t* env, hal_handle_t handle, hal_open_port_node_t** port_out, size_t* index_out) {
+int hal_find_port_from_handle(const hal_env_t* env, const hal_handle_t handle, hal_open_port_node_t** port_out, size_t* index_out) {
     if(handle == HAL_EMPTY_HANDLE) {
         return HAL_BASIC_ERROR;
     }
 
-    size_t index = (size_t) handle;
+    const size_t index = (size_t) handle;
     hal_open_port_node_t* used_port;
     if (hal_descriptor_table_get(&env->handle_table, index, (void**)&used_port)) {
         return HAL_BASIC_ERROR;
@@ -292,7 +293,7 @@ void hal_shutdown(hal_env_t* env) {
     closelog();
 }
 
-hal_error_t hal_probe(hal_env_t* env, hal_id_t id, hal_port_type_t type) {
+hal_error_t hal_probe(hal_env_t* env, const hal_id_t id, const hal_port_type_t type) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -315,7 +316,7 @@ end:
     return status;
 }
 
-hal_error_t hal_open(hal_env_t* env, hal_id_t id, hal_port_type_t type, hal_handle_t* handle) {
+hal_error_t hal_open(hal_env_t* env, const hal_id_t id, const hal_port_type_t type, hal_handle_t* handle) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -347,8 +348,8 @@ hal_error_t hal_open(hal_env_t* env, hal_id_t id, hal_port_type_t type, hal_hand
     TRACE_INFO("Opening port 0x%x of type %d", id, type);
 
     // allocate data struct
-    size_t extra_allocation_size = port->backend_extra_allocation_size;
-    size_t total_allocation_size = sizeof(hal_open_port_node_t) + extra_allocation_size;
+    const size_t extra_allocation_size = port->backend_extra_allocation_size;
+    const size_t total_allocation_size = sizeof(hal_open_port_node_t) + extra_allocation_size;
     port_node = (hal_open_port_node_t*) malloc(total_allocation_size);
     HAL_CHECK_ALLOCATED(port_node, error);
 
@@ -399,7 +400,7 @@ error:
     return status;
 }
 
-void hal_close(hal_env_t* env, hal_handle_t handle) {
+void hal_close(hal_env_t* env, const hal_handle_t handle) {
     HAL_CHECK_INITIALIZED_VOID(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -416,7 +417,7 @@ end:
     pthread_mutex_unlock(&env->mutex);
 }
 
-hal_error_t hal_get_handle(hal_env_t* env, hal_id_t id, hal_handle_t* handle) {
+hal_error_t hal_get_handle(hal_env_t* env, const hal_id_t id, hal_handle_t* handle) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -434,7 +435,7 @@ end:
     return status;
 }
 
-hal_error_t hal_get_info(hal_env_t* env, hal_id_t id, hal_port_info_t* info) {
+hal_error_t hal_get_info(hal_env_t* env, const hal_id_t id, hal_port_info_t* info) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -468,7 +469,7 @@ hal_error_t hal_iter_port_start(hal_env_t* env, hal_port_iter_t** iter) {
     pthread_mutex_lock(&env->mutex);
 
     hal_error_t status = HAL_SUCCESS;
-    hal_port_iter_t* _iter;
+    hal_port_iter_t* _iter = NULL;
 
     if (iter == NULL) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_ARGUMENT, end);
@@ -533,7 +534,7 @@ end:
     return status;
 }
 
-hal_error_t hal_port_property_probe(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t* flags) {
+hal_error_t hal_port_property_probe(hal_env_t* env, const hal_handle_t handle, const hal_prop_key_t key, uint32_t* flags) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -568,7 +569,7 @@ end:
     return status;
 }
 
-hal_error_t hal_port_get_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t* value) {
+hal_error_t hal_port_get_property(hal_env_t* env, const hal_handle_t handle, const hal_prop_key_t key, uint32_t* value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -615,7 +616,7 @@ end:
     return status;
 }
 
-hal_error_t hal_port_set_property(hal_env_t* env, hal_handle_t handle, hal_prop_key_t key, uint32_t value) {
+hal_error_t hal_port_set_property(hal_env_t* env, const hal_handle_t handle, const hal_prop_key_t key, const uint32_t value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);

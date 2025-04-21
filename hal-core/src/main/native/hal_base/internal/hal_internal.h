@@ -58,10 +58,10 @@ struct hal__env {
     hal_backend_t backend;
 };
 
-int hal_find_port_by_id(hal_env_t* env, hal_id_t id, hal_port_t** port_out);
-int hal_find_next_id(hal_env_t* env, hal_id_t* id);
+int hal_find_port_by_id(const hal_env_t* env, hal_id_t id, hal_port_t** port_out);
+int hal_find_next_id(const hal_env_t* env, hal_id_t* id);
 
-int hal_find_port_from_handle(hal_env_t* env, hal_handle_t handle, hal_open_port_node_t** port_out, size_t* index_out);
+int hal_find_port_from_handle(const hal_env_t* env, hal_handle_t handle, hal_open_port_node_t** port_out, size_t* index_out);
 
 #ifdef __cplusplus
 }

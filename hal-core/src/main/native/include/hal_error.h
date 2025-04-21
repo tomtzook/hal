@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 
-#include "hal_types.h"
-
 
 #ifdef __cplusplus
 extern "C" {

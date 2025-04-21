@@ -3,7 +3,7 @@
 #include "hal_internal.h"
 
 
-hal_error_t hal_dio_get(hal_env_t* env, hal_handle_t handle, hal_dio_value_t* value) {
+hal_error_t hal_dio_get(hal_env_t* env, const hal_handle_t handle, hal_dio_value_t* value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
@@ -33,7 +33,7 @@ end:
     return status;
 }
 
-hal_error_t hal_dio_set(hal_env_t* env, hal_handle_t handle, hal_dio_value_t value) {
+hal_error_t hal_dio_set(hal_env_t* env, const hal_handle_t handle, const hal_dio_value_t value) {
     HAL_CHECK_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);

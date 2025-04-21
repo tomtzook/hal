@@ -8,7 +8,7 @@
 #include <hal_error_handling.h>
 
 #include "common.h"
-#include "pins.h"
+#include "../include/pins.h"
 #include "gpio.h"
 
 
@@ -50,7 +50,7 @@ static hal_error_t write_numbered_file(unsigned number, const char* file, const 
 }
 
 
-hal_error_t gpio_export_pin(pin_t* pin) {
+hal_error_t gpio_export_pin(const pin_t* pin) {
     if (gpio_is_exported_pin(pin)) {
         return HAL_SUCCESS;
     }
@@ -62,7 +62,7 @@ hal_error_t gpio_export_pin(pin_t* pin) {
     return HAL_SUCCESS;
 }
 
-hal_error_t gpio_unexport_pin(pin_t* pin) {
+hal_error_t gpio_unexport_pin(const pin_t* pin) {
     if (!gpio_is_exported_pin(pin)) {
         return HAL_SUCCESS;
     }
@@ -74,13 +74,29 @@ hal_error_t gpio_unexport_pin(pin_t* pin) {
     return HAL_SUCCESS;
 }
 
-int gpio_is_exported_pin(pin_t* pin) {
+int gpio_is_exported_pin(const pin_t* pin) {
     char path[PATH_MAX] = {0};
     sprintf(path, SYSFS_FILE_FORMAT, pin->pin_number, FILE_VALUE);
     return 0 == access(path, F_OK);
 }
 
-hal_error_t gpio_set_pinmux(pin_t* pin, hal_dio_config_resistor_t resistor) {
+hal_error_t set_pin_mode(const pin_t* pin, const char* mode) {
+    char path[PATH_MAX];
+    sprintf(path, PINMUX_FILE_FORMAT, pin->name);
+
+    HAL_RETURN_IF_ERROR(write_file(path, mode));
+    return HAL_SUCCESS;
+}
+
+hal_error_t get_pin_mode(const pin_t* pin, char* buffer) {
+    char path[PATH_MAX];
+    sprintf(path, PINMUX_FILE_FORMAT, pin->name);
+
+    HAL_RETURN_IF_ERROR(read_file(path, buffer, sizeof(buffer)));
+    return HAL_SUCCESS;
+}
+
+hal_error_t gpio_set_pinmux(const pin_t* pin, const hal_dio_config_resistor_t resistor) {
     const char* to_write;
     switch (resistor) {
         case HAL_CONFIG_DIO_RESISTOR_NONE:
@@ -101,7 +117,7 @@ hal_error_t gpio_set_pinmux(pin_t* pin, hal_dio_config_resistor_t resistor) {
     return HAL_SUCCESS;
 }
 
-hal_error_t gpio_set_direction(pin_t* pin, direction_t direction) {
+hal_error_t gpio_set_direction(const pin_t* pin, const direction_t direction) {
     const char* to_write;
     switch (direction) {
         case DIR_INPUT:
@@ -118,7 +134,7 @@ hal_error_t gpio_set_direction(pin_t* pin, direction_t direction) {
     return HAL_SUCCESS;
 }
 
-hal_error_t gpio_set_edge(pin_t* pin, hal_dio_config_poll_edge_t edge) {
+hal_error_t gpio_set_edge(const pin_t* pin, const hal_dio_config_poll_edge_t edge) {
     const char* to_write;
     switch (edge) {
         case HAL_CONFIG_DIO_EDGE_NONE:
@@ -141,7 +157,7 @@ hal_error_t gpio_set_edge(pin_t* pin, hal_dio_config_poll_edge_t edge) {
     return HAL_SUCCESS;
 }
 
-hal_error_t gpio_set_value(pin_t* pin, hal_dio_value_t value) {
+hal_error_t gpio_set_value(const pin_t* pin, const hal_dio_value_t value) {
     const char* to_write;
     switch (value) {
         case HAL_DIO_LOW:
@@ -158,7 +174,7 @@ hal_error_t gpio_set_value(pin_t* pin, hal_dio_value_t value) {
     return HAL_SUCCESS;
 }
 
-hal_error_t gpio_get_pinmux(pin_t* pin, hal_dio_config_resistor_t* resistor) {
+hal_error_t gpio_get_pinmux(const pin_t* pin, hal_dio_config_resistor_t* resistor) {
     char buffer[32] = {0};
     HAL_RETURN_IF_ERROR(get_pin_mode(pin, buffer));
 
@@ -175,7 +191,7 @@ hal_error_t gpio_get_pinmux(pin_t* pin, hal_dio_config_resistor_t* resistor) {
     return HAL_SUCCESS;
 }
 
-hal_error_t gpio_get_edge(pin_t* pin, hal_dio_config_poll_edge_t* edge) {
+hal_error_t gpio_get_edge(const pin_t* pin, hal_dio_config_poll_edge_t* edge) {
     char buffer[32] = {0};
     HAL_RETURN_IF_ERROR(read_numbered_file(pin->pin_number, FILE_EDGE, buffer, sizeof(buffer)));
 
@@ -194,7 +210,7 @@ hal_error_t gpio_get_edge(pin_t* pin, hal_dio_config_poll_edge_t* edge) {
     return HAL_SUCCESS;
 }
 
-hal_error_t gpio_get_value(pin_t* pin, hal_dio_value_t* value) {
+hal_error_t gpio_get_value(const pin_t* pin, hal_dio_value_t* value) {
     char buffer[1] = {0};
     HAL_RETURN_IF_ERROR(read_numbered_file(pin->pin_number, FILE_VALUE, buffer, sizeof(buffer)));
 

@@ -2,11 +2,14 @@
 
 #include "hal_types.h"
 #include "hal_error.h"
+
+// ReSharper disable CppUnusedIncludeDirective
 #include "hal_config.h"
 #include "hal_dio.h"
 #include "hal_aio.h"
 #include "hal_pwm.h"
 #include "hal_quadrature.h"
+// ReSharper restore CppUnusedIncludeDirective
 
 
 #ifdef __cplusplus

@@ -9,8 +9,8 @@
 #include "common.h"
 
 
-hal_error_t read_file(const char* path, char* buffer, size_t size) {
-    int fd = open(path, O_RDONLY);
+hal_error_t read_file(const char* path, char* buffer, const size_t size) {
+    const int fd = open(path, O_RDONLY);
     if (fd < 0) {
         TRACE_ERROR("failed to open %s", path);
         TRACE_SYSTEM_ERROR();
@@ -18,7 +18,7 @@ hal_error_t read_file(const char* path, char* buffer, size_t size) {
     }
 
     hal_error_t status = HAL_SUCCESS;
-    ssize_t amount = read(fd, buffer, size);
+    const ssize_t amount = read(fd, buffer, size);
     if (amount < 0) {
         TRACE_ERROR("failed to read from %s", path);
         TRACE_SYSTEM_ERROR();
@@ -32,7 +32,7 @@ done:
 }
 
 hal_error_t write_file(const char* path, const char* buffer) {
-    int fd = open(path, O_WRONLY);
+    const int fd = open(path, O_WRONLY);
     if (fd < 0) {
         TRACE_ERROR("failed to open %s", path);
         TRACE_SYSTEM_ERROR();
@@ -40,7 +40,7 @@ hal_error_t write_file(const char* path, const char* buffer) {
     }
 
     hal_error_t status = HAL_SUCCESS;
-    ssize_t amount = write(fd, buffer, strlen(buffer));
+    const ssize_t amount = write(fd, buffer, strlen(buffer));
     if (amount < 0) {
         TRACE_ERROR("failed to write to %s", path);
         TRACE_SYSTEM_ERROR();

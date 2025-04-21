@@ -4,6 +4,9 @@
 #include <hal.h>
 #include <hal_error.h>
 #include <hal_sim.h>
+#include <string.h>
+
+#include "platforms.h"
 
 #define P8 (0x1 << 6)
 #define P9 (0x1 << 7)
@@ -23,9 +26,28 @@ static hal_error_t get_prop_callback(hal_env_t* env,
     return HAL_SUCCESS;
 }
 
+static void fprint_mask(char* buffer, uint32_t mask, const char*(*func)(uint32_t)) {
+    char* buffer_ptr = buffer;
+    for (int i = 0; i < sizeof(mask) * 8; ++i) {
+        const uint32_t bit = mask & (1 << i);
+        if (bit) {
+            if (buffer_ptr > buffer) {
+                buffer_ptr[0] = '|';
+                buffer_ptr++;
+            }
+
+            const char* str = func(bit);
+            buffer_ptr = strcpy(buffer_ptr, str);
+            buffer_ptr += strlen(str);
+        }
+    }
+
+    // null terminator
+    buffer_ptr[0] = '\0';
+}
+
 static void iterports(hal_env_t* env) {
     hal_error_t status;
-
     hal_port_iter_t* iter;
     status = hal_iter_port_start(env, &iter);
     if (HAL_IS_ERROR(status)) {
@@ -37,8 +59,15 @@ static void iterports(hal_env_t* env) {
         hal_port_info_t info;
         status = hal_get_info(env, iter->identifier, &info);
         if (HAL_IS_SUCCESS(status)) {
-            printf("\tPORT: id=0x%x, types=0x%x, props=0x%lx, flags=0x%x, handle=0x%x\n",
-                   info.identifier, info.supported_types, info.supported_props, info.flags, info.open_handle);
+            char types_str[256];
+            fprint_mask(types_str, info.supported_types, hal_port_type_str);
+            char props_str[256];
+            fprint_mask(props_str, info.supported_props, hal_prop_key_str);
+            char flags_str[256];
+            fprint_mask(flags_str, info.flags, hal_port_flag_str);
+
+            printf("\tPORT: id=0x%x, types=%s (0x%x), props=%s (0x%lx), flags=%s (0x%x), handle=0x%x\n",
+                   info.identifier, types_str, info.supported_types, props_str, info.supported_props, flags_str, info.flags, info.open_handle);
         } else {
             printf("\tPORT: id=0x%x (failed to get more info)\n", iter->identifier);
         }
@@ -52,10 +81,6 @@ static void iterports(hal_env_t* env) {
     hal_iter_port_end(env, iter);
 }
 
-void a(int b[]) {
-
-}
-
 int main() {
     hal_env_t* env = NULL;
     if (HAL_IS_ERROR(hal_init(&env))) {
@@ -66,7 +91,11 @@ int main() {
     const hal_id_t P8_1 = GPIO_ID(P8, 1);
     const hal_id_t EQEP_1 = GPIO_ID(P8, 3);
 
-    halsim_port_handle_t sim_handle;
+    if (HAL_IS_ERROR(configure_bbb_ports(env))) {
+        return 1;
+    }
+
+    /*halsim_port_handle_t sim_handle;
     halsim_create_port(env, USR_0, &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_DIGITAL_INPUT);
     halsim_config_port_prop(env, sim_handle, HAL_CONFIG_DIO_POLL_EDGE, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE);
@@ -80,21 +109,24 @@ int main() {
     halsim_create_port(env, EQEP_1, &sim_handle);
     halsim_config_port_types(env, sim_handle, HAL_TYPE_QUADRATURE);
     halsim_config_add_conflicting_port(env, sim_handle, USR_0);
-    halsim_config_add_conflicting_port(env, sim_handle, P8_1);
+    halsim_config_add_conflicting_port(env, sim_handle, P8_1);*/
 
     iterports(env);
+
+    /*hal_handle_t handle;
+    hal_open(env, EQEP_1, HAL_TYPE_QUADRATURE, &handle);
+    halsim_get_handle(env, EQEP_1, &sim_handle);*/
 
     hal_handle_t handle;
-    hal_open(env, EQEP_1, HAL_TYPE_QUADRATURE, &handle);
-    halsim_get_handle(env, EQEP_1, &sim_handle);
+    hal_open(env, P8_1, HAL_TYPE_DIGITAL_OUTPUT, &handle);
+    hal_port_set_property(env, handle, HAL_CONFIG_DIO_POLL_EDGE, HAL_CONFIG_DIO_EDGE_BOTH);
 
     iterports(env);
 
-    halsim_quadrature_set_position(env, sim_handle, 50);
-
+    /*halsim_quadrature_set_position(env, sim_handle, 50);
     uint32_t value;
     hal_quadrature_get_position(env, handle, &value);
-    printf("POS: 0x%x\n", value);
+    printf("POS: 0x%x\n", value);*/
 
 end:
     hal_shutdown(env);

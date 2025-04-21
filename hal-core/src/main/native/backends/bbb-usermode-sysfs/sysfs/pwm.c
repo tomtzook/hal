@@ -2,8 +2,8 @@
 #include <linux/limits.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <stdlib.h>
 
+#include <hal_error_handling.h>
 #include "common.h"
 #include "pwm.h"
 
@@ -21,26 +21,26 @@ static const char* FILE_FREQUENCY = "period";
 static const char* FILE_ENABLE = "enable";
 
 
-int is_pwm_exported(pwm_pin_t* pin) {
+static int is_pwm_exported(const pwm_pin_t* pin) {
     char path[PATH_MAX] = {0};
     sprintf(path, OCP_PWM_PATH, pin->chip, pin->addr, pin->chip_index, pin->chip_index, pin->index, FILE_DUTY_CYCLE);
     return 0 == access(path, F_OK);
 }
 
-hal_error_t write_pwm_file(pwm_pin_t* pin, const char* file, const char* buffer) {
+static hal_error_t write_pwm_file(const pwm_pin_t* pin, const char* file, const char* buffer) {
     char path[PATH_MAX];
     sprintf(path, OCP_PWM_PATH, pin->chip, pin->addr, pin->chip_index, pin->chip_index, pin->index, file);
 
     return write_file(path, buffer);
 }
 
-hal_error_t write_pwm_file_i(pwm_pin_t* pin, const char* file, unsigned value) {
+static hal_error_t write_pwm_file_i(const pwm_pin_t* pin, const char* file, unsigned value) {
     char buffer[32] = {0};
     sprintf(buffer, "%d", value);
     return write_pwm_file(pin, file, buffer);
 }
 
-hal_error_t write_pwmchip_file(pwm_pin_t* pin, const char* file, const char* buffer) {
+static hal_error_t write_pwmchip_file(const pwm_pin_t* pin, const char* file, const char* buffer) {
     char path[PATH_MAX];
     sprintf(path, OCP_PWMCHIP_PATH, pin->chip, pin->addr, pin->chip_index, file);
 
@@ -48,7 +48,7 @@ hal_error_t write_pwmchip_file(pwm_pin_t* pin, const char* file, const char* buf
 }
 
 
-hal_error_t pwm_export(pwm_t* pwm) {
+hal_error_t pwm_export(const pwm_t* pwm) {
     if (is_pwm_exported(pwm->pin)) {
         return HAL_SUCCESS;
     }
@@ -58,7 +58,7 @@ hal_error_t pwm_export(pwm_t* pwm) {
     return write_pwmchip_file(pwm->pin, "export", buffer);
 }
 
-hal_error_t pwm_unexport(pwm_t* pwm) {
+hal_error_t pwm_unexport(const pwm_t* pwm) {
     if (!is_pwm_exported(pwm->pin)) {
         return HAL_SUCCESS;
     }
@@ -68,15 +68,15 @@ hal_error_t pwm_unexport(pwm_t* pwm) {
     return write_pwmchip_file(pwm->pin, "unexport", buffer);
 }
 
-hal_error_t pwm_enable(pwm_t* pwm) {
+hal_error_t pwm_enable(const pwm_t* pwm) {
     return write_pwm_file_i(pwm->pin, FILE_ENABLE, 1);
 }
 
-hal_error_t pwm_disable(pwm_t* pwm) {
+hal_error_t pwm_disable(const pwm_t* pwm) {
     return write_pwm_file_i(pwm->pin, FILE_ENABLE, 0);
 }
 
-hal_error_t pwm_set_duty_cycle(pwm_t* pwm, uint32_t duty) {
+hal_error_t pwm_set_duty_cycle(pwm_t* pwm, const uint32_t duty) {
     uint32_t duty_ns = duty * 1000;
     if (duty_ns > pwm->period_ns) {
         return HAL_ERROR_BAD_ARGUMENT;
@@ -88,7 +88,7 @@ hal_error_t pwm_set_duty_cycle(pwm_t* pwm, uint32_t duty) {
     return HAL_SUCCESS;
 }
 
-hal_error_t pwm_set_frequency(pwm_t* pwm, uint32_t frequency) {
+hal_error_t pwm_set_frequency(pwm_t* pwm, const uint32_t frequency) {
     pwm_disable(pwm);
 
     hal_error_t status;
