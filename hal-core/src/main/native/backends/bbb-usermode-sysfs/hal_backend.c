@@ -315,6 +315,7 @@ hal_error_t hal_backend_init(hal_env_t* env) {
         const pin_t* pin = get_pin_def_for_index(i);
         HAL_RETURN_IF_ERROR(halcontrol_register_port(env, pin->id));
         HAL_RETURN_IF_ERROR(halcontrol_config_port(env, pin->id, pin->supported_types, get_supported_props(pin)));
+        HAL_RETURN_IF_ERROR(halcontrol_config_port_name(env, pin->id, pin->name));
         HAL_RETURN_IF_ERROR(halcontrol_config_backend_allocation_size(env, pin->id, allocation_size));
     }
 

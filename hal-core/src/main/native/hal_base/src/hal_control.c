@@ -4,6 +4,9 @@
 #include <hal.h>
 
 #include "hal_control.h"
+
+#include <string.h>
+
 #include "hal_internal.h"
 
 
@@ -42,6 +45,8 @@ hal_error_t halcontrol_register_port(hal_env_t* env, const hal_id_t id) {
     port->backend_extra_allocation_size = 0;
     port->conflicting.next_index = 0;
 
+    memset(port->name, 0, sizeof(port->name));
+
 end:
     if (HAL_IS_ERROR(status)) {
         free(port);
@@ -49,6 +54,37 @@ end:
 
     pthread_mutex_unlock(&env->mutex);
 
+    return status;
+}
+
+hal_error_t halcontrol_config_port_name(hal_env_t* env, const hal_id_t id, const char* name) {
+    HAL_CHECK_INITIALIZED(env);
+
+    hal_error_t status = HAL_SUCCESS;
+
+    pthread_mutex_lock(&env->mutex);
+
+    const size_t index = (size_t) id;
+    hal_port_t* port;
+    if (hal_descriptor_table_get(&env->port_table, index, (void**) &port)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
+    }
+
+    TRACE_INFO("Configuring port 0x%x with name %s", id, name);
+
+    const size_t name_length = strlen(name);
+    if (name_length >= sizeof(port->name) - 1) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_ARGUMENT, end);
+    }
+    if (name[0] == '\0') {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_ARGUMENT, end);
+    }
+
+    memcpy(port->name, name, name_length);
+    port->name[name_length] = '\0';
+
+end:
+    pthread_mutex_unlock(&env->mutex);
     return status;
 }
 
@@ -230,8 +266,13 @@ hal_error_t halcontrol_block_port(hal_env_t* env, const hal_id_t id, const hal_i
     }
 
     if ((port->flags & HAL_FLAG_BLOCKED) != 0) {
-        TRACE_ERROR("port 0x%x already blocked by 0x%x", id, port->blocker_id);
-        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_BAD_STATE, end);
+        if (port->blocker_id == blocker_id) {
+            // already blocked for requested
+            goto end;
+        } else {
+            TRACE_ERROR("port 0x%x already blocked by 0x%x", id, port->blocker_id);
+            HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_BAD_STATE, end);
+        }
     }
 
     port->flags |= HAL_FLAG_BLOCKED;

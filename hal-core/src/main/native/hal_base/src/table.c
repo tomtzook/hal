@@ -19,7 +19,7 @@ static int find_next_free_index(const hal_descriptor_table_t* table, size_t* ind
 }
 
 int hal_descriptor_table_init(hal_descriptor_table_t* table, const size_t size) {
-    size_t mem_size = sizeof(hal_descriptor_element_t) * size;
+    const size_t mem_size = sizeof(hal_descriptor_element_t) * size;
     hal_descriptor_element_t* elements = malloc(mem_size);
     if (elements == NULL) {
         return HAL_BASIC_ERROR;

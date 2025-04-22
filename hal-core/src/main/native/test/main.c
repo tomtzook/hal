@@ -66,8 +66,13 @@ static void iterports(hal_env_t* env) {
             char flags_str[256];
             fprint_mask(flags_str, info.flags, hal_port_flag_str);
 
-            printf("\tPORT: id=0x%x, types=%s (0x%x), props=%s (0x%lx), flags=%s (0x%x), handle=0x%x\n",
-                   info.identifier, types_str, info.supported_types, props_str, info.supported_props, flags_str, info.flags, info.open_handle);
+            const char* name = info.name != NULL ? info.name : "";
+            printf("\tPORT: id=0x%x name=%s, types=%s (0x%x), props=%s (0x%lx), flags=%s (0x%x), handle=0x%x\n",
+                   info.identifier, name,
+                   types_str, info.supported_types,
+                   props_str, info.supported_props,
+                   flags_str, info.flags,
+                   info.open_handle);
         } else {
             printf("\tPORT: id=0x%x (failed to get more info)\n", iter->identifier);
         }
@@ -120,8 +125,6 @@ int main() {
     hal_handle_t handle;
     hal_open(env, P8_1, HAL_TYPE_DIGITAL_OUTPUT, &handle);
     hal_port_set_property(env, handle, HAL_CONFIG_DIO_POLL_EDGE, HAL_CONFIG_DIO_EDGE_BOTH);
-
-    iterports(env);
 
     /*halsim_quadrature_set_position(env, sim_handle, 50);
     uint32_t value;

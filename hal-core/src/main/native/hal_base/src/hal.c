@@ -73,7 +73,7 @@ static hal_error_t block_conflicting_ports(hal_env_t* env, const hal_port_t* por
 
     size_t conflicting_index;
     for (conflicting_index = 0; conflicting_index < port->conflicting.next_index; ++conflicting_index) {
-        hal_id_t id = port->conflicting.list[conflicting_index];
+        const hal_id_t id = port->conflicting.list[conflicting_index];
         status = halcontrol_block_port(env, id, port->identifier);
         HAL_JUMP_IF_ERROR(status, end);
     }
@@ -81,8 +81,8 @@ static hal_error_t block_conflicting_ports(hal_env_t* env, const hal_port_t* por
 end:
     if (HAL_IS_ERROR(status)) {
         for (int i = 0; i <= conflicting_index; ++i) {
-            hal_id_t id = port->conflicting.list[i];
-            hal_error_t _status = halcontrol_unblock_port(env, id);
+            const hal_id_t id = port->conflicting.list[i];
+            const hal_error_t _status = halcontrol_unblock_port(env, id);
             if (HAL_IS_ERROR(_status)) {
                 TRACE_ERROR("failed to unblock port 0x%x", id);
             }
@@ -200,11 +200,11 @@ hal_error_t hal_init(hal_env_t** env) {
 
     _env->handle_table.elements = NULL;
     _env->port_table.elements = NULL;
+    table_initialized = 1; // mark this first in case one fails, the null check will guard
     if (hal_descriptor_table_init(&_env->handle_table, HAL_HANDLE_TABLE_SIZE) ||
         hal_descriptor_table_init(&_env->port_table, HAL_PORT_TABLE_SIZE)) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, error);
     }
-    table_initialized = 1;
 
     memset(&_env->backend, 0, sizeof(_env->backend));
     _env->backend.name = "N/A";
@@ -452,6 +452,12 @@ hal_error_t hal_get_info(hal_env_t* env, const hal_id_t id, hal_port_info_t* inf
         info->open_handle = port->open_handle;
     } else {
         info->open_handle = HAL_EMPTY_HANDLE;
+    }
+
+    if (port->name[0] != '\0') {
+        info->name = port->name;
+    } else {
+        info->name = NULL;
     }
 
 end:

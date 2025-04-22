@@ -17,6 +17,7 @@ extern "C" {
 #define HAL_PORT_TABLE_SIZE 512
 #define HAL_HANDLE_TABLE_SIZE 256
 #define HAL_MAX_CONFLICTING 8
+#define HAL_PORT_NAME_MAX_SIZE 32
 
 #define HAL_BASIC_SUCCESS 0
 #define HAL_BASIC_ERROR 1
@@ -26,6 +27,8 @@ typedef struct {
     uint32_t supported_types;
     uint64_t supported_props;
     uint32_t flags;
+
+    char name[HAL_PORT_NAME_MAX_SIZE];
 
     hal_handle_t open_handle;
     hal_id_t blocker_id;

@@ -41,6 +41,8 @@ typedef struct {
     uint64_t supported_props;
     uint32_t flags;
 
+    const char* name;
+
     hal_handle_t open_handle;
 } hal_port_info_t;
 

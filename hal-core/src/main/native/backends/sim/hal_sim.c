@@ -73,6 +73,30 @@ end:
     return status;
 }
 
+hal_error_t halsim_config_port_name(hal_env_t* env, const halsim_port_handle_t port_handle, const char* name) {
+    halsim_data_t* sim_data = get_global_data_from_env(env);
+
+    pthread_mutex_lock(&sim_data->mutex);
+
+    hal_error_t status = HAL_SUCCESS;
+    halsim_port_t* port;
+    if (find_sim_port_from_handle(hal_get_backend(env), port_handle, &port, NULL)) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_HANDLE, end);
+    }
+
+    if (port->is_open) {
+        HAL_JUMP_IF_ERROR(HAL_ERROR_OPERATION_BAD_STATE, end);
+    }
+
+    TRACE_INFO("Configuring port 0x%x (handle 0x%x) with name %s", port->identifier, port_handle, name);
+
+    HAL_JUMP_IF_ERROR(halcontrol_config_port_name(env, port->identifier, name), end);
+
+end:
+    pthread_mutex_unlock(&sim_data->mutex);
+    return status;
+}
+
 hal_error_t halsim_config_port_types(hal_env_t* env, const halsim_port_handle_t port_handle, const uint32_t types) {
     halsim_data_t* sim_data = get_global_data_from_env(env);
 
