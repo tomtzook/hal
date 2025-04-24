@@ -5,6 +5,7 @@
 
 #include <hal.h>
 
+#include "hal_error_handling.h"
 #include "hal_control.h"
 #include "hal_backend.h"
 #include "hal_internal.h"
@@ -209,6 +210,8 @@ hal_error_t hal_init(hal_env_t** env) {
     memset(&_env->backend, 0, sizeof(_env->backend));
     _env->backend.name = "N/A";
 
+    __sync_fetch_and_or(&_env->initialized, HAL_INITIALIZED_SERVICES);
+
     TRACE_INFO("Initializing BACKEND");
     status = hal_backend_init(_env);
     HAL_JUMP_IF_ERROR(status, error);
@@ -219,11 +222,14 @@ hal_error_t hal_init(hal_env_t** env) {
 
     TRACE_INFO("Using BACKEND %s", _env->backend.name);
 
-    __sync_fetch_and_or(&_env->initialized, 1);
+    __sync_fetch_and_or(&_env->initialized, HAL_INITIALIZED_BACKEND);
+
     *env = _env;
     return HAL_SUCCESS;
 error:
     *env = NULL;
+    __sync_fetch_and_and(&_env->initialized, 0);
+
     if (backend_initialized) {
         hal_backend_shutdown(_env);
     }
@@ -258,6 +264,7 @@ void hal_shutdown(hal_env_t* env) {
 
     pthread_mutex_lock(&env->mutex);
 
+    TRACE_INFO("Closing all handles");
     for (size_t i = 0; i < env->handle_table.capacity; ++i) {
         hal_open_port_node_t* port_node;
         if (!hal_descriptor_table_get(&env->handle_table, i, (void**) &port_node)) {
@@ -266,6 +273,7 @@ void hal_shutdown(hal_env_t* env) {
         }
     }
 
+    TRACE_INFO("Removing all ports");
     for (size_t i = 0; i < env->port_table.capacity; ++i) {
         hal_port_t* port;
         if (!hal_descriptor_table_get(&env->port_table, i, (void**) &port)) {
@@ -274,6 +282,7 @@ void hal_shutdown(hal_env_t* env) {
         }
     }
 
+    TRACE_INFO("Shutting down BACKEND");
     hal_backend_shutdown(env);
 
     __sync_fetch_and_and(&env->initialized, 0);
@@ -286,11 +295,13 @@ void hal_shutdown(hal_env_t* env) {
     pthread_mutexattr_destroy(&env->mutex_attr);
     free(env);
 
+    TRACE_INFO("Shutdown finished");
+
     closelog();
 }
 
 hal_error_t hal_probe(hal_env_t* env, const hal_id_t id, const hal_port_type_t type) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -313,7 +324,7 @@ end:
 }
 
 hal_error_t hal_open(hal_env_t* env, const hal_id_t id, const hal_port_type_t type, hal_handle_t* handle) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -397,7 +408,7 @@ error:
 }
 
 void hal_close(hal_env_t* env, const hal_handle_t handle) {
-    HAL_CHECK_INITIALIZED_VOID(env);
+    HAL_CHECK_FULL_INITIALIZED_VOID(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -414,7 +425,7 @@ end:
 }
 
 hal_error_t hal_get_handle(hal_env_t* env, const hal_id_t id, hal_handle_t* handle) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -432,7 +443,7 @@ end:
 }
 
 hal_error_t hal_get_info(hal_env_t* env, const hal_id_t id, hal_port_info_t* info) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -466,7 +477,7 @@ end:
 }
 
 hal_error_t hal_iter_port_start(hal_env_t* env, hal_port_iter_t** iter) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -499,7 +510,7 @@ end:
 }
 
 hal_error_t hal_iter_port_next(hal_env_t* env, hal_port_iter_t* iter) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -519,7 +530,7 @@ end:
 }
 
 hal_error_t hal_iter_port_end(hal_env_t* env, hal_port_iter_t* iter) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -537,7 +548,7 @@ end:
 }
 
 hal_error_t hal_port_property_probe(hal_env_t* env, const hal_handle_t handle, const hal_prop_key_t key, uint32_t* flags) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -572,7 +583,7 @@ end:
 }
 
 hal_error_t hal_port_get_property(hal_env_t* env, const hal_handle_t handle, const hal_prop_key_t key, uint32_t* value) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -619,7 +630,7 @@ end:
 }
 
 hal_error_t hal_port_set_property(hal_env_t* env, const hal_handle_t handle, const hal_prop_key_t key, const uint32_t value) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 

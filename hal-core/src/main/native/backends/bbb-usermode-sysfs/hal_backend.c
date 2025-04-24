@@ -11,6 +11,8 @@
 #include "include/pins.h"
 #include "sysfs/pwm.h"
 
+// todo: quad/counter support
+// todo: set pinmode based on need
 
 #define max(a,b) (((a)>(b)) ? (a) : (b))
 
@@ -34,7 +36,7 @@ static hal_error_t open(hal_env_t* env, const hal_backend_port_t* port) {
     }
 
     if (port->type == HAL_TYPE_DIGITAL_INPUT) {
-        const pin_t** pin_out = (pin_t**) port->data;
+        const pin_t** pin_out = (const pin_t**) port->data;
         if (pin_out == NULL) {
             return HAL_ERROR_BAD_DATA;
         }
@@ -42,11 +44,11 @@ static hal_error_t open(hal_env_t* env, const hal_backend_port_t* port) {
         *pin_out = pin;
 
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
-        HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_INPUT));
         HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_CONFIG_DIO_RESISTOR_PULLDOWN));
         HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_CONFIG_DIO_EDGE_RISING));
+        HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_INPUT));
     } else if (port->type == HAL_TYPE_DIGITAL_OUTPUT){
-        const pin_t** pin_out = (pin_t**) port->data;
+        const pin_t** pin_out = (const pin_t**) port->data;
         if (pin_out == NULL) {
             return HAL_ERROR_BAD_DATA;
         }
@@ -54,9 +56,11 @@ static hal_error_t open(hal_env_t* env, const hal_backend_port_t* port) {
         *pin_out = pin;
 
         HAL_RETURN_IF_ERROR(gpio_export_pin(pin));
+        HAL_RETURN_IF_ERROR(gpio_set_pinmux(pin, HAL_CONFIG_DIO_RESISTOR_NONE));
+        HAL_RETURN_IF_ERROR(gpio_set_edge(pin, HAL_CONFIG_DIO_EDGE_NONE));
         HAL_RETURN_IF_ERROR(gpio_set_direction(pin, DIR_OUTPUT));
     } else if (port->type == HAL_TYPE_ANALOG_INPUT) {
-        const pin_t** pin_out = (pin_t**) port->data;
+        const pin_t** pin_out = (const pin_t**) port->data;
         if (pin_out == NULL) {
             return HAL_ERROR_BAD_DATA;
         }
@@ -284,10 +288,14 @@ static hal_error_t pwm_getduty(hal_env_t* env, const hal_backend_port_t* port, u
     return HAL_SUCCESS;
 }
 
-static hal_error_t pwm_setduty(hal_env_t* env, const hal_backend_port_t* port, uint32_t value) {
+static hal_error_t pwm_setduty(hal_env_t* env, const hal_backend_port_t* port, const uint32_t value) {
     pwm_t* pwm = (pwm_t*) port->data;
     if (pwm == NULL) {
         return HAL_ERROR_BAD_DATA;
+    }
+    if ((value * 1000) > pwm->period_ns) {
+        TRACE_ERROR(TRACE_TITLE "Requested duty cycle is longer than set period");
+        return HAL_ERROR_BAD_ARGUMENT;
     }
 
     return pwm_set_duty_cycle(pwm, value);

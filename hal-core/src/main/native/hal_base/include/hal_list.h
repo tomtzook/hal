@@ -40,7 +40,7 @@ extern "C" {
     }\
     int hal_list_ ##name## _add(hal_list_ ##name## _t* list, data_type data, size_t* index) { \
         if (list->elements == NULL) {                                         \
-            return;                                                           \
+            return HAL_BASIC_ERROR;                                                           \
         }                                                                      \
         if (list->size >= list->capacity) {                                     \
             const size_t new_capacity = list->capacity + 10;                    \

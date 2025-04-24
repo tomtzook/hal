@@ -6,7 +6,6 @@
 
 #include "hal_list.h"
 #include "hal_table.h"
-#include "hal_error_handling.h"
 #include "hal_backend.h"
 
 

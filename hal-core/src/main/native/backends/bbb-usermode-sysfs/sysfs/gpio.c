@@ -16,6 +16,7 @@ static const char* SYSFS_EXPORT = "/sys/class/gpio/export";
 static const char* SYSFS_UNEXPORT = "/sys/class/gpio/unexport";
 
 static const char* SYSFS_FILE_FORMAT = "/sys/class/gpio/gpio%d/%s";
+static const char* PINMUX_FILE_FORMAT = "/sys/devices/platform/ocp/ocp:%s_pinmux/state";
 
 static const char* FILE_DIRECTION = "direction";
 static const char* FILE_EDGE = "edge";

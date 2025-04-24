@@ -27,6 +27,6 @@ target_include_directories(hal_base
         PUBLIC ${HAL_INCLUDES}
         PRIVATE ${HAL_NATIVE_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/internal
         )
-target_link_libraries(hal_base PRIVATE Threads::Threads)
+target_link_libraries(hal_base PUBLIC Threads::Threads)
 
 set(HAL_NATIVE_INCLUDES ${HAL_NATIVE_INCLUDES} PARENT_SCOPE)

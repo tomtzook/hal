@@ -1,10 +1,11 @@
 
 #include <hal_dio.h>
+#include "hal_error_handling.h"
 #include "hal_internal.h"
 
 
 hal_error_t hal_dio_get(hal_env_t* env, const hal_handle_t handle, hal_dio_value_t* value) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 
@@ -34,7 +35,7 @@ end:
 }
 
 hal_error_t hal_dio_set(hal_env_t* env, const hal_handle_t handle, const hal_dio_value_t value) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_FULL_INITIALIZED(env);
 
     pthread_mutex_lock(&env->mutex);
 

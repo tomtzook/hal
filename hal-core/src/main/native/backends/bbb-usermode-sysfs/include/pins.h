@@ -9,8 +9,6 @@
 #define ANALOG_SAMPLE_RATE 200000.0f // 200khz
 #define ANALOG_SAMPLE_RATE_PERIOD_US 5
 
-extern const char* PINMUX_FILE_FORMAT;
-
 typedef struct {
     const char* name;
     hal_id_t id;

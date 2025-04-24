@@ -1,17 +1,15 @@
 
 #include <malloc.h>
-
-#include <hal.h>
-
-#include "hal_control.h"
-
 #include <string.h>
 
+#include <hal.h>
+#include "hal_error_handling.h"
 #include "hal_internal.h"
+#include "hal_control.h"
 
 
 hal_error_t halcontrol_register_port(hal_env_t* env, const hal_id_t id) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_SERVICES_INITIALIZED(env);
 
     if (id == HAL_INVALID_IDENTIFIER || id > env->port_table.capacity) {
         HAL_RETURN_IF_ERROR(HAL_ERROR_BAD_ARGUMENT);
@@ -58,7 +56,7 @@ end:
 }
 
 hal_error_t halcontrol_config_port_name(hal_env_t* env, const hal_id_t id, const char* name) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_SERVICES_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
@@ -74,7 +72,7 @@ hal_error_t halcontrol_config_port_name(hal_env_t* env, const hal_id_t id, const
 
     const size_t name_length = strlen(name);
     if (name_length >= sizeof(port->name) - 1) {
-        HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_ARGUMENT, end);
+        HAL_JUMP_IF_ERROR(HAL_ERROR_NO_SPACE, end);
     }
     if (name[0] == '\0') {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_ARGUMENT, end);
@@ -89,7 +87,7 @@ end:
 }
 
 hal_error_t halcontrol_config_port(hal_env_t* env, const hal_id_t id, const uint32_t supported_types, const uint64_t supported_props) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_SERVICES_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
@@ -122,7 +120,7 @@ end:
 }
 
 hal_error_t halcontrol_config_port_append(hal_env_t* env, const hal_id_t id, const uint32_t supported_types, const uint64_t supported_props) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_SERVICES_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
@@ -155,7 +153,7 @@ end:
 }
 
 hal_error_t halcontrol_config_add_conflicting_port(hal_env_t* env, const hal_id_t id, const hal_id_t conflicting_id) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_SERVICES_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
@@ -187,7 +185,7 @@ end:
 }
 
 hal_error_t halcontrol_config_backend_allocation_size(hal_env_t* env, const hal_id_t id, const size_t size) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_SERVICES_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
@@ -214,7 +212,7 @@ end:
 }
 
 hal_error_t halcontrol_unregister_port(hal_env_t* env, const hal_id_t id) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_SERVICES_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
@@ -242,7 +240,7 @@ end:
 }
 
 hal_error_t halcontrol_block_port(hal_env_t* env, const hal_id_t id, const hal_id_t blocker_id) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_SERVICES_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 
@@ -284,7 +282,7 @@ end:
 }
 
 hal_error_t halcontrol_unblock_port(hal_env_t* env, const hal_id_t id) {
-    HAL_CHECK_INITIALIZED(env);
+    HAL_CHECK_SERVICES_INITIALIZED(env);
 
     hal_error_t status = HAL_SUCCESS;
 

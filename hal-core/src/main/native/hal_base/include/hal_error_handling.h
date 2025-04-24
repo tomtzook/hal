@@ -42,20 +42,32 @@
         } \
     } while(0)
 
-#define HAL_IS_INITIALIZED(ptr) __sync_fetch_and_or(&ptr->initialized, 0)
+#define HAL_INITIALIZED_SERVICES (1 << 0)
+#define HAL_INITIALIZED_BACKEND (1 << 1)
+#define HAL_INITIALIZED_FULL HAL_INITIALIZED_SERVICES | HAL_INITIALIZED_BACKEND
 
-#define HAL_CHECK_INITIALIZED(ptr) \
+#define HAL_IS_INITIALIZED(ptr, level) ((__sync_fetch_and_or(&ptr->initialized, 0) & (level)) != 0)
+
+#define HAL_CHECK_SERVICES_INITIALIZED(ptr) \
     do {                            \
-        if(NULL == ptr || !HAL_IS_INITIALIZED(ptr)) { \
-            TRACE_ERROR("HAL Uninitialized");     \
+        if(NULL == ptr || !HAL_IS_INITIALIZED(ptr, HAL_INITIALIZED_SERVICES)) { \
+            TRACE_ERROR("HAL Uninitialized (0x%x)", ptr->initialized);     \
             return HAL_ERROR_NOT_INITIALIZED; \
         } \
     } while(0)
 
-#define HAL_CHECK_INITIALIZED_VOID(ptr) \
+#define HAL_CHECK_FULL_INITIALIZED(ptr) \
     do {                            \
-        if(NULL == ptr || !HAL_IS_INITIALIZED(ptr)) {  \
-            TRACE_ERROR("HAL Uninitialized"); \
+        if(NULL == ptr || !HAL_IS_INITIALIZED(ptr, HAL_INITIALIZED_FULL)) { \
+            TRACE_ERROR("HAL Uninitialized (0x%x)", ptr->initialized);    \
+            return HAL_ERROR_NOT_INITIALIZED; \
+        } \
+    } while(0)
+
+#define HAL_CHECK_FULL_INITIALIZED_VOID(ptr) \
+    do {                            \
+        if(NULL == ptr || !HAL_IS_INITIALIZED(ptr, HAL_INITIALIZED_FULL)) {  \
+            TRACE_ERROR("HAL Uninitialized (0x%x)", ptr->initialized); \
             return; \
         } \
     } while(0)
