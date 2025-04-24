@@ -1,0 +1,188 @@
+
+#include <string.h>
+
+#include <hal_types.h>
+
+#include "bbb_port_ids.h"
+#include "common.h"
+#include "pins.h"
+
+
+pin_t PINS[] = {
+        {"P8_13", P8_13, 0, 23, PIN_NUMBER(0, 23), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_PWM_OUTPUT},  // EHRPWM2B
+        {"P8_14", P8_14, 0, 26, PIN_NUMBER(0, 26), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_PWM_OUTPUT},  // EHRPWM2A
+        {"P8_17", P8_17, 0, 27, PIN_NUMBER(0, 27), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_19", P8_19, 0, 22, PIN_NUMBER(0, 22), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_31", P8_31, 0, 10, PIN_NUMBER(0, 10), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // UART5_CTSN
+        {"P8_32", P8_32, 0, 11, PIN_NUMBER(0, 11), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // UART5_RTSN
+        {"P8_33", P8_33, 0, 9, PIN_NUMBER(0, 9), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},   // UART4_RTSN
+        {"P8_35", P8_35, 0, 8, PIN_NUMBER(0, 8), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},   // UART4_CTSN
+        {"P9_11", P9_11, 0, 30, PIN_NUMBER(0, 30), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // UART4_RXD
+        {"P9_13", P9_13, 0, 31, PIN_NUMBER(0, 31), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // UART4_TXD
+        {"P9_17", P9_17, 0, 5, PIN_NUMBER(0, 5), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},   // I2C1_SCL
+        {"P9_18", P9_18, 0, 4, PIN_NUMBER(0, 4), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},   // I2C1_SDA
+        {"P9_19", P9_19, 0, 13, PIN_NUMBER(0, 13), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // I2C2_SCL
+        {"P9_20", P9_20, 0, 12, PIN_NUMBER(0, 12), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // I2C2_SDA
+        {"P9_21", P9_21, 0, 3, PIN_NUMBER(0, 3), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},   // UART2_TXD
+        {"P9_22", P9_22, 0, 2, PIN_NUMBER(0, 2), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},   // UART2_RXD
+        {"P9_24", P9_24, 0, 15, PIN_NUMBER(0, 15), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // UART1_RXD
+        {"P9_26", P9_26, 0, 14, PIN_NUMBER(0, 14), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},  // UART1_RXD
+        {"P9_41A", P9_41A, 0, 20, PIN_NUMBER(0, 20), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_42A", P9_42A, 0, 7, PIN_NUMBER(0, 7), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_03", P8_03, 1, 6, PIN_NUMBER(1, 6), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_04", P8_04, 1, 7, PIN_NUMBER(1, 7), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_05", P8_05, 1, 2, PIN_NUMBER(1, 2), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_06", P8_06, 1, 3, PIN_NUMBER(1, 3), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_11", P8_11, 1, 13, PIN_NUMBER(1, 13), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_12", P8_12, 1, 12, PIN_NUMBER(1, 12), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_15", P8_15, 1, 15, PIN_NUMBER(1, 15), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_16", P8_16, 1, 14, PIN_NUMBER(1, 14), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_20", P8_20, 1, 31, PIN_NUMBER(1, 31), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_21", P8_21, 1, 30, PIN_NUMBER(1, 30), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_22", P8_22, 1, 5, PIN_NUMBER(1, 5), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_23", P8_23, 1, 4, PIN_NUMBER(1, 4), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_24", P8_24, 1, 1, PIN_NUMBER(1, 1), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_25", P8_25, 1, 0, PIN_NUMBER(1, 0), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_26", P8_26, 1, 29, PIN_NUMBER(1, 29), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_12", P9_12, 1, 28, PIN_NUMBER(1, 28), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_14", P9_14, 1, 18, PIN_NUMBER(1, 18), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_15", P9_15, 1, 16, PIN_NUMBER(1, 16), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_PWM_OUTPUT}, // EHRPWM1A
+        {"P9_16", P9_16, 1, 19, PIN_NUMBER(1, 19), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_PWM_OUTPUT}, // EHRPWM1B
+        {"P9_23", P9_23, 1, 17, PIN_NUMBER(1, 17), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"USR0", USR0, 1, 21, PIN_NUMBER(1, 21), HAL_TYPE_DIGITAL_OUTPUT},
+        {"USR1", USR1, 1, 22, PIN_NUMBER(1, 22), HAL_TYPE_DIGITAL_OUTPUT},
+        {"USR2", USR2, 1, 23, PIN_NUMBER(1, 23), HAL_TYPE_DIGITAL_OUTPUT},
+        {"USR3", USR3, 1, 24, PIN_NUMBER(1, 24), HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_07", P8_07, 2, 2, PIN_NUMBER(2, 2), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // TIMER4
+        {"P8_08", P8_08, 2, 3, PIN_NUMBER(2, 3), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // TIMER7
+        {"P8_09", P8_09, 2, 5, PIN_NUMBER(2, 5), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // TIMER5
+        {"P8_10", P8_10, 2, 4, PIN_NUMBER(2, 4), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // TIMER6
+        {"P8_18", P8_18, 2, 1, PIN_NUMBER(2, 1), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_27", P8_27, 2, 22, PIN_NUMBER(2, 22), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_28", P8_28, 2, 24, PIN_NUMBER(2, 24), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_29", P8_29, 2, 23, PIN_NUMBER(2, 23), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_30", P8_30, 2, 25, PIN_NUMBER(2, 25), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_34", P8_34, 2, 17, PIN_NUMBER(2, 17), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // UART3_RTSN
+        {"P8_36", P8_36, 2, 16, PIN_NUMBER(2, 16), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // UART3_CTSN
+        {"P8_37", P8_37, 2, 14, PIN_NUMBER(2, 14), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // UART5_TXD
+        {"P8_38", P8_38, 2, 15, PIN_NUMBER(2, 15), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // UART5_RXD
+        {"P8_39", P8_39, 2, 12, PIN_NUMBER(2, 12), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_40", P8_40, 2, 13, PIN_NUMBER(2, 13), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_41", P8_41, 2, 10, PIN_NUMBER(2, 10), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_42", P8_42, 2, 11, PIN_NUMBER(2, 11), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_43", P8_43, 2, 8, PIN_NUMBER(2, 8), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_44", P8_44, 2, 9, PIN_NUMBER(2, 9), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_45", P8_45, 2, 6, PIN_NUMBER(2, 6), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P8_46", P8_46, 2, 7, PIN_NUMBER(2, 7), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_25", P9_25, 3, 21, PIN_NUMBER(3, 21), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_27", P9_27, 3, 19, PIN_NUMBER(3, 19), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_28", P9_28, 3, 17, PIN_NUMBER(3, 17), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // SPI1_CS0
+        {"P9_29", P9_29, 3, 15, PIN_NUMBER(3, 15), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // SPI1_d0
+        {"P9_30", P9_30, 3, 16, PIN_NUMBER(3, 16), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // SPI1_D1
+        {"P9_31", P9_31, 3, 14, PIN_NUMBER(3, 14), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT}, // SPI1_SCLK
+        {"P9_41B", P9_41B, 3, 20, PIN_NUMBER(3, 20), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+        {"P9_42B", P9_42B, 3, 18, PIN_NUMBER(3, 18), HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT},
+
+        // analog only pins
+        {"P9_33", P9_33, 0, 4, 4, HAL_TYPE_ANALOG_INPUT},
+        {"P9_35", P9_35, 0, 6, 6, HAL_TYPE_ANALOG_INPUT},
+        {"P9_36", P9_36, 0, 5, 5, HAL_TYPE_ANALOG_INPUT},
+        {"P9_37", P9_37, 0, 2, 2, HAL_TYPE_ANALOG_INPUT},
+        {"P9_38", P9_38, 0, 3, 3, HAL_TYPE_ANALOG_INPUT},
+        {"P9_39", P9_39, 0, 0, 0, HAL_TYPE_ANALOG_INPUT},
+        {"P9_40", P9_40, 0, 1, 1, HAL_TYPE_ANALOG_INPUT},
+};
+
+pwm_pin_t PWM_PINS[] = {
+        {"EHRPWM2B", "48304000", "48304200", 7, 1},
+        {"EHRPWM2A", "48304000", "48304200", 7, 0},
+        {"EHRPWM1B", "48302000", "48302200", 4, 1},
+        {"EHRPWM1A", "48302000", "48302200", 4, 0},
+        {"EHRPWM0B", "48300000", "48300200", 1, 1},
+        {"EHRPWM0A", "48300000", "48300200", 1, 0},
+};
+
+pwm_port_t PWM_PORTS[] = {
+        {"P8_13", "EHRPWM2B"},
+        {"P8_19", "EHRPWM2A"},
+        {"P8_34", "EHRPWM1B"},
+        {"P8_36", "EHRPWM1A"},
+        {"P8_45", "EHRPWM2A"},
+        {"P8_46", "EHRPWM2B"},
+        {"P9_14", "EHRPWM1A"},
+        {"P9_16", "EHRPWM1B"},
+        {"P9_21", "EHRPWM0B"},
+        {"P9_22", "EHRPWM0A"},
+};
+
+const pin_t* find_pin_def_for_name(const char* port_name) {
+    for (int i = 0; i < sizeof(PINS) / sizeof(pin_t); ++i) {
+        pin_t* pin = PINS + i;
+        if (0 == strcmp(pin->name, port_name)) {
+            return pin;
+        }
+    }
+
+    return NULL;
+}
+
+const pin_t* find_pin_def_for_id(hal_id_t id) {
+    for (int i = 0; i < sizeof(PINS) / sizeof(pin_t); ++i) {
+        pin_t* pin = PINS + i;
+        if (id == pin->id) {
+            return pin;
+        }
+    }
+
+    return NULL;
+}
+
+const pin_t* get_pin_def_for_index(size_t index) {
+    if (index >= sizeof(PINS) / sizeof(pin_t)) {
+        return NULL;
+    }
+
+    return PINS + index;
+}
+
+size_t get_pin_def_count() {
+    return sizeof(PINS) / sizeof(pin_t);
+}
+
+const char* get_pwm_module_name_for_pin(const pin_t* pin) {
+    for (int i = 0; i < sizeof(PWM_PORTS) / sizeof(pwm_port_t); ++i) {
+        pwm_port_t* port = PWM_PORTS + i;
+        if (0 == strcmp(pin->name, port->name)) {
+            return port->module_name;
+        }
+    }
+
+    return NULL;
+}
+
+const pwm_pin_t* get_pwm_pin_for_module(const char* module_name) {
+    for (int i = 0; i < sizeof(PWM_PINS) / sizeof(pwm_pin_t); ++i) {
+        pwm_pin_t* port = PWM_PINS + i;
+        if (0 == strcmp(module_name, port->module_name)) {
+            return port;
+        }
+    }
+
+    return NULL;
+}
+
+uint32_t get_supported_props(const pin_t* pin) {
+    uint32_t props = 0;
+
+    if (pin->supported_types & (HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT)) {
+        props |= HAL_CONFIG_DIO_POLL_EDGE | HAL_CONFIG_DIO_RESISTOR;
+    }
+    if (pin->supported_types & (HAL_TYPE_ANALOG_INPUT | HAL_TYPE_ANALOG_OUTPUT)) {
+        props |= HAL_CONFIG_ANALOG_MAX_VALUE | HAL_CONFIG_ANALOG_MAX_VOLTAGE | HAL_CONFIG_ANALOG_SAMPLE_RATE;
+    }
+    if (pin->supported_types & HAL_TYPE_PWM_OUTPUT) {
+        props |= HAL_CONFIG_PWM_FREQUENCY;
+    }
+
+    return props;
+}

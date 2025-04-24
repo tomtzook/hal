@@ -75,7 +75,17 @@ static void iterports(hal_env_t* env) {
 int main() {
     signal(SIGINT, stop_run);
 
-    hal_env_t* env = NULL;
+
+    for (int i = 0; i < 10000; i++) {
+        if (!continue_running) {
+            break;
+        }
+
+        usleep(100000000);
+    }
+
+    return 0;
+    /*hal_env_t* env = NULL;
     if (HAL_IS_ERROR(hal_init(&env))) {
         return 1;
     }
@@ -99,7 +109,7 @@ int main() {
     }
 
     hal_port_set_property(env, handle, HAL_CONFIG_PWM_FREQUENCY, 10000);
-    hal_pwm_set_duty_cycle(env, handle, 5000);*/
+    hal_pwm_set_duty_cycle(env, handle, 5000);
 
     for (int i = 0; i < 10000; i++) {
         if (!continue_running) {
@@ -113,5 +123,5 @@ int main() {
 
 end:
     hal_shutdown(env);
-    return 0;
+    return 0;*/
 }

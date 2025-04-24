@@ -30,6 +30,11 @@ typedef enum {
     HAL_ERROR_OPERATION_BAD_STATE,
     HAL_ERROR_NO_SPACE,
 
+    // todo: str
+    HAL_ERROR_MEMORY_ACCESS,
+    HAL_ERROR_MAPPING_FAILED,
+    HAL_ERROR_ALREADY_MAPPED,
+
     HAL_CUSTOM_ERROR_STATE = 0xffff
 } hal_error_value_t;
 
