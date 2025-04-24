@@ -87,6 +87,7 @@ static hal_error_t open(hal_env_t* env, const hal_backend_port_t* port) {
         HAL_CHECK_ALLOCATED(pwm, pwm_error);
 
         pwm->pin = pwm_pin;
+        pwm->enabled = 0;
         pwm->duty_ns = 0;
         pwm->period_ns = 0;
 
@@ -96,7 +97,15 @@ static hal_error_t open(hal_env_t* env, const hal_backend_port_t* port) {
         status = pwm_export(pwm);
         HAL_JUMP_IF_ERROR(status, pwm_error);
 
-        status = pwm_set_frequency(pwm, 1000000);
+        status = pwm_reload_is_enabled(pwm);
+        HAL_JUMP_IF_ERROR(status, pwm_error);
+
+        if (pwm->enabled) {
+            status = pwm_disable(pwm);
+            HAL_JUMP_IF_ERROR(status, pwm_error);
+        }
+
+        status = pwm_set_period(pwm, 10000); // set frequency to 100hz
         HAL_JUMP_IF_ERROR(status, pwm_error);
 
         return HAL_SUCCESS;
@@ -116,6 +125,10 @@ static hal_error_t close(hal_env_t* env, const hal_backend_port_t* port) {
     }
 
     if (port->type == HAL_TYPE_DIGITAL_INPUT || port->type == HAL_TYPE_DIGITAL_OUTPUT) {
+        if (port->type == HAL_TYPE_DIGITAL_OUTPUT) {
+            gpio_set_value(pin, HAL_DIO_LOW);
+        }
+
         gpio_unexport_pin(pin);
     } else if (port->type == HAL_TYPE_ANALOG_INPUT) {
         // no action needed
@@ -237,7 +250,20 @@ static hal_error_t port_set_prop(hal_env_t* env, const hal_backend_port_t* port,
             }
 
             pwm_t* pwm = (pwm_t*) port->data;
-            return pwm_set_frequency(pwm, value);
+            const int was_enabled = pwm->enabled;
+            if (was_enabled) {
+                HAL_RETURN_IF_ERROR(pwm_disable(pwm));
+            }
+
+            hal_error_t status = pwm_set_period(pwm, value);
+            HAL_JUMP_IF_ERROR(status, pwm_end);
+
+            pwm_end:
+            if (was_enabled) {
+                pwm_enable(pwm);
+            }
+
+            return status;
         }
         default:
             return HAL_ERROR_CONFIG_KEY_NOT_SUPPORTED;
@@ -293,12 +319,23 @@ static hal_error_t pwm_setduty(hal_env_t* env, const hal_backend_port_t* port, c
     if (pwm == NULL) {
         return HAL_ERROR_BAD_DATA;
     }
-    if ((value * 1000) > pwm->period_ns) {
-        TRACE_ERROR(TRACE_TITLE "Requested duty cycle is longer than set period");
-        return HAL_ERROR_BAD_ARGUMENT;
+
+    const int was_enabled = pwm->enabled;
+    if (was_enabled) {
+        HAL_RETURN_IF_ERROR(pwm_disable(pwm));
     }
 
-    return pwm_set_duty_cycle(pwm, value);
+    hal_error_t status = pwm_set_duty_cycle(pwm, value);
+    HAL_JUMP_IF_ERROR(status, end);
+
+end:
+    if (HAL_IS_SUCCESS(status)) {
+        status = pwm_enable(pwm);
+    } else if (was_enabled) {
+        pwm_enable(pwm);
+    }
+
+    return status;
 }
 
 hal_error_t hal_backend_init(hal_env_t* env) {

@@ -9,12 +9,17 @@
 #include "common.h"
 
 
+hal_error_t os_error_to_hal_error(int error) {
+    // todo: implement
+    return HAL_ERROR_ENVIRONMENT;
+}
+
 hal_error_t read_file(const char* path, char* buffer, const size_t size) {
     const int fd = open(path, O_RDONLY);
     if (fd < 0) {
         TRACE_ERROR("failed to open %s", path);
         TRACE_SYSTEM_ERROR();
-        return HAL_ERROR_ENVIRONMENT;
+        return os_error_to_hal_error(errno);
     }
 
     hal_error_t status = HAL_SUCCESS;
@@ -22,7 +27,7 @@ hal_error_t read_file(const char* path, char* buffer, const size_t size) {
     if (amount < 0) {
         TRACE_ERROR("failed to read from %s", path);
         TRACE_SYSTEM_ERROR();
-        status = HAL_ERROR_ENVIRONMENT;
+        status = os_error_to_hal_error(errno);
         goto done;
     }
 
@@ -36,7 +41,7 @@ hal_error_t write_file(const char* path, const char* buffer) {
     if (fd < 0) {
         TRACE_ERROR("failed to open %s", path);
         TRACE_SYSTEM_ERROR();
-        return HAL_ERROR_ENVIRONMENT;
+        return os_error_to_hal_error(errno);
     }
 
     hal_error_t status = HAL_SUCCESS;
@@ -44,7 +49,7 @@ hal_error_t write_file(const char* path, const char* buffer) {
     if (amount < 0) {
         TRACE_ERROR("failed to write to %s", path);
         TRACE_SYSTEM_ERROR();
-        status = HAL_ERROR_ENVIRONMENT;
+        status = os_error_to_hal_error(errno);
         goto done;
     }
 

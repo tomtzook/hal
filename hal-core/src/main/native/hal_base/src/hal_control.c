@@ -32,7 +32,7 @@ hal_error_t halcontrol_register_port(hal_env_t* env, const hal_id_t id) {
         HAL_JUMP_IF_ERROR(HAL_ERROR_BAD_DATA, end);
     }
 
-    TRACE_INFO("Registering port 0x%x", id);
+    TRACE_DEBUG("Registering port 0x%x", id);
 
     port->identifier = id;
     port->supported_types = 0;
@@ -68,7 +68,7 @@ hal_error_t halcontrol_config_port_name(hal_env_t* env, const hal_id_t id, const
         HAL_JUMP_IF_ERROR(HAL_ERROR_NOT_FOUND, end);
     }
 
-    TRACE_INFO("Configuring port 0x%x with name %s", id, name);
+    TRACE_DEBUG("Configuring port 0x%x with name %s", id, name);
 
     const size_t name_length = strlen(name);
     if (name_length >= sizeof(port->name) - 1) {
@@ -104,7 +104,7 @@ hal_error_t halcontrol_config_port(hal_env_t* env, const hal_id_t id, const uint
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Configuring port 0x%x", id);
+    TRACE_DEBUG("Configuring port 0x%x", id);
 
     if (supported_types != HAL_OPT_UINT32) {
         port->supported_types = supported_types;
@@ -137,7 +137,7 @@ hal_error_t halcontrol_config_port_append(hal_env_t* env, const hal_id_t id, con
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Configuring port 0x%x", id);
+    TRACE_DEBUG("Configuring port 0x%x", id);
 
     if (supported_types != HAL_OPT_UINT32) {
         port->supported_types |= supported_types;
@@ -170,7 +170,7 @@ hal_error_t halcontrol_config_add_conflicting_port(hal_env_t* env, const hal_id_
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Configuring on port 0x%x conflicting 0x%x", id, conflicting_id);
+    TRACE_DEBUG("Configuring on port 0x%x conflicting 0x%x", id, conflicting_id);
 
     if (port->conflicting.next_index >= HAL_MAX_CONFLICTING) {
         HAL_RETURN_IF_ERROR(HAL_ERROR_NO_SPACE);
@@ -202,7 +202,7 @@ hal_error_t halcontrol_config_backend_allocation_size(hal_env_t* env, const hal_
         HAL_JUMP_IF_ERROR(HAL_ERROR_UNSUPPORTED_OPERATION, end);
     }
 
-    TRACE_INFO("Configuring on port 0x%x with backend allocation size 0x%lx", id, size);
+    TRACE_DEBUG("Configuring on port 0x%x with backend allocation size 0x%lx", id, size);
 
     port->backend_extra_allocation_size = size;
 
@@ -218,7 +218,7 @@ hal_error_t halcontrol_unregister_port(hal_env_t* env, const hal_id_t id) {
 
     pthread_mutex_lock(&env->mutex);
 
-    TRACE_INFO("Unregister port 0x%x", id);
+    TRACE_DEBUG("Unregister port 0x%x", id);
 
     const size_t index = (size_t) id;
     hal_port_t* port;
@@ -246,7 +246,7 @@ hal_error_t halcontrol_block_port(hal_env_t* env, const hal_id_t id, const hal_i
 
     pthread_mutex_lock(&env->mutex);
 
-    TRACE_INFO("Blocking port 0x%x for port 0x%x", id, blocker_id);
+    TRACE_DEBUG("Blocking port 0x%x for port 0x%x", id, blocker_id);
 
     hal_port_t* port;
     if (hal_find_port_by_id(env, id, &port)) {
@@ -288,7 +288,7 @@ hal_error_t halcontrol_unblock_port(hal_env_t* env, const hal_id_t id) {
 
     pthread_mutex_lock(&env->mutex);
 
-    TRACE_INFO("Unblocking port 0x%x", id);
+    TRACE_DEBUG("Unblocking port 0x%x", id);
 
     hal_port_t* port;
     if (hal_find_port_by_id(env, id, &port)) {

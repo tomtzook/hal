@@ -7,6 +7,8 @@
 #include "common.h"
 #include "pwm.h"
 
+#include <stdlib.h>
+
 //sys/devices/platform/ocp/{chip}.epwmss/{addr}.pwm/pwm/pwmchip{chip_index}/pwm-{chip_index}:{index}/
 //                                                                                                 duty_cycle
 //                                                                                                 enable
@@ -19,8 +21,8 @@
 static const char* OCP_PWM_PATH = "/sys/devices/platform/ocp/%s.epwmss/%s.pwm/pwm/pwmchip%d/pwm-%u:%u/%s";
 static const char* OCP_PWMCHIP_PATH = "/sys/devices/platform/ocp/%s.epwmss/%s.pwm/pwm/pwmchip%u/%s";
 #else
-static const char* CLASS_PWMCHIP_PATH = "sys/class/pwm/pwmchip%d/%s";
-static const char* CLASS_PWM_PATH = "sys/class/pwm/pwmchip%d/pwm%d/%s";
+static const char* CLASS_PWMCHIP_PATH = "/sys/class/pwm/pwmchip%d/%s";
+static const char* CLASS_PWM_PATH = "/sys/class/pwm/pwmchip%d/pwm%d/%s";
 #endif
 
 static const char* FILE_DUTY_CYCLE = "duty_cycle";
@@ -52,7 +54,27 @@ static hal_error_t write_pwm_file(const pwm_pin_t* pin, const char* file, const 
     return write_file(path, buffer);
 }
 
-static hal_error_t write_pwm_file_i(const pwm_pin_t* pin, const char* file, unsigned value) {
+static hal_error_t read_pwm_file(const pwm_pin_t* pin, const char* file, char* buffer, const size_t size) {
+    char path[PATH_MAX];
+
+#if USE_OCP
+    sprintf(path, OCP_PWM_PATH, pin->chip, pin->addr, pin->chip_index, pin->chip_index, pin->index, file);
+#else
+    sprintf(path, CLASS_PWM_PATH, pin->chip_index, pin->index, file);
+#endif
+
+    return read_file(path, buffer, size);
+}
+
+static hal_error_t read_pwm_file_i(const pwm_pin_t* pin, const char* file, unsigned* value) {
+    char buffer[8] = {0};
+    HAL_RETURN_IF_ERROR(read_pwm_file(pin, file, buffer, sizeof(buffer)));
+
+    *value = atoi(buffer);
+    return HAL_SUCCESS;
+}
+
+static hal_error_t write_pwm_file_i(const pwm_pin_t* pin, const char* file, const unsigned value) {
     char buffer[32] = {0};
     sprintf(buffer, "%d", value);
     return write_pwm_file(pin, file, buffer);
@@ -91,18 +113,41 @@ hal_error_t pwm_unexport(const pwm_t* pwm) {
     return write_pwmchip_file(pwm->pin, "unexport", buffer);
 }
 
-hal_error_t pwm_enable(const pwm_t* pwm) {
-    return write_pwm_file_i(pwm->pin, FILE_ENABLE, 1);
+hal_error_t pwm_reload_is_enabled(pwm_t* pwm) {
+    unsigned value;
+    HAL_RETURN_IF_ERROR(read_pwm_file_i(pwm->pin, FILE_ENABLE, &value));
+
+    pwm->enabled = (value != 0);
+    return HAL_SUCCESS;
 }
 
-hal_error_t pwm_disable(const pwm_t* pwm) {
-    return write_pwm_file_i(pwm->pin, FILE_ENABLE, 0);
+hal_error_t pwm_enable(pwm_t* pwm) {
+    const hal_error_t status = write_pwm_file_i(pwm->pin, FILE_ENABLE, 1);
+    if (HAL_IS_SUCCESS(status)) {
+        pwm->enabled = 1;
+        return HAL_SUCCESS;
+    }
+
+    return status;
 }
 
-hal_error_t pwm_set_duty_cycle(pwm_t* pwm, const uint32_t duty) {
-    const uint32_t duty_ns = duty * 1000;
+hal_error_t pwm_disable(pwm_t* pwm) {
+    const hal_error_t status = write_pwm_file_i(pwm->pin, FILE_ENABLE, 0);
+    if (HAL_IS_SUCCESS(status)) {
+        pwm->enabled = 0;
+        return HAL_SUCCESS;
+    }
+
+    return status;
+}
+
+hal_error_t pwm_set_duty_cycle(pwm_t* pwm, const uint32_t duty_us) {
+    const uint32_t duty_ns = duty_us * 1000;
     if (duty_ns > pwm->period_ns) {
         return HAL_ERROR_BAD_ARGUMENT;
+    }
+    if (duty_ns == pwm->duty_ns) {
+        return HAL_SUCCESS;
     }
 
     HAL_RETURN_IF_ERROR(write_pwm_file_i(pwm->pin, FILE_DUTY_CYCLE, duty_ns));
@@ -111,19 +156,24 @@ hal_error_t pwm_set_duty_cycle(pwm_t* pwm, const uint32_t duty) {
     return HAL_SUCCESS;
 }
 
-hal_error_t pwm_set_frequency(pwm_t* pwm, const uint32_t frequency) {
-    pwm_disable(pwm);
+hal_error_t pwm_set_period(pwm_t* pwm, const uint32_t period_us) {
+    const uint32_t period_ns = period_us * 1000;
+    if (period_ns == pwm->period_ns) {
+        return HAL_SUCCESS;
+    }
 
-    const uint32_t duty = pwm->duty_ns / 1000;
-    const uint32_t period_ns = (uint32_t)(frequency * 10e3);
     hal_error_t status = write_pwm_file_i(pwm->pin, FILE_FREQUENCY, period_ns);
     HAL_JUMP_IF_ERROR(status, end);
+
     pwm->period_ns = period_ns;
 
-    status = pwm_set_duty_cycle(pwm, duty);
-    HAL_JUMP_IF_ERROR(status, end);
+    if (pwm->duty_ns <= period_ns) {
+        status = pwm_set_duty_cycle(pwm, (pwm->duty_ns / 1000));
+        HAL_JUMP_IF_ERROR(status, end);
+    } else {
+        pwm->duty_ns = 0;
+    }
 
 end:
-    pwm_enable(pwm);
     return status;
 }

@@ -39,6 +39,8 @@ const char* hal_strerror(const hal_error_t error) {
 }
 
 void hal__trace(const int level, const char* format, ...) {
+    if (level == LEVEL_DEBUG) return;
+
     va_list ap;
     va_start(ap, format);
     vsyslog(level_to_syslog(level), format, ap);

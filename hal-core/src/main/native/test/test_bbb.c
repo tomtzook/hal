@@ -1,10 +1,16 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <signal.h>
+
 #include <hal.h>
 #include <bbb_port_ids.h>
-#include <unistd.h>
 
+volatile sig_atomic_t continue_running = 1;
+void stop_run(int sig) {
+    continue_running = 0;
+}
 
 static void fprint_mask(char* buffer, uint32_t mask, const char*(*func)(uint32_t)) {
     char* buffer_ptr = buffer;
@@ -67,6 +73,8 @@ static void iterports(hal_env_t* env) {
 }
 
 int main() {
+    signal(SIGINT, stop_run);
+
     hal_env_t* env = NULL;
     if (HAL_IS_ERROR(hal_init(&env))) {
         return 1;
@@ -77,16 +85,29 @@ int main() {
     hal_handle_t handle;
     hal_error_t status;
 
-    status = hal_open(env, EHRPWM2B, HAL_TYPE_PWM_OUTPUT, &handle);
+    status = hal_open(env, P8_13, HAL_TYPE_DIGITAL_OUTPUT, &handle);
+    if (HAL_IS_ERROR(status)) {
+        printf("failed open: 0x%x\n", status);
+        goto end;
+    }
+    hal_dio_set(env, handle, HAL_DIO_HIGH);
+
+    /*status = hal_open(env, EHRPWM2B, HAL_TYPE_PWM_OUTPUT, &handle);
     if (HAL_IS_ERROR(status)) {
         printf("failed open: 0x%x\n", status);
         goto end;
     }
 
-    hal_port_set_property(env, handle, HAL_CONFIG_PWM_FREQUENCY, 1000000);
-    hal_pwm_set_duty_cycle(env, handle, 500000);
+    hal_port_set_property(env, handle, HAL_CONFIG_PWM_FREQUENCY, 10000);
+    hal_pwm_set_duty_cycle(env, handle, 5000);*/
 
-    usleep(1000000);
+    for (int i = 0; i < 10000; i++) {
+        if (!continue_running) {
+            break;
+        }
+
+        usleep(100000000);
+    }
 
     hal_close(env, handle);
 

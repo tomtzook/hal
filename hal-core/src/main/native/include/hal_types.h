@@ -59,6 +59,8 @@ typedef enum {
     HAL_CONFIG_ANALOG_MAX_VOLTAGE = (0x1 << 3), // in milli-volts (integer), for AIO ports
     HAL_CONFIG_ANALOG_SAMPLE_RATE = (0x1 << 4), // in microsecond period (integer), for AIO ports
     HAL_CONFIG_PWM_FREQUENCY = (0x1 << 5), // in microsecond period (integer), for PWM ports
+    // todo: technically this is period and not frequency, so maybe rename?
+    // todo: add values for max and min periods
 } hal_config_known_key_t;
 
 typedef enum {
