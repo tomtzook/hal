@@ -34,6 +34,7 @@ typedef enum {
     HAL_ERROR_MEMORY_ACCESS,
     HAL_ERROR_MAPPING_FAILED,
     HAL_ERROR_ALREADY_MAPPED,
+    HAL_ERROR_FILE_ACCESS,
 
     HAL_CUSTOM_ERROR_STATE = 0xffff
 } hal_error_value_t;

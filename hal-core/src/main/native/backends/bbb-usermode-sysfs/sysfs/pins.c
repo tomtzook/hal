@@ -172,7 +172,7 @@ const pwm_pin_t* get_pwm_pin_for_module(const char* module_name) {
 uint32_t get_supported_props(const pin_t* pin) {
     uint32_t props = 0;
 
-    if (pin->supported_types & (HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT)) {
+    if (pin->supported_types & (HAL_TYPE_DIGITAL_INPUT)) {
         props |= HAL_CONFIG_DIO_POLL_EDGE | HAL_CONFIG_DIO_RESISTOR;
     }
     if (pin->supported_types & (HAL_TYPE_ANALOG_INPUT | HAL_TYPE_ANALOG_OUTPUT)) {

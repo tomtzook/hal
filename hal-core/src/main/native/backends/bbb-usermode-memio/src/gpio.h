@@ -13,11 +13,11 @@ typedef enum {
     DIR_INPUT
 } direction_t;
 
-hal_error_t gpio_get_pinmux(const bbb_env_t* env, const pin_t* pin, hal_dio_config_resistor_t* resistor);
+// todo: debouncing
+
 hal_error_t gpio_get_edge(const bbb_env_t* env, const pin_t* pin, hal_dio_config_poll_edge_t* edge);
 hal_error_t gpio_get_value(const bbb_env_t* env, const pin_t* pin, direction_t dir, hal_dio_value_t* value);
 
 hal_error_t gpio_set_direction(const bbb_env_t* env, const pin_t* pin, direction_t direction);
-hal_error_t gpio_set_pinmux(const bbb_env_t* env, const pin_t* pin, hal_dio_config_resistor_t resistor);
 hal_error_t gpio_set_edge(const bbb_env_t* env, const pin_t* pin, hal_dio_config_poll_edge_t edge);
 hal_error_t gpio_set_value(const bbb_env_t* env, const pin_t* pin, hal_dio_value_t value);

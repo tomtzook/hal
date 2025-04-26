@@ -23,7 +23,7 @@ hal_error_t configure_bbb_ports(hal_env_t* env) {
         HAL_RETURN_IF_ERROR(halsim_config_port_types(env, handle, pin->supported_types));
         HAL_RETURN_IF_ERROR(halsim_config_port_name(env, handle, pin->name));
 
-        if (pin->supported_types & (HAL_TYPE_DIGITAL_INPUT | HAL_TYPE_DIGITAL_OUTPUT)) {
+        if (pin->supported_types & (HAL_TYPE_DIGITAL_INPUT)) {
             HAL_RETURN_IF_ERROR(halsim_config_port_prop(env, handle, HAL_CONFIG_DIO_POLL_EDGE, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE));
             HAL_RETURN_IF_ERROR(halsim_config_port_prop(env, handle, HAL_CONFIG_DIO_RESISTOR, HAL_CONFIG_FLAG_WRITABLE | HAL_CONFIG_FLAG_READABLE));
         }

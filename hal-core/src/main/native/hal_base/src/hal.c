@@ -28,7 +28,7 @@ static int is_port_config_supported_for_type(const hal_prop_key_t key, const hal
     switch (key) {
         case HAL_CONFIG_DIO_POLL_EDGE:
         case HAL_CONFIG_DIO_RESISTOR:
-            if ((type & (HAL_TYPE_DIGITAL_OUTPUT | HAL_TYPE_DIGITAL_INPUT)) == 0) {
+            if ((type & (HAL_TYPE_DIGITAL_INPUT)) == 0) {
                 return HAL_BASIC_ERROR;
             }
             break;

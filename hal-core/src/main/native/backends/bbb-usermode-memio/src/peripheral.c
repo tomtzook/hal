@@ -19,7 +19,7 @@ static hal_error_t map_memory(const uint32_t base_addr, const size_t size, void*
 
     void* mem = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, (__off_t) base_addr);
     if (mem == MAP_FAILED) {
-        TRACE_SYSTEM_ERROR("failed to map address 0x%x for size 0x%x", base_addr, size);
+        TRACE_ERROR("failed to map address 0x%x for size 0x%x", base_addr, size);
         TRACE_SYSTEM_ERROR();
         return HAL_ERROR_MAPPING_FAILED;
     }
@@ -50,7 +50,7 @@ void unmap_peripheral(peripheral_t* peripheral) {
     }
 
     if (munmap((void*) peripheral->base, peripheral->size)) {
-        TRACE_SYSTEM_ERROR("failed to unmap address 0x%x", peripheral->base);
+        TRACE_ERROR("failed to unmap address 0x%x", peripheral->base);
         TRACE_SYSTEM_ERROR();
     }
 

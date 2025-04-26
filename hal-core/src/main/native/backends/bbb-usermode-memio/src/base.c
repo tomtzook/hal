@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <hal_error_handling.h>
 
 #include "memdefs.h"
@@ -16,13 +17,13 @@ hal_error_t initialize_backend(bbb_env_t** env) {
     memset(_env, 0, sizeof(bbb_env_t));
 
     hal_error_t status = HAL_SUCCESS;
-    const uint32_t gpio_base_addrs[4] {GPIO0_PERIPHERAL_BASE, GPIO1_PERIPHERAL_BASE, GPIO2_PERIPHERAL_BASE, GPIO3_PERIPHERAL_BASE};
     for (int i = 0; i < 4; ++i) {
+        const uint32_t gpio_base_addrs[4] = {GPIO0_PERIPHERAL_BASE, GPIO1_PERIPHERAL_BASE, GPIO2_PERIPHERAL_BASE, GPIO3_PERIPHERAL_BASE};
         status = map_peripheral(&_env->gpio_peripherals[i], gpio_base_addrs[i], GPIO_PERIPHERAL_SIZE);
         HAL_JUMP_IF_ERROR(status, end);
     }
 
-    status = map_peripheral(&_env->control_module, CM_PERIPHERAL_BASE, GCM_PERIPHERAL_SIZE);
+    status = map_peripheral(&_env->control_module, CONTROL_MODULE_PERIPHERAL_BASE, CONTROL_MODULE_PERIPHERAL_SIZE);
     HAL_JUMP_IF_ERROR(status, end);
 
     *env = _env;

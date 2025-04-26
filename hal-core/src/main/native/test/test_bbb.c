@@ -5,7 +5,11 @@
 #include <signal.h>
 
 #include <hal.h>
-#include <bbb_port_ids.h>
+#include <pins.h>
+
+#include "base.h"
+#include "gpio.h"
+
 
 volatile sig_atomic_t continue_running = 1;
 void stop_run(int sig) {
@@ -75,15 +79,56 @@ static void iterports(hal_env_t* env) {
 int main() {
     signal(SIGINT, stop_run);
 
+    bbb_env_t* env;
+    if (HAL_IS_ERROR(initialize_backend(&env))) {
+        return 1;
+    }
 
-    for (int i = 0; i < 10000; i++) {
+    const pin_t* pin = find_pin_by_id(P8_13);
+    if (pin == NULL) {
+        printf("No pin found\n");
+        goto end;
+    }
+
+    unsigned pinux;
+    get_pinmux(env, pin, &pinux);
+    printf("Pinmux pre val=0x%x\n", pinux);
+
+    if (HAL_IS_ERROR(set_pinmux(env, pin, 4))) {
+        printf("set pinmux failed\n");
+        goto end;
+    }
+
+    get_pinmux(env, pin, &pinux);
+    printf("Pinmux post val=0x%x\n", pinux);
+
+    if (HAL_IS_ERROR(gpio_set_direction(env, pin, DIR_OUTPUT))) {
+        printf("set dir failed\n");
+        goto end;
+    }
+
+    printf("READY\n");
+    for (int i = 0; i < 5; i++) {
+        printf("high\n");
+        gpio_set_value(env, pin, HAL_DIO_HIGH);
+        usleep(1000000);
+        printf("low\n");
+        gpio_set_value(env, pin, HAL_DIO_LOW);
+        usleep(1000000);
+    }
+
+    printf("DONE\n");
+
+    /*for (int i = 0; i < 10000; i++) {
         if (!continue_running) {
             break;
         }
 
         usleep(100000000);
-    }
+    }*/
 
+end:
+    free_backend(env);
     return 0;
     /*hal_env_t* env = NULL;
     if (HAL_IS_ERROR(hal_init(&env))) {
